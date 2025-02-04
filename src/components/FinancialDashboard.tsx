@@ -1,7 +1,26 @@
 import React, { useEffect, useState } from "react";
 
-const FinancialDashboard = () => {
-  const [financialData, setFinancialData] = useState([]);
+interface FinancialData {
+  id: number;
+  date: string;
+  invoice_no: string;
+  client: string;
+  gross_amount: number;
+  service_amount: number;
+  total_bill_amount: number;
+  outstanding_amount: number;
+  settled_amount: number;
+  days_since_outstanding: number;
+  remark: string;
+}
+
+const FinancialDashboard: React.FC = () => {
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
+  };
+
+  const [financialData, setFinancialData] = useState<FinancialData[]>([]);
 
   useEffect(() => {
     fetch("http://localhost:5000/api/financial-details")
@@ -30,9 +49,9 @@ const FinancialDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {financialData.map((item: any) => (
+            {financialData.map((item) => (
               <tr key={item.id} className="border">
-                <td className="border px-4 py-2">{item.date}</td>
+                <td className="border px-4 py-2">{formatDate(item.date)}</td>
                 <td className="border px-4 py-2">{item.invoice_no}</td>
                 <td className="border px-4 py-2">{item.client}</td>
                 <td className="border px-4 py-2">{item.gross_amount}</td>

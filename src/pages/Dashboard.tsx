@@ -85,7 +85,7 @@ const Dashboard = () => {
             <div className="mb-4">
               <button
                 onClick={() => setDashboardMenuOpen(!dashboardMenuOpen)}
-                className="w-full flex items-center justify-center gap-6 px-4 py-2 text-gray-300 hover:bg-blue-700 rounded-md"
+                className="w-full flex items-center justify-start gap-6 px-4 py-2 text-gray-300 hover:bg-blue-700 rounded-md"
               >
                 <div className="flex items-center">
                   <LayoutDashboard className="h-5 w-5 mr-2" />
@@ -133,7 +133,6 @@ const Dashboard = () => {
           </nav>
         </div>
       </div>
-      
 
       {/* Main Content */}
       <div className={`transition-all duration-200 ease-in-out ${sidebarOpen ? 'md:ml-64' : 'ml-0'}`}>

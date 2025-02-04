@@ -16,6 +16,12 @@ interface Employee {
 }
 
 const EmployeeDashboard: React.FC = () => {
+  const formatDate = (isoString: string | null) => {
+    if (!isoString) return "N/A";
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB");
+  };
+
   const [employees, setEmployees] = useState<Employee[]>([]);
 
   useEffect(() => {
@@ -58,7 +64,7 @@ const EmployeeDashboard: React.FC = () => {
               <td className="border p-2">{employee.medium_priority}</td>
               <td className="border p-2">{employee.low_priority}</td>
               <td className="border p-2">{employee.pending_claims}</td>
-              <td className="border p-2">{employee.last_timesheet_date || "N/A"}</td>
+              <td className="border p-2">{formatDate(employee.last_timesheet_date)}</td>
             </tr>
           ))}
         </tbody>

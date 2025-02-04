@@ -39,6 +39,13 @@ const ClientDashboard = () => {
       .then((data) => setFinancialData(data))
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+  useEffect(() => {
+    fetch("http://localhost:5000/api/groups")
+      .then((res) => res.json())
+      .then((data) => setGroups(data))
+      .catch((error) => console.error("Error fetching groups:", error));
+  }, []);
+  
 
   const handleClientSelection = (client: Client) => {
     setSelectedClients((prev) =>
