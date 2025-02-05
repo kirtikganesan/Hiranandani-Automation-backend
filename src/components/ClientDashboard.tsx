@@ -40,9 +40,17 @@ const ClientDashboard = () => {
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
   useEffect(() => {
+    // Fetch groups
     fetch("http://localhost:5000/api/groups")
       .then((res) => res.json())
-      .then((data) => setGroups(data))
+      .then((groupData: { id: number; name: string; members: string }[]) => {
+        const updatedGroups: Group[] = groupData.map((group) => ({
+          id: group.id,
+          name: group.name,
+          members: JSON.parse(group.members) || [], // Convert string to actual array
+        }));
+        setGroups(updatedGroups);
+      })
       .catch((error) => console.error("Error fetching groups:", error));
   }, []);
   
@@ -215,6 +223,14 @@ const ClientDashboard = () => {
           </div>
         </div>
       )}
+      {selectedGroup && (
+  <button
+    className="bg-gray-500 text-white px-4 py-2 rounded mb-4"
+    onClick={() => setSelectedGroup(null)}
+  >
+    Back to All Clients
+  </button>
+)}
 
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300">
