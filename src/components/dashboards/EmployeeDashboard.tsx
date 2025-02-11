@@ -53,7 +53,7 @@ const EmployeeDashboard: React.FC = () => {
         </thead>
         <tbody>
           {employees.map((employee) => (
-            <tr key={employee.id} className="text-center">
+            <tr key={employee.id} className="text-center text-sm">
               <td className="border p-2">{employee.employee_name}</td>
               <td className="border p-2">{employee.reports_to}</td>
               <td className="border p-2">{employee.total_services}</td>

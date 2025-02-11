@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import logo from "../assets/newfavicon.png"
 import { Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import {
@@ -14,7 +14,6 @@ import {
   FileBarChart,
   Settings,
   ChevronDown,
-  Building2,
   LogOut
 } from 'lucide-react';
 
@@ -25,17 +24,8 @@ import ClientDashboard from '../components/dashboards/ClientDashboard';
 import FinancialDashboard from '../components/dashboards/FinancialDashboard';
 
 // Import Service Components
-import ServicesFuture from '../components/services/ServicesFuture';
-import ServiceTriggered from '../components/services/ServiceTriggered';
-import ManualAssignment from '../components/services/ManualAssignment';
-import BulkAssignment from '../components/services/BulkAssignment';
-import ServiceDelete from '../components/services/ServiceDelete';
-import ServiceNotStarted from '../components/services/ServiceNotStarted';
-import ServiceInProgress from '../components/services/ServiceInProgress';
-import ServiceUdinPending from '../components/services/ServiceUdinPending';
-import ServiceNotBilled from '../components/services/ServiceNotBilled';
-import ServiceCancelled from '../components/services/ServiceCancelled';
-import TasksCancelled from '../components/services/TasksCancelled';
+import AllServices from '../components/services/AllServices';
+import ServicesTriggeredButNotAlloted from '../components/services/ServicesTriggeredButNotAlloted';
 
 // Import Timesheet Components
 import AddTimesheet from '../components/timesheet/AddTimesheet';
@@ -66,8 +56,9 @@ import StaffReport from '../components/reports/StaffReport';
 
 // Import Other Components
 import IcaiFormats from '../components/icai/IcaiFormats';
-import Masters from '../components/masters/Masters';
 import Campaign from '../components/campaign/Campaign';
+import Employees from '../components/masters/Employees';
+import Clients from '../components/masters/Clients';
 
 const Dashboard = () => {
   const [openMenus, setOpenMenus] = useState<{ [key: string]: boolean }>({
@@ -151,39 +142,13 @@ const Dashboard = () => {
             </button>
             {openMenus.services && (
               <div className="bg-gray-800 pl-8">
-                <Link to="/dashboard/services/future" className="block py-2 px-4 hover:bg-gray-700">
-                  Services Triggering in Future
+                <Link to="/dashboard/services/all-services" className="block py-2 px-4 hover:bg-gray-700">
+                  All Services
                 </Link>
-                <Link to="/dashboard/services/triggered" className="block py-2 px-4 hover:bg-gray-700">
-                  Triggered but not allotted
+                <Link to="/dashboard/services/triggered-but-not-alloted" className="block py-2 px-4 hover:bg-gray-700">
+                  Triggered but Not Alloted
                 </Link>
-                <Link to="/dashboard/services/manual" className="block py-2 px-4 hover:bg-gray-700">
-                  Manual Assignment
-                </Link>
-                <Link to="/dashboard/services/bulk" className="block py-2 px-4 hover:bg-gray-700">
-                  Bulk Service Assignment
-                </Link>
-                <Link to="/dashboard/services/delete" className="block py-2 px-4 hover:bg-gray-700">
-                  Bulk Service Delete
-                </Link>
-                <Link to="/dashboard/services/not-started" className="block py-2 px-4 hover:bg-gray-700">
-                  Allotted but not Started
-                </Link>
-                <Link to="/dashboard/services/in-progress" className="block py-2 px-4 hover:bg-gray-700">
-                  Started but not Completed
-                </Link>
-                <Link to="/dashboard/services/udin-pending" className="block py-2 px-4 hover:bg-gray-700">
-                  Completed but UDIN Pending
-                </Link>
-                <Link to="/dashboard/services/not-billed" className="block py-2 px-4 hover:bg-gray-700">
-                  Completed but not Billed
-                </Link>
-                <Link to="/dashboard/services/cancelled" className="block py-2 px-4 hover:bg-gray-700">
-                  Cancelled Services
-                </Link>
-                <Link to="/dashboard/services/tasks-cancelled" className="block py-2 px-4 hover:bg-gray-700">
-                  Cancelled Tasks
-                </Link>
+                
               </div>
             )}
           </div>
@@ -353,8 +318,11 @@ const Dashboard = () => {
             </button>
             {openMenus.masters && (
               <div className="bg-gray-800 pl-8">
-                <Link to="/dashboard/masters" className="block py-2 px-4 hover:bg-gray-700">
-                  Master Settings
+                <Link to="/dashboard/masters/employees" className="block py-2 px-4 hover:bg-gray-700">
+                  Employees
+                </Link>
+                <Link to="/dashboard/masters/clients" className="block py-2 px-4 hover:bg-gray-700">
+                  Clients
                 </Link>
               </div>
             )}
@@ -385,17 +353,8 @@ const Dashboard = () => {
           <Route path="financial" element={<FinancialDashboard />} />
           
           {/* Services Routes */}
-          <Route path="services/future" element={<ServicesFuture />} />
-          <Route path="services/triggered" element={<ServiceTriggered />} />
-          <Route path="services/manual" element={<ManualAssignment />} />
-          <Route path="services/bulk" element={<BulkAssignment />} />
-          <Route path="services/delete" element={<ServiceDelete />} />
-          <Route path="services/not-started" element={<ServiceNotStarted />} />
-          <Route path="services/in-progress" element={<ServiceInProgress />} />
-          <Route path="services/udin-pending" element={<ServiceUdinPending />} />
-          <Route path="services/not-billed" element={<ServiceNotBilled />} />
-          <Route path="services/cancelled" element={<ServiceCancelled />} />
-          <Route path="services/tasks-cancelled" element={<TasksCancelled />} />
+          <Route path="services/all-services" element={<AllServices />} />
+          <Route path="services/triggered-but-not-alloted" element={<ServicesTriggeredButNotAlloted />} />
           
           {/* Timesheet Routes */}
           <Route path="timesheet/add" element={<AddTimesheet />} />
@@ -426,7 +385,8 @@ const Dashboard = () => {
           
           {/* Other Routes */}
           <Route path="icai" element={<IcaiFormats />} />
-          <Route path="masters" element={<Masters />} />
+          <Route path="masters/employees" element={<Employees />} />
+          <Route path="masters/clients" element={<Clients />} />
           <Route path="campaign" element={<Campaign />} />
         </Routes>
       </div>

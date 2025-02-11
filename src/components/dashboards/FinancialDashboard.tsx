@@ -50,7 +50,7 @@ const FinancialDashboard: React.FC = () => {
           </thead>
           <tbody>
             {financialData.map((item) => (
-              <tr key={item.id} className="border">
+              <tr key={item.id} className="border text-sm text-center">
                 <td className="border px-4 py-2">{formatDate(item.date)}</td>
                 <td className="border px-4 py-2">{item.invoice_no}</td>
                 <td className="border px-4 py-2">{item.client}</td>

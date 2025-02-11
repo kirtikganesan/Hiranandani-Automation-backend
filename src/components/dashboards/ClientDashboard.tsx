@@ -64,8 +64,12 @@ const ClientDashboard = () => {
   };
 
   const createGroup = () => {
-    if (selectedClients.length < 2 || !groupName.trim()) {
+    if (selectedClients.length < 2) {
       setModalMessage("Group should be created with a minimum of 2 members.");
+      return;
+    }
+    if(!groupName.trim()){
+      setModalMessage("Please enter Group name.");
       return;
     }
 
@@ -252,8 +256,8 @@ const ClientDashboard = () => {
           </thead>
           <tbody>
             {displayedData.map((item) => (
-              <tr key={item.id} className="border">
-                <td className="p-2">
+              <tr key={item.id} className="border text-sm text-center">
+                <td className="p-2 ">
                   <input
                     type="checkbox"
                     checked={selectedClients.includes(item)}

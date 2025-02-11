@@ -108,6 +108,140 @@ app.delete('/api/groups/:id', (req, res) => {
   });
 });
 
+app.get('/api/all-services', (req, res) => {
+  const query = 'SELECT * FROM all_services';
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Error fetching data:', err);
+          return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.json(results);
+  });
+});
+
+// API endpoint to fetch employee details
+app.get('/api/employee-details', (req, res) => {
+    const query = `
+        SELECT 
+            employee_name, 
+            role, 
+            phone, 
+            email, 
+            todays_working_status, 
+            branch, 
+            reports_to, 
+            status 
+        FROM employee_details
+    `;
+
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching employee data:', err);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+        res.json(results);
+    });
+});
+
+app.put("/api/employee-details/:id/deactivate", (req, res) => {
+  const employeeId = req.params.id;
+
+  const sql = "UPDATE employee_details SET status = 'Inactive' WHERE id = ?";
+  
+  db.query(sql, [employeeId], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json({ message: "Employee deactivated successfully" });
+  });
+});
+
+app.get("/api/services-triggered-but-not-alloted", (req, res) => {
+  const query = "SELECT * FROM services_triggered_but_not_alloted";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json(results);
+  });
+});
+
+app.post("/api/assign-service", (req, res) => {
+  const { services, alloted_to, due_date } = req.body;
+  const formattedDueDate = due_date.split("/").reverse().join("-");
+  try {
+     db.query(
+      "INSERT INTO all_services (services, alloted_to, due_date, status, udin) VALUES (?, ?, ?, 'Pending', 'N/A')",
+      [services, alloted_to, formattedDueDate]
+    );
+    res.json({ message: "Task assigned successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: "Database error!" });
+  }
+});
+
+app.get('/api/timesheet', (req, res) => {
+  const query = 'SELECT * FROM timesheet ORDER BY timesheet_date DESC';
+  
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error('Error fetching timesheet data:', err);
+          return res.status(500).json({ error: 'Database query error' });
+      }
+      res.json(results);
+  });
+});
+
+app.post('/api/timesheets', (req, res) => {
+  const {
+      timesheet_date, worked_at, in_time, out_time, total_time, allotted_client, service,
+      non_allotted_services, office_related, notice_appointment
+  } = req.body;
+
+  const sql = `INSERT INTO timesheet (timesheet_date, worked_at, in_time, out_time, total_time, allotted_client, service, non_allotted_services, office_related, notice_appointment)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(sql, [
+      timesheet_date, worked_at, in_time, out_time, total_time, allotted_client, service,
+      non_allotted_services ? 1 : 0,
+      office_related ? 1 : 0,
+      notice_appointment ? 1 : 0
+  ], (err, result) => {
+      if (err) {
+          console.error("Error inserting timesheet:", err);
+          return res.status(500).json({ error: "Database error" });
+      }
+      res.status(201).json({ message: "Timesheet added successfully" });
+  });
+});
+
+app.get("/api/appointments", (req, res) => {
+  db.query("SELECT * FROM appointment", (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.json(result);
+  });
+});
+
+// Insert new appointment
+app.post('/api/appointments', (req, res) => {
+  const {
+    appointment_date, client_name, to_meet, from_time, to_time, enter_location, meeting_purpose} = req.body;
+
+  const query = `INSERT INTO appointment (appointment_date, client_name, to_meet, from_time, to_time, enter_location, meeting_purpose)
+                 VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(query, [appointment_date, client_name, to_meet, from_time, to_time, enter_location, meeting_purpose],
+    (err, result) => {
+      if (err) {
+        console.error('Error inserting appointment:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({ message: 'Appointment saved successfully' });
+    }
+  );
+});
 // ✅ Start Server
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);
