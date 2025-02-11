@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import axios from "axios";
 
 const AddTimesheet = () => {
@@ -14,6 +14,18 @@ const AddTimesheet = () => {
     office_related: false,
     notice_appointment: false,
   });
+
+  const [clients, setClients] = useState<string[]>([]);
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/client-details")
+      .then((response) => {
+        setClients(response.data.map((client: { client_name: string }) => client.client_name));
+      })
+      .catch((error) => {
+        console.error("Error fetching clients:", error);
+      });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -140,15 +152,19 @@ const AddTimesheet = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
+          <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Allotted Client</label>
-              <input
-                type="text"
+              <select
                 name="allotted_client"
                 value={formData.allotted_client}
                 onChange={handleChange}
                 className="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-              />
+              >
+                <option value="">Select</option>
+                {clients.map((client, index) => (
+                  <option key={index} value={client}>{client}</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
