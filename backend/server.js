@@ -242,6 +242,42 @@ app.post('/api/appointments', (req, res) => {
     }
   );
 });
+
+app.post("/api/manual-assignment", (req, res) => {
+  const {
+    financialYear,
+    mainCategory,
+    triggerDate,
+    clientId,
+    services,
+    targetDate,
+    priority,
+    feesPeriod,
+    workReportingHead,
+    remark,
+    employee, // This will be stored in `alloted_to`
+    sop
+  } = req.body;
+
+  const query = `INSERT INTO all_services 
+    (services, alloted_to, due_date, status, udin, created_at, main_category, trigger_date, client_id, target_date, priority, fees_period, work_reporting_head, remark, sop_instructions, financial_year)
+    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(query, [
+    services, employee, targetDate, "Pending", "", 
+    mainCategory, triggerDate, clientId, targetDate, priority, 
+    feesPeriod, workReportingHead, remark, sop, financialYear // Added financialYear
+  ], (err, result) => {
+    if (err) {
+      console.error("Error inserting data:", err);
+      res.status(500).json({ error: "Failed to save data" });
+    } else {
+      res.status(200).json({ message: "Data saved successfully" });
+    }
+  });
+});
+
+
 // ✅ Start Server
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);

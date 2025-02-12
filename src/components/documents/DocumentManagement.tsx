@@ -1,100 +1,148 @@
-import React from 'react';
-import { FileText, Download, Trash2 } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, X, Plus } from "lucide-react";
 
-const DocumentManagement = () => {
-  const documents = [
-    {
-      id: 1,
-      name: 'GST_Report_2024.pdf',
-      type: 'PDF',
-      size: '2.5 MB',
-      uploadedBy: 'John Doe',
-      uploadDate: '2024-02-28'
-    },
-    {
-      id: 2,
-      name: 'Financial_Statement_Q4.xlsx',
-      type: 'Excel',
-      size: '1.8 MB',
-      uploadedBy: 'Jane Smith',
-      uploadDate: '2024-02-27'
-    },
-    // Add more dummy data
-  ];
+export default function InwardDocument() {
+  const [documents, setDocuments] = useState<Array<{
+    particulars: string;
+    type: string;
+    mode: string;
+    stored: string;
+    quantity: string;
+    returnable: boolean;
+    file?: File;
+  }>>([]);
+
+  const addDocument = () => {
+    setDocuments([...documents, {
+      particulars: '',
+      type: '',
+      mode: '',
+      stored: '',
+      quantity: '',
+      returnable: false
+    }]);
+  };
+
+  const removeDocument = (index: number) => {
+    setDocuments(documents.filter((_, i) => i !== index));
+  };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold">Document Management</h2>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
-          Upload New Document
-        </button>
+    <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow">
+      <h1 className="text-2xl font-bold mb-6">Inward Document</h1>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div>
+          <label htmlFor="date" className="block text-sm font-medium mb-1">
+            Date <span className="text-red-500">*</span>
+          </label>
+          <input type="date" id="date" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div>
+          <label htmlFor="branch" className="block text-sm font-medium mb-1">
+            Branch <span className="text-red-500">*</span>
+          </label>
+          <select id="branch" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Select branch</option>
+            <option value="all">All</option>
+            <option value="branch1">Branch 1</option>
+            <option value="branch2">Branch 2</option>
+          </select>
+        </div>
+
+        <div>
+          <label htmlFor="clientName" className="block text-sm font-medium mb-1">
+            Client Name <span className="text-red-500">*</span>
+          </label>
+          <select id="clientName" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">Select client</option>
+            <option value="client1">Client 1</option>
+            <option value="client2">Client 2</option>
+          </select>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Document Name
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Size
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Uploaded By
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Upload Date
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Actions
-                </th>
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-800 text-white">
+              <th className="p-3 text-left">Particulars</th>
+              <th className="p-3 text-left">Type of Document</th>
+              <th className="p-3 text-left">Mode of Inward</th>
+              <th className="p-3 text-left">Stored in</th>
+              <th className="p-3 text-left">Quantity</th>
+              <th className="p-3 text-left">Returnable</th>
+              <th className="p-3 text-left">Upload Document</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {documents.map((doc, index) => (
+              <tr key={index} className="border-b">
+                <td className="p-3">
+                  <input type="text" placeholder="Enter particulars" className="w-full px-3 py-2 border rounded-md" />
+                </td>
+                <td className="p-3">
+                  <select className="w-full px-3 py-2 border rounded-md">
+                    <option value="">Select type</option>
+                    <option value="type1">Type 1</option>
+                    <option value="type2">Type 2</option>
+                  </select>
+                </td>
+                <td className="p-3">
+                  <select className="w-full px-3 py-2 border rounded-md">
+                    <option value="">Select mode</option>
+                    <option value="mode1">Mode 1</option>
+                    <option value="mode2">Mode 2</option>
+                  </select>
+                </td>
+                <td className="p-3">
+                  <select className="w-full px-3 py-2 border rounded-md">
+                    <option value="">Select storage</option>
+                    <option value="storage1">Storage 1</option>
+                    <option value="storage2">Storage 2</option>
+                  </select>
+                </td>
+                <td className="p-3">
+                  <input type="number" placeholder="Quantity" className="w-full px-3 py-2 border rounded-md" />
+                </td>
+                <td className="p-3">
+                  <input type="checkbox" className="w-4 h-4" />
+                </td>
+                <td className="p-3">
+                  <input type="file" accept=".jpeg,.pdf,.jpg,.png,.docx,.doc" className="w-full" />
+                </td>
+                <td className="p-3">
+                  <button
+                    onClick={() => removeDocument(index)}
+                    className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </td>
               </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {documents.map((doc) => (
-                <tr key={doc.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <FileText className="h-5 w-5 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{doc.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doc.type}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doc.size}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doc.uploadedBy}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {doc.uploadDate}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex space-x-3">
-                      <button className="text-blue-600 hover:text-blue-900">
-                        <Download className="h-5 w-5" />
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <Trash2 className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="mt-4 flex justify-between">
+        <button
+          onClick={addDocument}
+          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+        >
+          <Plus className="h-4 w-4 mr-2" /> Add Row
+        </button>
+        <div className="space-x-2">
+          <button className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+            Cancel
+          </button>
+          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            Save
+          </button>
         </div>
       </div>
     </div>
   );
-};
-
-export default DocumentManagement;
+}

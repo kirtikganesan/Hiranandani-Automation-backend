@@ -26,6 +26,7 @@ import FinancialDashboard from '../components/dashboards/FinancialDashboard';
 // Import Service Components
 import AllServices from '../components/services/AllServices';
 import ServicesTriggeredButNotAlloted from '../components/services/ServicesTriggeredButNotAlloted';
+import ManualAssignment from '../components/services/ManualAssignment';
 
 // Import Timesheet Components
 import AddTimesheet from '../components/timesheet/AddTimesheet';
@@ -147,6 +148,9 @@ const Dashboard = () => {
                 </Link>
                 <Link to="/dashboard/services/triggered-but-not-alloted" className="block py-2 px-4 hover:bg-gray-700">
                   Triggered but Not Alloted
+                </Link>
+                <Link to="/dashboard/services/manual-assignment" className="block py-2 px-4 hover:bg-gray-700">
+                  Manual Assignment
                 </Link>
                 
               </div>
@@ -355,6 +359,7 @@ const Dashboard = () => {
           {/* Services Routes */}
           <Route path="services/all-services" element={<AllServices />} />
           <Route path="services/triggered-but-not-alloted" element={<ServicesTriggeredButNotAlloted />} />
+          <Route path="services/manual-assignment" element={<ManualAssignment />} />
           
           {/* Timesheet Routes */}
           <Route path="timesheet/add" element={<AddTimesheet />} />

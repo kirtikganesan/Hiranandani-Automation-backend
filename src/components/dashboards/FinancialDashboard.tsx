@@ -32,23 +32,23 @@ const FinancialDashboard: React.FC = () => {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Financial Dashboard</h2>
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="w-full bg-white">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="border px-4 py-2">Date</th>
-              <th className="border px-4 py-2">Invoice No</th>
-              <th className="border px-4 py-2">Client</th>
-              <th className="border px-4 py-2">Gross Amount</th>
-              <th className="border px-4 py-2">Service Amount</th>
-              <th className="border px-4 py-2">Total Bill Amount</th>
-              <th className="border px-4 py-2">Outstanding Amount</th>
-              <th className="border px-4 py-2">Settled Amount</th>
-              <th className="border px-4 py-2">Days Since Outstanding</th>
-              <th className="border px-4 py-2">Remark</th>
+            <tr className="bg-gray-800 text-white">
+              <th className="border px-4 py-3 text-center font-semibold">Date</th>
+              <th className="border px-4 py-3 text-center font-semibold">Invoice No</th>
+              <th className="border px-4 py-3 text-center font-semibold">Client</th>
+              <th className="border px-4 py-3 text-center font-semibold">Gross Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Service Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Total Bill Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Outstanding Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Settled Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Days Since Outstanding</th>
+              <th className="border px-4 py-3 text-center font-semibold">Remark</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-gray-100">
             {financialData.map((item) => (
               <tr key={item.id} className="border text-sm text-center">
                 <td className="border px-4 py-2">{formatDate(item.date)}</td>
