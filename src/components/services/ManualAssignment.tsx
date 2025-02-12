@@ -1,6 +1,7 @@
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
+import axios from "axios";
 export default function ManualAssignment() {
+
   const [formData, setFormData] = useState({
     financialYear: "2024-2025",
     mainCategory: "",
@@ -15,6 +16,19 @@ export default function ManualAssignment() {
     employee: "",
     sopInstructions: "",
   });
+
+  const [clients, setClients] = useState<{ client_id: number; client_name: string }[]>([]);
+  const [employees, setEmployees] = useState<{ employee_id: number; employee_name: string }[]>([]);
+
+
+  useEffect(() => {
+    axios.get("http://localhost:5000/api/client-details").then((response) => {
+      setClients(response.data);
+    });
+    axios.get("http://localhost:5000/api/employee-details").then((response) => {
+      setEmployees(response.data);
+    });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -76,7 +90,19 @@ export default function ManualAssignment() {
 
         <div>
           <label className="block text-sm font-medium mb-1">Clients <span className="text-red-500">*</span></label>
-          <input type="text" name="clientId" value={formData.clientId} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
+          <select
+            name="clientId"
+            value={formData.clientId}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="">Select Client</option>
+            {clients.map((client) => (
+              <option key={client.client_id} value={client.client_id}>
+                {client.client_name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -116,21 +142,36 @@ export default function ManualAssignment() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Employee</label>
-          <input type="text" name="employee" value={formData.employee} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
+          <label className="block text-sm font-medium mb-1">Employee <span className="text-red-500">*</span></label>
+          <select
+            name="employee"
+            value={formData.employee}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border rounded-md"
+          >
+            <option value="">Select Employee</option>
+            {employees.map((employee) => (
+              <option key={employee.employee_id} value={employee.employee_id}>
+                {employee.employee_name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="mt-6">
+          <label className="block text-sm font-medium mb-1">SOP / Instructions</label>
+          <textarea name="sopInstructions" value={formData.sopInstructions} onChange={handleChange} className="w-full px-3 py-2 border rounded-md h-32"></textarea>
+        </div>
+
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+            Save
+          </button>
         </div>
       </div>
-
-      <div className="mt-6">
-        <label className="block text-sm font-medium mb-1">SOP / Instructions</label>
-        <textarea name="sopInstructions" value={formData.sopInstructions} onChange={handleChange} className="w-full px-3 py-2 border rounded-md h-32"></textarea>
-      </div>
-
-      <div className="mt-6 flex justify-end">
-        <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-          Save
-        </button>
-      </div>
-    </div>
+    
   );
 }
+

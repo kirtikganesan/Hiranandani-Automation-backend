@@ -37,7 +37,8 @@ const TimesheetList: React.FC = () => {
 
     return (
         <div className="p-6">
-            <h2 className="text-xl font-semibold mb-4">Timesheet List</h2>
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Timesheet List</h2>
+            <div className=' overflow-x-auto rounded-lg shadow'>
             {loading ? (
                 <p>Loading...</p>
             ) : timesheetData.length === 0 ? (
@@ -45,7 +46,7 @@ const TimesheetList: React.FC = () => {
             ) : (
                 <table className="w-full border-collapse border border-gray-300">
                     <thead>
-                        <tr className="bg-gray-200">
+                        <tr className="bg-gray-800 text-white">
                             <th className="border border-gray-300 p-2">Date</th>
                             <th className="border border-gray-300 p-2">Worked At</th>
                             <th className="border border-gray-300 p-2">In Time</th>
@@ -76,6 +77,7 @@ const TimesheetList: React.FC = () => {
                     </tbody>
                 </table>
             )}
+        </div>
         </div>
     );
 };

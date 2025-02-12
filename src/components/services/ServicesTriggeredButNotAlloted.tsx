@@ -96,19 +96,19 @@ const ServicesTriggeredButNotAlloted = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">
+      <h1 className="text-2xl font-bold text-center mb-4 text-gray-800">
         Services Triggered but Not Allotted
       </h1>
 
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg shadow">
         {services.length === 0 ? (
           <p className="text-center text-gray-500 text-lg font-semibold mt-4">
             No data available
           </p>
         ) : (
-          <table className="min-w-full bg-white border border-gray-300 shadow-lg">
+          <table className="min-w-full bg-white border border-gray-300 ">
             <thead>
-              <tr className="bg-gray-200">
+              <tr className="bg-gray-800 text-white">
                 <th className="px-4 py-2 border">Client Code</th>
                 <th className="px-4 py-2 border">Client Name</th>
                 <th className="px-4 py-2 border">Services</th>

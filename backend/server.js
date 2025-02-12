@@ -143,19 +143,76 @@ app.get('/api/employee-details', (req, res) => {
     });
 });
 
-app.put("/api/employee-details/:id/deactivate", (req, res) => {
+app.delete("/api/employee-details/:id", (req, res) => {
   const employeeId = req.params.id;
 
-  const sql = "UPDATE employee_details SET status = 'Inactive' WHERE id = ?";
+  const sql = "DELETE FROM employee_details WHERE id = ?";
   
   db.query(sql, [employeeId], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ error: "Database error" });
     }
-    res.json({ message: "Employee deactivated successfully" });
+    res.json({ message: "Employee deleted successfully" });
   });
 });
+
+app.put("/api/employee-details/:id", (req, res) => {
+  const employeeId = req.params.id;
+  const {
+    employee_name,
+    reports_to,
+    total_services,
+    allotted_but_not_started,
+    past_due,
+    probable_overdue,
+    high_pri,
+    medium_pri,
+    low_pri,
+    pending_claims,
+    last_timesheet_date,
+    role,
+    phone,
+    email,
+    todays_working_status
+  } = req.body;
+
+  const sql = `
+    UPDATE employee_details 
+    SET employee_name = ?, reports_to = ?, total_services = ?, 
+        allotted_but_not_started = ?, past_due = ?, probable_overdue = ?, 
+        high_pri = ?, medium_pri = ?, low_pri = ?, pending_claims = ?, 
+        last_timesheet_date = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
+    WHERE id = ?`;
+
+  const values = [
+    employee_name,
+    reports_to,
+    total_services,
+    allotted_but_not_started,
+    past_due,
+    probable_overdue,
+    high_pri,
+    medium_pri,
+    low_pri,
+    pending_claims,
+    last_timesheet_date,
+    role,
+    phone,
+    email,
+    todays_working_status,
+    employeeId
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json({ message: "Employee updated successfully" });
+  });
+});
+
 
 app.get("/api/services-triggered-but-not-alloted", (req, res) => {
   const query = "SELECT * FROM services_triggered_but_not_alloted";
@@ -261,7 +318,7 @@ app.post("/api/manual-assignment", (req, res) => {
 
   const query = `INSERT INTO all_services 
     (services, alloted_to, due_date, status, udin, created_at, main_category, trigger_date, client_id, target_date, priority, fees_period, work_reporting_head, remark, sop_instructions, financial_year)
-    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    VALUES (?, ?, ?, ?, "N/A", NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
   db.query(query, [
     services, employee, targetDate, "Pending", "", 
@@ -275,6 +332,36 @@ app.post("/api/manual-assignment", (req, res) => {
       res.status(200).json({ message: "Data saved successfully" });
     }
   });
+});
+
+
+app.put("/api/update-service/:id", async (req, res) => {
+  const { id } = req.params;
+  const { services, alloted_to, due_date, status, udin } = req.body;
+
+  if (!services || !alloted_to || !due_date || !status || !udin) {
+      return res.status(400).json({ error: "All fields are required" });
+  }
+
+  try {
+      const query = `
+          UPDATE all_services 
+          SET services = ?, alloted_to = ?, due_date = ?, status = ?, udin = ?
+          WHERE id = ?
+      `;
+      const values = [services, alloted_to, due_date, status, udin, id];
+
+      db.query(query, values, (err, result) => {
+          if (err) {
+              console.error("Error updating service:", err);
+              return res.status(500).json({ error: "Database update failed" });
+          }
+          res.json({ message: "Service updated successfully" });
+      });
+  } catch (error) {
+      console.error("Server error:", error);
+      res.status(500).json({ error: "Internal server error" });
+  }
 });
 
 

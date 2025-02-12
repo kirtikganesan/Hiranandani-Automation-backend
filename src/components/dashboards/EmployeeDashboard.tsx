@@ -33,19 +33,19 @@ const EmployeeDashboard: React.FC = () => {
 
   return (
     <div className="p-4 md:p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Employee Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800 text-center">Employee Dashboard</h2>
 
       <div className="overflow-x-auto rounded-lg shadow">
-        <table className="w-full bg-white">
+        <table className="w-full bg-white border border-gray-300">
           <thead>
             <tr className="bg-gray-800 text-white">
-              <th className="px-4 py-3 text-left font-semibold">Employee Name</th>
-              <th className="px-4 py-3 text-left font-semibold">Reports To</th>
-              <th className="px-4 py-3 text-center font-semibold">Total Services</th>
-              <th className="px-4 py-3 text-center font-semibold">Not Started</th>
-              <th className="px-4 py-3 text-center font-semibold">Past Due</th>
-              <th className="px-4 py-3 text-center font-semibold">Probable Overdue</th>
-              <th className="px-4 py-3 text-center font-semibold whitespace-nowrap">
+              <th className="border px-4 py-3 text-left font-semibold">Employee Name</th>
+              <th className="border px-4 py-3 text-left font-semibold">Reports To</th>
+              <th className="border px-4 py-3 text-center font-semibold">Total Services</th>
+              <th className="border px-4 py-3 text-center font-semibold">Not Started</th>
+              <th className="border px-4 py-3 text-center font-semibold">Past Due</th>
+              <th className="border px-4 py-3 text-center font-semibold">Probable Overdue</th>
+              <th className="border px-4 py-3 text-center font-semibold whitespace-nowrap">
                 <div>Priority</div>
                 <div className="flex justify-center space-x-4 mt-1 text-xs">
                   <span>High</span>
@@ -53,45 +53,45 @@ const EmployeeDashboard: React.FC = () => {
                   <span>Low</span>
                 </div>
               </th>
-              <th className="px-4 py-3 text-center font-semibold">Pending Claims</th>
-              <th className="px-4 py-3 text-center font-semibold">Last Timesheet</th>
+              <th className="border px-4 py-3 text-center font-semibold">Pending Claims</th>
+              <th className="border px-4 py-3 text-center font-semibold">Last Timesheet</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-100"> 
             {employees.map((employee) => (
               <tr 
                 key={employee.id} 
-                className="hover:bg-gray-50 transition-colors"
+                className="border hover:bg-gray-50 transition-colors"
               >
-                <td className="px-4 py-3 text-left font-medium">
+                <td className="border px-4 py-3 text-left font-medium">
                   {employee.employee_name}
                 </td>
-                <td className="px-4 py-3 text-left">
+                <td className="border px-4 py-3 text-left">
                   {employee.reports_to}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {employee.total_services}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {employee.allotted_but_not_started}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {employee.past_due}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {employee.probable_overdue}
                 </td>
-                <td className="px-4 py-3">
+                <td className="border px-4 py-3">
                   <div className="flex justify-center space-x-4">
                     {employee.high_priority}
                     {employee.medium_priority}
                     {employee.low_priority}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {employee.pending_claims}
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="border px-4 py-3 text-center">
                   {formatDate(employee.last_timesheet_date)}
                 </td>
               </tr>

@@ -31,15 +31,15 @@ const FinancialDashboard: React.FC = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Financial Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">Financial Dashboard</h2>
       <div className="overflow-x-auto rounded-lg shadow">
-        <table className="w-full bg-white">
+        <table className="w-full bg-white border-collapse border border-gray-300">
           <thead>
-            <tr className="bg-gray-800 text-white">
-              <th className="border px-4 py-3 text-center font-semibold">Date</th>
+            <tr className="bg-gray-800 text-white text-sm">
               <th className="border px-4 py-3 text-center font-semibold">Invoice No</th>
               <th className="border px-4 py-3 text-center font-semibold">Client</th>
               <th className="border px-4 py-3 text-center font-semibold">Gross Amount</th>
+              <th className="border px-4 py-3 text-center font-semibold">Date</th>
               <th className="border px-4 py-3 text-center font-semibold">Service Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Total Bill Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Outstanding Amount</th>
@@ -50,7 +50,7 @@ const FinancialDashboard: React.FC = () => {
           </thead>
           <tbody className="divide-y divide-gray-100">
             {financialData.map((item) => (
-              <tr key={item.id} className="border text-sm text-center">
+              <tr key={item.id} className="text-sm text-center">
                 <td className="border px-4 py-2">{formatDate(item.date)}</td>
                 <td className="border px-4 py-2">{item.invoice_no}</td>
                 <td className="border px-4 py-2">{item.client}</td>

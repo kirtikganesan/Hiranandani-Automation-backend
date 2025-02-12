@@ -142,7 +142,7 @@ const ClientDashboard = () => {
 
   return (
     <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Client Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-4 text-gray-800">Client Dashboard</h2>
       <div className="mb-4">
         <input
           type="text"
@@ -236,22 +236,22 @@ const ClientDashboard = () => {
   </button>
 )}
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
+      <div className="overflow-x-auto rounded-lg shadow">
+        <table className="w-full border border-gray-300">
           <thead>
-            <tr className="bg-gray-200">
-              <th className="p-2">Select</th>
-              <th className="p-2">Client Name</th>
-              <th className="p-2">Total</th>
-              <th className="p-2">Unallotted</th>
-              <th className="p-2">Pastdue</th>
-              <th className="p-2">Probable Overdue</th>
-              <th className="p-2">High</th>
-              <th className="p-2">Medium</th>
-              <th className="p-2">Low</th>
-              <th className="p-2">Documents</th>
-              <th className="p-2">Billed & Outstanding</th>
-              <th className="p-2">Unbilled</th>
+            <tr className="bg-gray-800 text-white">
+              <th className="p-2 border">Select</th>
+              <th className="p-2 border">Client Name</th>
+              <th className="p-2 border">Total</th>
+              <th className="p-2 border">Unallotted</th>
+              <th className="p-2 border">Pastdue</th>
+              <th className="p-2 border">Probable Overdue</th>
+              <th className="p-2 border">High</th>
+              <th className="p-2 border">Medium</th>
+              <th className="p-2 border">Low</th>
+              <th className="p-2 border">Documents</th>
+              <th className="p-2 border">Billed & Outstanding</th>
+              <th className="p-2 border">Unbilled</th>
             </tr>
           </thead>
           <tbody>
@@ -264,17 +264,17 @@ const ClientDashboard = () => {
                     onChange={() => handleClientSelection(item)}
                   />
                 </td>
-                <td className="p-2">{item.client_name} ({item.full_name})</td>
-                <td className="p-2">{item.total}</td>
-                <td className="p-2">{item.unallotted}</td>
-                <td className="p-2">{item.pastdue}</td>
-                <td className="p-2">{item.probable_overdue}</td>
-                <td className="p-2">{item.high}</td>
-                <td className="p-2">{item.medium}</td>
-                <td className="p-2">{item.low}</td>
-                <td className="p-2">{item.documents}</td>
-                <td className="p-2">{item.billed_outstanding}</td>
-                <td className="p-2">{item.unbilled}</td>
+                <td className="p-2 border">{item.client_name} ({item.full_name})</td>
+                <td className="p-2 border">{item.total}</td>
+                <td className="p-2 border">{item.unallotted}</td>
+                <td className="p-2 border">{item.pastdue}</td>
+                <td className="p-2 border">{item.probable_overdue}</td>
+                <td className="p-2 border">{item.high}</td>
+                <td className="p-2 border">{item.medium}</td>
+                <td className="p-2 border">{item.low}</td>
+                <td className="p-2 border">{item.documents}</td>
+                <td className="p-2 border">{item.billed_outstanding}</td>
+                <td className="p-2 border">{item.unbilled}</td>
               </tr>
             ))}
           </tbody>
