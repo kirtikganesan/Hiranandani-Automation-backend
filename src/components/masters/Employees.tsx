@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Employee {
-  employeeId: number;
+  id: number;
   employee_name: string;
   role: string;
   phone: string;
@@ -30,6 +30,8 @@ const Employees = () => {
     axios
       .get("http://localhost:5000/api/employee-details")
       .then((response) => {
+        console.log(response.data);
+        
         setEmployees(response.data);
         setLoading(false);
       })
@@ -47,11 +49,12 @@ const Employees = () => {
   };
 
   const confirmDelete = () => {
+    console.log("Deleting Employee with ID:", selectedEmployee?.id); // Debugging log
     if (selectedEmployee) {
       axios
-        .delete(`http://localhost:5000/api/employee-details/${selectedEmployee.employeeId}`)
+        .delete(`http://localhost:5000/api/employee-details/${selectedEmployee.id}`)
         .then(() => {
-          setEmployees((prevEmployees) => prevEmployees.filter((emp) => emp.employeeId !== selectedEmployee.employeeId));
+          setEmployees((prevEmployees) => prevEmployees.filter((emp) => emp.id !== selectedEmployee.id));
           setModalOpen(false);
           setSelectedEmployee(null);
         })
@@ -76,10 +79,10 @@ const Employees = () => {
   const submitEdit = () => {
     if (editFormData) {
       axios
-        .put(`http://localhost:5000/api/employee-details/${editFormData.employeeId}`, editFormData)
+        .put(`http://localhost:5000/api/employee-details/${editFormData.id}`, editFormData)
         .then(() => {
           setEmployees((prevEmployees) =>
-            prevEmployees.map((emp) => (emp.employeeId === editFormData.employeeId ? editFormData : emp))
+            prevEmployees.map((emp) => (emp.id === editFormData.id ? editFormData : emp))
           );
           setEditModalOpen(false);
           setEditFormData(null);
@@ -98,13 +101,13 @@ const Employees = () => {
       <h1 className="text-2xl font-bold text-center mb-4">Employees</h1>
 
       {/* Employee Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-lg border">
         {employees.length === 0 ? (
           <p className="text-center text-gray-500 text-lg font-semibold mt-4">No data available</p>
         ) : (
           <table className="min-w-full bg-white border border-gray-300 shadow-lg">
             <thead>
-              <tr className="bg-gray-200">
+              <tr className="bg-gray-800 text-white text-sm">
                 <th className="px-4 py-2 border">Employee Name</th>
                 <th className="px-4 py-2 border">Role</th>
                 <th className="px-4 py-2 border">Phone</th>
@@ -116,9 +119,9 @@ const Employees = () => {
               </tr>
             </thead>
             <tbody>
-              {employees.map((employee, index) => (
-                <tr key={index} className="text-center hover:bg-gray-100">
-                  <td className="px-4 py-2 border">{employee.employee_name}</td>
+              {employees.map((employee) => (
+                <tr key={employee.id} className="text-center hover:bg-gray-100">
+                  <td className="px-4 py-2 border font-semibold">{employee.employee_name}</td>
                   <td className="px-4 py-2 border">{employee.role}</td>
                   <td className="px-4 py-2 border">{employee.phone}</td>
                   <td className="px-4 py-2 border">{employee.email}</td>

@@ -108,29 +108,32 @@ app.delete('/api/groups/:id', (req, res) => {
   });
 });
 
-app.get('/api/all-services', (req, res) => {
-  const query = 'SELECT * FROM all_services';
-  db.query(query, (err, results) => {
-      if (err) {
-          console.error('Error fetching data:', err);
-          return res.status(500).json({ error: 'Internal Server Error' });
-      }
-      res.json(results);
+app.get("/api/all-services", (req, res) => {
+  const { alloted_to } = req.query;
+
+  let sql = "SELECT * FROM all_services";
+  const params = [];
+
+  if (alloted_to) {
+    sql += " WHERE alloted_to = ?";
+    params.push(alloted_to);
+  }
+
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.json(result);
   });
 });
+
 
 // API endpoint to fetch employee details
 app.get('/api/employee-details', (req, res) => {
     const query = `
         SELECT 
-            employee_name, 
-            role, 
-            phone, 
-            email, 
-            todays_working_status, 
-            branch, 
-            reports_to, 
-            status 
+            *
         FROM employee_details
     `;
 
@@ -144,64 +147,42 @@ app.get('/api/employee-details', (req, res) => {
 });
 
 app.delete("/api/employee-details/:id", (req, res) => {
-  const employeeId = req.params.id;
+  const id = req.params.id;
+  console.log("Deleting Employee with ID:", id); // Debug log
 
   const sql = "DELETE FROM employee_details WHERE id = ?";
-  
-  db.query(sql, [employeeId], (err, result) => {
+  db.query(sql, [id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ error: "Database error" });
     }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Employee not found" });
+    }
+    console.log("Employee deleted successfully!");
     res.json({ message: "Employee deleted successfully" });
   });
 });
 
+
 app.put("/api/employee-details/:id", (req, res) => {
   const employeeId = req.params.id;
-  const {
-    employee_name,
-    reports_to,
-    total_services,
-    allotted_but_not_started,
-    past_due,
-    probable_overdue,
-    high_pri,
-    medium_pri,
-    low_pri,
-    pending_claims,
-    last_timesheet_date,
-    role,
-    phone,
-    email,
-    todays_working_status
-  } = req.body;
+  console.log("Updating Employee ID:", employeeId);
+  console.log("Received Data:", req.body);
 
   const sql = `
     UPDATE employee_details 
-    SET employee_name = ?, reports_to = ?, total_services = ?, 
-        allotted_but_not_started = ?, past_due = ?, probable_overdue = ?, 
-        high_pri = ?, medium_pri = ?, low_pri = ?, pending_claims = ?, 
-        last_timesheet_date = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
+    SET employee_name = ?, reports_to = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
     WHERE id = ?`;
 
   const values = [
-    employee_name,
-    reports_to,
-    total_services,
-    allotted_but_not_started,
-    past_due,
-    probable_overdue,
-    high_pri,
-    medium_pri,
-    low_pri,
-    pending_claims,
-    last_timesheet_date,
-    role,
-    phone,
-    email,
-    todays_working_status,
-    employeeId
+    req.body.employee_name,
+    req.body.reports_to,
+    req.body.role,
+    req.body.phone,
+    req.body.email,
+    req.body.todays_working_status,
+    employeeId,
   ];
 
   db.query(sql, values, (err, result) => {
@@ -209,6 +190,10 @@ app.put("/api/employee-details/:id", (req, res) => {
       console.error("Database error:", err);
       return res.status(500).json({ error: "Database error" });
     }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Employee not found or no changes made" });
+    }
+    console.log("Employee updated successfully!");
     res.json({ message: "Employee updated successfully" });
   });
 });
@@ -362,6 +347,41 @@ app.put("/api/update-service/:id", async (req, res) => {
       console.error("Server error:", error);
       res.status(500).json({ error: "Internal server error" });
   }
+});
+
+app.get('/books', (req, res) => {
+  db.query("SELECT * FROM books", (err, result) => {
+      if (err) return res.json({ error: err });
+      res.json(result);
+  });
+});
+
+app.post('/addBook', (req, res) => {
+  const { category, name, year, publisher, type, cdDvdAvailable } = req.body;
+  const query = "INSERT INTO books (category, name, year, publisher, type, cdDvdAvailable) VALUES (?, ?, ?, ?, ?, ?)";
+  db.query(query, [category, name, year, publisher, type, cdDvdAvailable], (err, result) => {
+      if (err) return res.json({ error: err });
+      res.json({ message: "Book added successfully" });
+  });
+});
+
+
+app.put('/updateBook/:id', (req, res) => {
+  const { id } = req.params;
+  const { category, name, year, publisher, type, cdDvdAvailable } = req.body;
+  const query = "UPDATE books SET category=?, name=?, year=?, publisher=?, type=?, cdDvdAvailable=? WHERE id=?";
+  db.query(query, [category, name, year, publisher, type, cdDvdAvailable, id], (err, result) => {
+      if (err) return res.json({ error: err });
+      res.json({ message: "Book updated successfully" });
+  });
+});
+
+app.delete('/deleteBook/:id', (req, res) => {
+  const { id } = req.params;
+  db.query("DELETE FROM books WHERE id=?", [id], (err, result) => {
+      if (err) return res.json({ error: err });
+      res.json({ message: "Book deleted successfully" });
+  });
 });
 
 

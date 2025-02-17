@@ -127,12 +127,12 @@ const ServicesTriggeredButNotAlloted = () => {
                   <td className="px-4 py-2 border">{formatDate(service.statutory_due_date)}</td>
                   <td className="px-4 py-2 border">
                     <button
-                      className="px-2 py-1 bg-green-500 text-white rounded mr-2"
+                      className="px-1 py-1 my-2 bg-green-500 text-white rounded"
                       onClick={() => handleAssignClick(service)}
                     >
                       Assign
                     </button>
-                    <button className="px-2 py-1 bg-red-500 text-white rounded">
+                    <button className="px-1 py-1 bg-red-500 text-white rounded">
                       Cancel
                     </button>
                   </td>
