@@ -9,38 +9,7 @@ const Leaves = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <form className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Select Leave  
-                {/* <boltAction type="file" filePath="src/components/Leaves.tsx"> */}
-<span className="text-red-500">*</span>
-              </label>
-              <div className="space-x-4">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="leaveType"
-                    value="self"
-                    checked={leaveType === 'self'}
-                    onChange={(e) => setLeaveType(e.target.value)}
-                    className="text-blue-600"
-                  />
-                  <span className="ml-2">Self</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="leaveType"
-                    value="employee"
-                    checked={leaveType === 'employee'}
-                    onChange={(e) => setLeaveType(e.target.value)}
-                    className="text-blue-600"
-                  />
-                  <span className="ml-2">Employee</span>
-                </label>
-              </div>
-            </div>
-
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Employee <span className="text-red-500">*</span>
@@ -147,36 +116,10 @@ const Leaves = () => {
         </form>
 
         <div className="mt-8">
-          <div className="flex space-x-4 mb-4">
-            <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-              My Leaves
-            </button>
-            <button className="px-4 py-2 text-blue-600 hover:text-blue-700">
-              Employee Leaves
-            </button>
-          </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="Status"
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-            <input
-              type="date"
-              placeholder="Start Date"
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-            <input
-              type="date"
-              placeholder="End Date"
-              className="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            />
-            <div className="flex space-x-2">
-              <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-                Export
-              </button>
-            </div>
+  
+            
           </div>
 
           <div className="overflow-x-auto">
