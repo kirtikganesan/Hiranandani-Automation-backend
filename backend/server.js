@@ -384,6 +384,29 @@ app.delete('/deleteBook/:id', (req, res) => {
   });
 });
 
+app.get('/api/knowledge_base', (req, res) => {
+  const sql = 'SELECT * FROM knowledge_base';
+
+  db.query(sql, (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: err.message });
+      }
+      res.json(results);
+  });
+});
+
+
+app.post('/api/knowledge_base', async (req, res) => {
+  const { category, title, link } = req.body;
+  const sql = 'INSERT INTO knowledge_base (category, title, link) VALUES (?, ?, ?)';
+  db.query(sql, [category, title, link], (err, result) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Entry added successfully' });
+  });
+});
+
+
+
 
 // ✅ Start Server
 app.listen(port, () => {
