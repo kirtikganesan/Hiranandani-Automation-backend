@@ -394,7 +394,7 @@ const Dashboard = () => {
       {openMenus.serviceReport && (
         <div className="bg-gray-700 pl-4">
           <Link to="/dashboard/reports/service/service-wise-report-of-staff" className="block py-2 px-4 hover:bg-gray-600">Service-wise Report of Staff</Link>
-          <Link to="/dashboard/reports/service/service-wise-work-position" className="block py-2 px-4 hover:bg-gray-600">Service-wise Work Position Report</Link>
+          <Link to="/dashboard/reports/service/service-wise-work-position-report" className="block py-2 px-4 hover:bg-gray-600">Service-wise Work Position Report</Link>
           <Link to="/dashboard/reports/service/service-wise-revenue-analysis-report" className="block py-2 px-4 hover:bg-gray-600">Service-wise Revenue Analysis Report</Link>
           <Link to="/dashboard/reports/service/udin-report" className="block py-2 px-4 hover:bg-gray-600">UDIN Report</Link>
         </div>

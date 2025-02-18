@@ -405,7 +405,33 @@ app.post('/api/knowledge_base', async (req, res) => {
   });
 });
 
+app.post("/api/apply-leave", (req, res) => {
+  const { employee_id, leave_type, start_date, end_date, reason, leave_duration } = req.body;
+  const sql = `INSERT INTO leaves (employee_id, leave_type, start_date, end_date, reason, leave_duration) VALUES (?, ?, ?, ?, ?, ?)`;
 
+  db.query(sql, [employee_id, leave_type, start_date, end_date, reason, leave_duration], (err, result) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json({ message: "Leave applied successfully", leaveId: result.insertId });
+  });
+});
+
+app.get("/api/leaves", (req, res) => {
+  const query = `
+    SELECT l.id, e.employee_name, l.leave_type, l.start_date, l.end_date, 
+           l.reason, l.leave_duration 
+    FROM leaves l
+    JOIN employee_details e ON l.employee_id = e.id
+    ORDER BY l.start_date DESC;
+  `;
+
+  db.query(query, (err, result) => {
+    if (err) {
+      console.error("Error fetching leaves:", err);
+      return res.status(500).json({ error: "Database error fetching leaves" });
+    }
+    res.json(result);
+  });
+});
 
 
 // ✅ Start Server
