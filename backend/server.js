@@ -13,6 +13,17 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ storage: storage });
+
 
 // ✅ Create a connection to the database
 const db = mysql.createConnection({
@@ -450,52 +461,51 @@ app.get("/api/leaves", (req, res) => {
   });
 });
 
-app.get('/api/create-table', (req, res) => {
-  const sql = `
-    CREATE TABLE IF NOT EXISTS document_management (
-      id INT AUTO_INCREMENT PRIMARY KEY,
-      date DATE,
-      branch VARCHAR(255),
-      client_name VARCHAR(255),
-      particulars VARCHAR(255),
-      type VARCHAR(255),
-      mode VARCHAR(255),
-      stored VARCHAR(255),
-      quantity INT,
-      returnable BOOLEAN,
-      file_path VARCHAR(255)
-    )
-  `;
-  db.query(sql, (err, result) => {
+app.get('/api/digital-signatures', (req, res) => {
+  const { page = 1, limit = 10, status } = req.query;
+  const offset = (page - 1) * limit;
+
+  let sql = 'SELECT * FROM digital_signature';
+  let values = [];
+
+  if (status === 'live') {
+    sql += ' WHERE date_of_expiry > CURDATE()';
+  } else if (status === 'expired') {
+    sql += ' WHERE date_of_expiry < CURDATE()';
+  }
+
+  sql += ' LIMIT ? OFFSET ?';
+  values.push(parseInt(limit), parseInt(offset));
+
+  db.query(sql, values, (err, results) => {
     if (err) throw err;
-    res.send('Table created');
+    res.json(results);
   });
 });
 
-// Get client names
-app.get('/api/client-names', (req, res) => {
+app.get('/api/clients', (req, res) => {
   const sql = 'SELECT client_name FROM client_details';
-  db.query(sql, (err, result) => {
+  db.query(sql, (err, results) => {
     if (err) throw err;
-    res.json(result);
+    res.json(results);
   });
 });
 
-// Save document details
-app.post('/api/save-documents', (req, res) => {
-  const { date, branch, clientName, documents } = req.body;
-  const values = documents.flatMap(doc => [
-    [date, branch, clientName, doc.particulars, doc.type, doc.mode, doc.stored, doc.quantity, doc.returnable, doc.filePath]
-  ]);
-
-  const sql = 'INSERT INTO document_management (date, branch, client_name, particulars, type, mode, stored, quantity, returnable, file_path) VALUES ?';
-  db.query(sql, [values], (err, result) => {
+// Endpoint to fetch reconciliation data
+app.get('/api/reconciliation', (req, res) => {
+  const { clientName, startDate, endDate, reconciliationType } = req.query;
+  const sql = `
+    SELECT * FROM reconciliation
+    WHERE client_name = ?
+    AND date BETWEEN ? AND ?
+    AND reconciliation_type = ?
+  `;
+  const values = [clientName, startDate, endDate, reconciliationType];
+  db.query(sql, values, (err, results) => {
     if (err) throw err;
-    res.send('Documents saved');
+    res.json(results);
   });
 });
-
-
 
 // ✅ Start Server
 app.listen(port, () => {

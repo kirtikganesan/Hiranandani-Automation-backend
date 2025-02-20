@@ -5,10 +5,24 @@ const Campaign = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [campaignType, setCampaignType] = useState('email');
+  const [showTable, setShowTable] = useState(false);
+
+  const handleListClick = () => {
+    // Here you can add logic to fetch data from the server and update the state
+    setShowTable(true);
+  };
+
+  const handleCancelClick = () => {
+    setBranch('head-office');
+    setStartDate('');
+    setEndDate('');
+    setCampaignType('email');
+    setShowTable(false);
+  };
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-center mt-4">
         <h2 className="text-3xl font-bold text-navy">Campaign Report</h2>
       </div>
 
@@ -24,6 +38,7 @@ const Campaign = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="head-office">Head Office</option>
+              <option value="head-office">Varsha Badlani's Office</option>
             </select>
           </div>
 
@@ -83,40 +98,45 @@ const Campaign = () => {
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
+          <button
+            onClick={handleListClick}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+          >
             List
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-md hover:bg-error-dark">
+          <button
+            onClick={handleCancelClick}
+            className="px-4 py-2 bg-error text-white rounded-md hover:bg-error-dark"
+          >
             Cancel
-          </button>
-          <button className="px-4 py-2 bg-success text-white rounded-md hover:bg-success-dark">
-            Export
           </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-800 text-white">
-            <tr>
-              <th className="px-6 py-3 text-left">Campaign Name</th>
-              <th className="px-6 py-3 text-left">Subject</th>
-              <th className="px-6 py-3 text-left">Sent On</th>
-              <th className="px-6 py-3 text-left">Total Recipients</th>
-              <th className="px-6 py-3 text-left">Successful</th>
-              <th className="px-6 py-3 text-left">Failed</th>
-              <th className="px-6 py-3 text-left">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                No records found
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {showTable && (
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3 text-left">Campaign Name</th>
+                <th className="px-6 py-3 text-left">Subject</th>
+                <th className="px-6 py-3 text-left">Sent On</th>
+                <th className="px-6 py-3 text-left">Total Recipients</th>
+                <th className="px-6 py-3 text-left">Successful</th>
+                <th className="px-6 py-3 text-left">Failed</th>
+                <th className="px-6 py-3 text-left">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
+                  No records found
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
