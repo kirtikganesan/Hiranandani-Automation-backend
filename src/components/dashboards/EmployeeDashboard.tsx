@@ -8,9 +8,9 @@ interface Employee {
   allotted_but_not_started: number;
   past_due: number;
   probable_overdue: number;
-  high_priority: number;
-  medium_priority: number;
-  low_priority: number;
+  high_pri: number;
+  medium_pri: number;
+  low_pri: number;
   pending_claims: number;
   last_timesheet_date: string | null;
 }
@@ -39,7 +39,7 @@ const EmployeeDashboard: React.FC = () => {
         <table className="w-full bg-white border border-gray-300">
           <thead>
             <tr className="bg-gray-800 text-white">
-              <th className="border px-4 py-3 text-left font-semibold">Employee Name</th>
+              <th className="border px-4 py-3 text-left">Employee Name</th>
               <th className="border px-4 py-3 text-left font-semibold">Reports To</th>
               <th className="border px-4 py-3 text-center font-semibold">Total Services</th>
               <th className="border px-4 py-3 text-center font-semibold">Not Started</th>
@@ -63,7 +63,7 @@ const EmployeeDashboard: React.FC = () => {
                 key={employee.id} 
                 className="border hover:bg-gray-50 transition-colors"
               >
-                <td className="border px-4 py-3 text-left font-medium">
+                <td className="border px-4 py-3 text-left font-bold text-blue-600">
                   {employee.employee_name}
                 </td>
                 <td className="border px-4 py-3 text-left">
@@ -82,10 +82,10 @@ const EmployeeDashboard: React.FC = () => {
                   {employee.probable_overdue}
                 </td>
                 <td className="border px-4 py-3">
-                  <div className="flex justify-center space-x-4">
-                    {employee.high_priority}
-                    {employee.medium_priority}
-                    {employee.low_priority}
+                  <div className="flex justify-between">
+                    <div>{employee.high_pri}</div>
+                    <div>{employee.medium_pri}</div>
+                    <div>{employee.low_pri}</div>
                   </div>
                 </td>
                 <td className="border px-4 py-3 text-center">

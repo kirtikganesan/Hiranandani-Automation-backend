@@ -125,7 +125,7 @@ const Leaves = () => {
           <h3 className="text-xl font-semibold mb-4">Leave Records</h3>
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-800 text-white">
                 <tr>
                   <th className="px-6 py-3">Employee</th>
                   <th className="px-6 py-3">Leave Type</th>

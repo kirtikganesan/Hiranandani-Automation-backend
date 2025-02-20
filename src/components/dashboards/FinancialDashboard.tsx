@@ -36,10 +36,10 @@ const FinancialDashboard: React.FC = () => {
         <table className="w-full bg-white border-collapse border border-gray-300">
           <thead>
             <tr className="bg-gray-800 text-white text-sm">
+              <th className="border px-4 py-3 text-center font-semibold">Date</th>
               <th className="border px-4 py-3 text-center font-semibold">Invoice No</th>
               <th className="border px-4 py-3 text-center font-semibold">Client</th>
               <th className="border px-4 py-3 text-center font-semibold">Gross Amount</th>
-              <th className="border px-4 py-3 text-center font-semibold">Date</th>
               <th className="border px-4 py-3 text-center font-semibold">Service Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Total Bill Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Outstanding Amount</th>

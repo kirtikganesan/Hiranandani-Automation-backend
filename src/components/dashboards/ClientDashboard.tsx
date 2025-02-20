@@ -264,7 +264,7 @@ const ClientDashboard = () => {
                     onChange={() => handleClientSelection(item)}
                   />
                 </td>
-                <td className="p-2 border">{item.client_name} ({item.full_name})</td>
+                <td className="p-2 border">{item.client_name}</td>
                 <td className="p-2 border">{item.total}</td>
                 <td className="p-2 border">{item.unallotted}</td>
                 <td className="p-2 border">{item.pastdue}</td>

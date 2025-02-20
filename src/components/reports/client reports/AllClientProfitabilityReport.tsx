@@ -117,16 +117,16 @@ const AllClientProfitabilityReport = () => {
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Count</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Time Spent</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Employee Cost</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Claims / Expenses</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost to Firm</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Billed Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profit / Loss</th>
+              <th className="px-6 py-3 text-left">Client Name</th>
+              <th className="px-6 py-3 text-left">Service Count</th>
+              <th className="px-6 py-3 text-left">Total Time Spent</th>
+              <th className="px-6 py-3 text-left">Total Employee Cost</th>
+              <th className="px-6 py-3 text-left">Total Claims / Expenses</th>
+              <th className="px-6 py-3 text-left">Total Cost to Firm</th>
+              <th className="px-6 py-3 text-left">Total Billed Amount</th>
+              <th className="px-6 py-3 text-left">Profit / Loss</th>
             </tr>
           </thead>
           <tbody>

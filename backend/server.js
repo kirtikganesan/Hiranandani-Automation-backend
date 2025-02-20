@@ -1,12 +1,18 @@
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
+const multer = require("multer");
+const fs = require("fs");
+const path = require("path");
 
 const app = express();
 const port = 5000;
 
 app.use(cors());
 app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
 
 // ✅ Create a connection to the database
 const db = mysql.createConnection({
@@ -68,15 +74,26 @@ app.get('/api/financial-details', (req, res) => {
   });
 });
 
-app.get('/api/client-details', (req, res) => {
-  db.query('SELECT * FROM client_details', (err, results) => {
-    if (err) {
-      console.error('Error fetching financial details:', err);
-      return res.status(500).json({ message: 'Database error' });
+app.get("/api/client-details", (req, res) => {
+  const searchQuery = req.query.search; // Get search term from query params
+
+  let sqlQuery = "SELECT * FROM client_details"; // Adjust table name if needed
+  let queryParams = [];
+
+  if (searchQuery) {
+    sqlQuery += " WHERE client_name LIKE ?";
+    queryParams.push(`%${searchQuery}%`);
+  }
+
+  db.execute(sqlQuery, queryParams, (error, results) => {
+    if (error) {
+      console.error("Error fetching clients:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
     }
     res.json(results);
   });
 });
+
 
 app.post('/api/groups', (req, res) => {
   const { name, members } = req.body;
@@ -432,6 +449,52 @@ app.get("/api/leaves", (req, res) => {
     res.json(result);
   });
 });
+
+app.get('/api/create-table', (req, res) => {
+  const sql = `
+    CREATE TABLE IF NOT EXISTS document_management (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      date DATE,
+      branch VARCHAR(255),
+      client_name VARCHAR(255),
+      particulars VARCHAR(255),
+      type VARCHAR(255),
+      mode VARCHAR(255),
+      stored VARCHAR(255),
+      quantity INT,
+      returnable BOOLEAN,
+      file_path VARCHAR(255)
+    )
+  `;
+  db.query(sql, (err, result) => {
+    if (err) throw err;
+    res.send('Table created');
+  });
+});
+
+// Get client names
+app.get('/api/client-names', (req, res) => {
+  const sql = 'SELECT client_name FROM client_details';
+  db.query(sql, (err, result) => {
+    if (err) throw err;
+    res.json(result);
+  });
+});
+
+// Save document details
+app.post('/api/save-documents', (req, res) => {
+  const { date, branch, clientName, documents } = req.body;
+  const values = documents.flatMap(doc => [
+    [date, branch, clientName, doc.particulars, doc.type, doc.mode, doc.stored, doc.quantity, doc.returnable, doc.filePath]
+  ]);
+
+  const sql = 'INSERT INTO document_management (date, branch, client_name, particulars, type, mode, stored, quantity, returnable, file_path) VALUES ?';
+  db.query(sql, [values], (err, result) => {
+    if (err) throw err;
+    res.send('Documents saved');
+  });
+});
+
 
 
 // ✅ Start Server

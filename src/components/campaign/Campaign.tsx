@@ -97,15 +97,15 @@ const Campaign = () => {
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Campaign Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Subject</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sent On</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Recipients</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Successful</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Failed</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+              <th className="px-6 py-3 text-left">Campaign Name</th>
+              <th className="px-6 py-3 text-left">Subject</th>
+              <th className="px-6 py-3 text-left">Sent On</th>
+              <th className="px-6 py-3 text-left">Total Recipients</th>
+              <th className="px-6 py-3 text-left">Successful</th>
+              <th className="px-6 py-3 text-left">Failed</th>
+              <th className="px-6 py-3 text-left">Status</th>
             </tr>
           </thead>
           <tbody>

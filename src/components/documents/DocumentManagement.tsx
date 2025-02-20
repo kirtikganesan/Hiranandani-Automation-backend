@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Upload, X, Plus } from "lucide-react";
 
 export default function InwardDocument() {
+  
   const [documents, setDocuments] = useState<Array<{
     particulars: string;
     type: string;
@@ -46,8 +47,8 @@ export default function InwardDocument() {
           <select id="branch" className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="">Select branch</option>
             <option value="all">All</option>
-            <option value="branch1">Branch 1</option>
-            <option value="branch2">Branch 2</option>
+            <option value="branch1">Head Office</option>
+            <option value="branch2">Varsha Badlani's Office</option>
           </select>
         </div>
 
@@ -84,24 +85,21 @@ export default function InwardDocument() {
                   <input type="text" placeholder="Enter particulars" className="w-full px-3 py-2 border rounded-md" />
                 </td>
                 <td className="p-3">
-                  <select className="w-full px-3 py-2 border rounded-md">
-                    <option value="">Select type</option>
-                    <option value="type1">Type 1</option>
-                    <option value="type2">Type 2</option>
-                  </select>
+                  <input type="text" placeholder="Enter type of document" className="w-full px-3 py-2 border rounded-md" />
                 </td>
                 <td className="p-3">
                   <select className="w-full px-3 py-2 border rounded-md">
                     <option value="">Select mode</option>
-                    <option value="mode1">Mode 1</option>
-                    <option value="mode2">Mode 2</option>
+                    <option value="original">Hardcopy - Original</option>
+                    <option value="photocopy">Hardcopy - Photocopy</option>
+                    <option value="email">Email</option>
+                    <option value="whatsapp">Whatsapp or Telegram</option>
                   </select>
                 </td>
                 <td className="p-3">
                   <select className="w-full px-3 py-2 border rounded-md">
                     <option value="">Select storage</option>
-                    <option value="storage1">Storage 1</option>
-                    <option value="storage2">Storage 2</option>
+                    <option value="office">Office (Head Office)</option>
                   </select>
                 </td>
                 <td className="p-3">

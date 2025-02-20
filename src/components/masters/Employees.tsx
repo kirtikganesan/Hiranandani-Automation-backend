@@ -120,8 +120,8 @@ const Employees = () => {
             </thead>
             <tbody>
               {employees.map((employee) => (
-                <tr key={employee.id} className="text-center hover:bg-gray-100">
-                  <td className="px-4 py-2 border font-semibold">{employee.employee_name}</td>
+                <tr key={employee.id} className=" hover:bg-gray-100">
+                  <td className="px-4 py-2 border font-bold text-blue-600">{employee.employee_name}</td>
                   <td className="px-4 py-2 border">{employee.role}</td>
                   <td className="px-4 py-2 border">{employee.phone}</td>
                   <td className="px-4 py-2 border">{employee.email}</td>
