@@ -13,16 +13,6 @@ app.use(express.json());
 
 app.use(express.urlencoded({ extended: true }));
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
 
 
 // ✅ Create a connection to the database
@@ -174,57 +164,41 @@ app.get('/api/employee-details', (req, res) => {
     });
 });
 
-app.delete("/api/employee-details/:id", (req, res) => {
-  const id = req.params.id;
-  console.log("Deleting Employee with ID:", id); // Debug log
-
-  const sql = "DELETE FROM employee_details WHERE id = ?";
-  db.query(sql, [id], (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Employee not found" });
-    }
-    console.log("Employee deleted successfully!");
-    res.json({ message: "Employee deleted successfully" });
-  });
-});
 
 
-app.put("/api/employee-details/:id", (req, res) => {
-  const employeeId = req.params.id;
-  console.log("Updating Employee ID:", employeeId);
-  console.log("Received Data:", req.body);
 
-  const sql = `
-    UPDATE employee_details 
-    SET employee_name = ?, reports_to = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
-    WHERE id = ?`;
+// app.put("/api/employee-details/:id", (req, res) => {
+//   const employeeId = req.params.id;
+//   console.log("Updating Employee ID:", employeeId);
+//   console.log("Received Data:", req.body);
 
-  const values = [
-    req.body.employee_name,
-    req.body.reports_to,
-    req.body.role,
-    req.body.phone,
-    req.body.email,
-    req.body.todays_working_status,
-    employeeId,
-  ];
+//   const sql = `
+//     UPDATE employee_details 
+//     SET employee_name = ?, reports_to = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
+//     WHERE id = ?`;
 
-  db.query(sql, values, (err, result) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Employee not found or no changes made" });
-    }
-    console.log("Employee updated successfully!");
-    res.json({ message: "Employee updated successfully" });
-  });
-});
+//   const values = [
+//     req.body.employee_name,
+//     req.body.reports_to,
+//     req.body.role,
+//     req.body.phone,
+//     req.body.email,
+//     req.body.todays_working_status,
+//     employeeId,
+//   ];
+
+//   db.query(sql, values, (err, result) => {
+//     if (err) {
+//       console.error("Database error:", err);
+//       return res.status(500).json({ error: "Database error" });
+//     }
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ error: "Employee not found or no changes made" });
+//     }
+//     console.log("Employee updated successfully!");
+//     res.json({ message: "Employee updated successfully" });
+//   });
+// });
 
 
 app.get("/api/services-triggered-but-not-alloted", (req, res) => {
@@ -504,6 +478,267 @@ app.get('/api/reconciliation', (req, res) => {
   db.query(sql, values, (err, results) => {
     if (err) throw err;
     res.json(results);
+  });
+});
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Files will be saved in 'uploads/' folder
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// API to handle form + file upload
+app.post("/api/notices", upload.single("document"), (req, res) => {
+  const {
+    client_name,
+    notice_no,
+    financial_year,
+    notice_date,
+    act,
+    date_of_receipt,
+    section,
+    date_submitted,
+    title,
+    submission_mode,
+    assessing_officer,
+    brief_issues,
+    hearing_date,
+    hearing_time,
+    required_documents,
+    service_category,
+    service_name,
+    letter_of_authority,
+    fees,
+  } = req.body;
+
+  const documentPath = req.file ? req.file.path : null; // Store file path
+
+  const sql = `INSERT INTO notice 
+    (client_name, notice_no, financial_year, notice_date, act, date_of_receipt, section, date_submitted, title, submission_mode, assessing_officer, brief_issues, hearing_date, hearing_time, documents_required, service_category, service_name, letter_of_authority, fees, document_path) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(
+    sql,
+    [
+      client_name,
+      notice_no,
+      financial_year,
+      notice_date,
+      act,
+      date_of_receipt,
+      section,
+      date_submitted,
+      title,
+      submission_mode,
+      assessing_officer,
+      brief_issues,
+      hearing_date,
+      hearing_time,
+      required_documents,
+      service_category,
+      service_name,
+      letter_of_authority,
+      fees,
+      documentPath,
+    ],
+    (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send("Error saving notice");
+      }
+      res.status(200).json({ message: "Notice saved successfully" });
+    }
+  );
+});
+
+app.get('/api/notices', (req, res) => {
+  const sql = `
+    SELECT
+      client_name, notice_no, financial_year, notice_date, act,
+      date_of_receipt, section, date_submitted, title, submission_mode,
+      assessing_officer, brief_issues, hearing_date, hearing_time,
+      documents_required, service_category, service_name,
+      letter_of_authority, fees, document_path
+    FROM notice
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching notices:', err);
+      return res.status(500).json({ error: 'Error fetching notices' });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/claims', (req, res) => {
+  const sql = 'SELECT * FROM claims';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching claims:', err);
+      return res.status(500).json({ error: 'Error fetching claims' });
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to save a new claim
+app.post('/api/claims', upload.single('billUpload'), (req, res) => {
+  const {
+    claim_date,
+    travel_from,
+    bill_no,
+    claim_type,
+    travel_to,
+    bill_date,
+    nature_of_claim,
+    kms,
+    claim_amount,
+    particulars,
+    challan_no,
+    claim_submitted_for
+  } = req.body;
+
+  const bill_upload_path = req.file ? req.file.path : null;
+
+  const sql = `
+    INSERT INTO claims (
+      claim_date, travel_from, bill_no, claim_type, travel_to,
+      bill_date, nature_of_claim, kms, claim_amount, particulars,
+      challan_no, claim_submitted_for, bill_upload_path
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    sql,
+    [
+      claim_date,
+      travel_from,
+      bill_no,
+      claim_type,
+      travel_to,
+      bill_date,
+      nature_of_claim,
+      kms,
+      claim_amount,
+      particulars,
+      challan_no,
+      claim_submitted_for,
+      bill_upload_path
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error saving claim:', err);
+        return res.status(500).json({ error: 'Error saving claim' });
+      }
+      res.status(200).json({ message: 'Claim saved successfully' });
+    }
+  );
+});
+
+app.get('/api/documents', (req, res) => {
+  db.query('SELECT * FROM document_management', (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    res.json(results);
+  });
+});
+
+// POST endpoint to save document management data
+app.post('/api/documents', upload.array('files'), (req, res) => {
+  const { date, branch, client_name, documents } = req.body;
+
+  // Prepare the documents data for insertion
+  const documentsData = documents.map((doc, index) => [
+    date,
+    branch,
+    client_name,
+    doc.particulars,
+    doc.type,
+    doc.mode,
+    doc.stored,
+    doc.quantity,
+    doc.returnable,
+    req.files[index] ? req.files[index].path : null
+  ]);
+
+  // Insert data into the database
+  const sql = 'INSERT INTO document_management (date, branch, client_name, particulars, document_type, mode_of_inward, stored_in, quantity, returnable, document_path) VALUES ?';
+  db.query(sql, [documentsData], (err, result) => {
+    if (err) {
+      console.error('Database insert error:', err);
+      return res.status(500).json({ error: 'Database insert failed' });
+    }
+    res.json({ message: 'Documents saved successfully' });
+  });
+});
+
+app.post('/api/employees', (req, res) => {
+  const {
+    employee_name, role, phone, email, todays_working_status, branch, reports_to
+  } = req.body;
+
+  const sql = `
+    INSERT INTO employee_details (
+      employee_name, role, phone, email, todays_working_status, branch, reports_to
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    sql,
+    [employee_name, role, phone, email, todays_working_status, branch, reports_to],
+    (err, result) => {
+      if (err) {
+        console.error('Error adding employee:', err);
+        return res.status(500).json({ error: 'Error adding employee' });
+      }
+      res.status(201).json({ message: 'Employee added successfully', id: result.insertId });
+    }
+  );
+});
+
+app.put('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    employee_name, role, phone, email, todays_working_status, branch, reports_to
+  } = req.body;
+
+  const sql = `
+    UPDATE employee_details SET
+      employee_name = ?, role = ?, phone = ?, email = ?, todays_working_status = ?, branch = ?, reports_to = ?
+    WHERE id = ?
+  `;
+
+  db.query(
+    sql,
+    [employee_name, role, phone, email, todays_working_status, branch, reports_to, id],
+    (err, result) => {
+      if (err) {
+        console.error('Error updating employee:', err);
+        return res.status(500).json({ error: 'Error updating employee' });
+      }
+      res.status(200).json({ message: 'Employee updated successfully' });
+    }
+  );
+});
+
+
+app.delete('/api/employees/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM employee_details WHERE id = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting employee:', err);
+      return res.status(500).json({ error: 'Error deleting employee' });
+    }
+    res.status(200).json({ message: 'Employee deleted successfully' });
   });
 });
 

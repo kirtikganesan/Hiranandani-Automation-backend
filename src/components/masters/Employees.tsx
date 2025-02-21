@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 interface Employee {
@@ -21,6 +21,16 @@ const Employees = () => {
   const [editModalOpen, setEditModalOpen] = useState<boolean>(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [editFormData, setEditFormData] = useState<Employee | null>(null);
+  const [newEmployeeFormData, setNewEmployeeFormData] = useState<Employee>({
+    id: 0,
+    employee_name: '',
+    role: '',
+    phone: '',
+    email: '',
+    todays_working_status: '',
+    branch: '',
+    reports_to: '',
+  });
 
   useEffect(() => {
     fetchEmployees();
@@ -28,10 +38,8 @@ const Employees = () => {
 
   const fetchEmployees = () => {
     axios
-      .get("http://localhost:5000/api/employee-details")
+      .get("http://localhost:5000/api/employees")
       .then((response) => {
-        console.log(response.data);
-        
         setEmployees(response.data);
         setLoading(false);
       })
@@ -49,10 +57,9 @@ const Employees = () => {
   };
 
   const confirmDelete = () => {
-    console.log("Deleting Employee with ID:", selectedEmployee?.id); // Debugging log
     if (selectedEmployee) {
       axios
-        .delete(`http://localhost:5000/api/employee-details/${selectedEmployee.id}`)
+        .delete(`http://localhost:5000/api/employees/${selectedEmployee.id}`)
         .then(() => {
           setEmployees((prevEmployees) => prevEmployees.filter((emp) => emp.id !== selectedEmployee.id));
           setModalOpen(false);
@@ -70,7 +77,7 @@ const Employees = () => {
     setEditModalOpen(true);
   };
 
-  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (editFormData) {
       setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
     }
@@ -79,7 +86,7 @@ const Employees = () => {
   const submitEdit = () => {
     if (editFormData) {
       axios
-        .put(`http://localhost:5000/api/employee-details/${editFormData.id}`, editFormData)
+        .put(`http://localhost:5000/api/employees/${editFormData.id}`, editFormData)
         .then(() => {
           setEmployees((prevEmployees) =>
             prevEmployees.map((emp) => (emp.id === editFormData.id ? editFormData : emp))
@@ -93,12 +100,61 @@ const Employees = () => {
     }
   };
 
+  // ADD EMPLOYEE
+  const handleAddEmployee = () => {
+    setEditModalOpen(true);
+    setEditFormData(null);
+    setNewEmployeeFormData({
+      id: 0,
+      employee_name: '',
+      role: '',
+      phone: '',
+      email: '',
+      todays_working_status: '',
+      branch: '',
+      reports_to: '',
+    });
+  };
+
+  const handleNewEmployeeChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setNewEmployeeFormData({ ...newEmployeeFormData, [e.target.name]: e.target.value });
+  };
+
+  const submitNewEmployee = () => {
+    axios
+      .post("http://localhost:5000/api/employees", newEmployeeFormData)
+      .then((response) => {
+        setEmployees([...employees, { ...newEmployeeFormData, id: response.data.id }]);
+        setEditModalOpen(false);
+        setNewEmployeeFormData({
+          id: 0,
+          employee_name: '',
+          role: '',
+          phone: '',
+          email: '',
+          todays_working_status: '',
+          branch: '',
+          reports_to: '',
+        });
+      })
+      .catch((error) => {
+        console.error("Error adding employee:", error);
+      });
+  };
+
   if (loading) return <p className="text-center">Loading...</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-4">Employees</h1>
+
+      <button
+        className="px-4 py-2 bg-green-500 text-white rounded-md mb-4"
+        onClick={handleAddEmployee}
+      >
+        Add Employee
+      </button>
 
       {/* Employee Table */}
       <div className="overflow-x-auto rounded-lg border">
@@ -120,7 +176,7 @@ const Employees = () => {
             </thead>
             <tbody>
               {employees.map((employee) => (
-                <tr key={employee.id} className=" hover:bg-gray-100">
+                <tr key={employee.id} className="hover:bg-gray-100">
                   <td className="px-4 py-2 border font-bold text-blue-600">{employee.employee_name}</td>
                   <td className="px-4 py-2 border">{employee.role}</td>
                   <td className="px-4 py-2 border">{employee.phone}</td>
@@ -143,7 +199,7 @@ const Employees = () => {
         )}
       </div>
 
-      {/* DELETE Confirmation Modal */}
+      {/* DELETE CONFIRMATION MODAL */}
       {modalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg text-center">
@@ -160,23 +216,98 @@ const Employees = () => {
         </div>
       )}
 
-      {/* EDIT Employee Modal */}
-      {editModalOpen && editFormData && (
+      {/* EDIT EMPLOYEE MODAL */}
+      {editModalOpen && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4 text-center">Edit Employee</h2>
+            <h2 className="text-xl font-bold mb-4 text-center">{editFormData ? 'Edit Employee' : 'Add Employee'}</h2>
             <div className="grid grid-cols-2 gap-4">
-              {Object.keys(editFormData).map((key) => (
-                key !== "id" && (
-                  <div key={key}>
-                    <label className="block text-sm font-medium mb-1">{key.replace("_", " ")}</label>
-                    <input type="text" name={key} value={editFormData[key as keyof Employee]} onChange={handleEditChange} className="w-full px-3 py-2 border rounded-md" />
-                  </div>
-                )
-              ))}
+              <div>
+                <label className="block text-sm font-medium mb-1">Employee Name</label>
+                <input
+                  type="text"
+                  name="employee_name"
+                  value={(editFormData || newEmployeeFormData).employee_name}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Role</label>
+                <select
+                  name="role"
+                  value={(editFormData || newEmployeeFormData).role}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="">Select Role</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Article">Article</option>
+                  <option value="Admin">Admin</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone</label>
+                <input
+                  type="text"
+                  name="phone"
+                  value={(editFormData || newEmployeeFormData).phone}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  value={(editFormData || newEmployeeFormData).email}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Today's Working Status</label>
+                <select
+                  name="todays_working_status"
+                  value={(editFormData || newEmployeeFormData).todays_working_status}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="">Select Status</option>
+                  <option value="In office">In office</option>
+                  <option value="From home">From home</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Branch</label>
+                <select
+                  name="branch"
+                  value={(editFormData || newEmployeeFormData).branch}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="">Select Branch</option>
+                  <option value="Head Office">Head Office</option>
+                  <option value="Varsha Badlani Office">Varsha Badlani Office</option>
+                  <option value="Both">Both</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Reports To</label>
+                <select
+                  name="reports_to"
+                  value={(editFormData || newEmployeeFormData).reports_to}
+                  onChange={editFormData ? handleEditChange : handleNewEmployeeChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                >
+                  <option value="">Select Reports To</option>
+                  <option value="LAL HIRANANDANI">LAL HIRANANDANI</option>
+                </select>
+              </div>
             </div>
             <div className="mt-4 flex justify-end">
-              <button className="px-4 py-2 bg-green-500 text-white rounded-md mr-2" onClick={submitEdit}>
+              <button className="px-4 py-2 bg-green-500 text-white rounded-md mr-2" onClick={editFormData ? submitEdit : submitNewEmployee}>
                 Submit
               </button>
               <button className="px-4 py-2 bg-gray-300 rounded-md" onClick={() => setEditModalOpen(false)}>
