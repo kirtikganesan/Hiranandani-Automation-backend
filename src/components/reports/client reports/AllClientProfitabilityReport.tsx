@@ -1,10 +1,58 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+interface DummyData {
+  clientName: string;
+  totalTimeSpent: string;
+  totalEmployeeCost: string;
+  billableClaims: string;
+  nonBillableClaims: string;
+  totalCostToFirm: string;
+  invoiceAmount: string;
+  profitability: string;
+  unbilledHours: string;
+}
 
 const AllClientProfitabilityReport = () => {
   const [branch, setBranch] = useState('head-office');
   const [displayType, setDisplayType] = useState('both');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [dummyData, setDummyData] = useState<DummyData[]>([]);
+
+  useEffect(() => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const thresholdDate = new Date('2024-11-27');
+
+    if (start <= thresholdDate && end > start) {
+      setDummyData([
+        {
+          clientName: 'Dayal Raghuwanshi (Dayal Sukhumal Raghuwanshi)',
+          totalTimeSpent: '01:30',
+          totalEmployeeCost: '0',
+          billableClaims: '0',
+          nonBillableClaims: '0',
+          totalCostToFirm: '0',
+          invoiceAmount: '20000',
+          profitability: '20000',
+          unbilledHours: '00:00'
+        },
+        {
+          clientName: 'Praveen Hazari (Praveen Tirathdas Hazari)(PARAS NOVELTY THE PARTY SHOP)',
+          totalTimeSpent: '01:15',
+          totalEmployeeCost: '0',
+          billableClaims: '0',
+          nonBillableClaims: '0',
+          totalCostToFirm: '0',
+          invoiceAmount: '7000',
+          profitability: '7000',
+          unbilledHours: '00:00'
+        }
+      ]);
+    } else {
+      setDummyData([]);
+    }
+  }, [startDate, endDate]);
 
   return (
     <div className="space-y-8">
@@ -115,26 +163,43 @@ const AllClientProfitabilityReport = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-x-auto mb-4">
+        <table className="min-w-full border border-gray-300">
           <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="px-6 py-3 text-left">Client Name</th>
-              <th className="px-6 py-3 text-left">Service Count</th>
-              <th className="px-6 py-3 text-left">Total Time Spent</th>
+              <th className="px-6 py-3 text-left">Client</th>
+              <th className="px-6 py-3 text-left">Total Time Spent (HOURS)</th>
               <th className="px-6 py-3 text-left">Total Employee Cost</th>
-              <th className="px-6 py-3 text-left">Total Claims / Expenses</th>
-              <th className="px-6 py-3 text-left">Total Cost to Firm</th>
-              <th className="px-6 py-3 text-left">Total Billed Amount</th>
-              <th className="px-6 py-3 text-left">Profit / Loss</th>
+              <th className="px-6 py-3 text-left">Claims / Expenses Billable</th>
+              <th className="px-6 py-3 text-left">Claims / Expenses Non-billable</th>
+              <th className="px-6 py-3 text-left">Total Cost to Firm (Employee Cost + Claim)</th>
+              <th className="px-6 py-3 text-left">Invoice Amount (Basic Fees + Billable claims)</th>
+              <th className="px-6 py-3 text-left">Profitability (Fees billed - Total cost to firm)</th>
+              <th className="px-6 py-3 text-left">Unbilled Hours</th>
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
-                No records found
-              </td>
-            </tr>
+            {dummyData.length > 0 ? (
+              dummyData.map((item, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.clientName}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.totalTimeSpent}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.totalEmployeeCost}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.billableClaims}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.nonBillableClaims}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.totalCostToFirm}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.invoiceAmount}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.profitability}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.unbilledHours}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  No records found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

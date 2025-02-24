@@ -1,11 +1,107 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+interface Client {
+  client_id: string;
+  client_name: string;
+}
+
+interface Service {
+  clientName: string;
+  serviceName: string;
+  period: string;
+  employeeName: string;
+  costPerHour: number;
+  timeSpent: string;
+  totalEmployeeCost: number;
+  billableClaims: number;
+  nonBillableClaims: number;
+  totalCostToFirm: number;
+}
 
 const ClientProfitabilityReport = () => {
   const [branch, setBranch] = useState('head-office');
-  const [client, setClient] = useState('');
-  const [displayType, setDisplayType] = useState('both');
+  const [client, setClient] = useState('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [showTable, setShowTable] = useState(false);
+
+  useEffect(() => {
+    // Fetch client options from the endpoint
+    const fetchClients = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/client-details');
+        setClients(response.data);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
+  useEffect(() => {
+    // Check date conditions and update the state
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const thresholdDate = new Date('2024-11-28');
+
+    if (start < thresholdDate && end > start) {
+      setShowTable(true);
+      // Filter services data based on the selected client
+      const filteredServices = dummyData.filter((service) => {
+        if (client === 'all') return true;
+        return service.clientName.includes(client);
+      });
+      setServices(filteredServices);
+    } else {
+      setShowTable(false);
+      setServices([]);
+    }
+  }, [startDate, endDate, client]);
+
+  const handleListClick = () => {
+    // Trigger the date check logic
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const thresholdDate = new Date('2024-11-28');
+
+    if (start < thresholdDate && end > start) {
+      setShowTable(true);
+    } else {
+      setShowTable(false);
+    }
+  };
+
+  // Dummy data for demonstration
+  const dummyData: Service[] = [
+    {
+      clientName: 'Praveen Hazari (Praveen Tirathdas Hazari)(PARAS NOVELTY THE PARTY SHOP)',
+      serviceName: 'GST Registration (Non Corporate)|2024-2025',
+      period: '2024-2025',
+      employeeName: 'Sunny Gurbani',
+      costPerHour: 0,
+      timeSpent: '01:15',
+      totalEmployeeCost: 0,
+      billableClaims: 0,
+      nonBillableClaims: 0,
+      totalCostToFirm: 0
+    },
+    {
+      clientName: 'Dayal Raghuwanshi (Dayal Sukhumal Raghuwanshi)',
+      serviceName: 'ITR for Non Audit cases (Non Corporate)|Annually|Apr-2022-Mar-2023',
+      period: 'Apr-2022-Mar-2023',
+      employeeName: 'Sunny Gurbani',
+      costPerHour: 0,
+      timeSpent: '01:30',
+      totalEmployeeCost: 0,
+      billableClaims: 0,
+      nonBillableClaims: 0,
+      totalCostToFirm: 0
+    }
+  ];
 
   return (
     <div className="space-y-8">
@@ -14,7 +110,7 @@ const ClientProfitabilityReport = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-4">
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               Branch
@@ -30,63 +126,25 @@ const ClientProfitabilityReport = () => {
 
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              Client
+              Client Name
             </label>
             <select
               value={client}
               onChange={(e) => setClient(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
-              <option value="">Select client</option>
-              <option value="client1">Client 1</option>
-              <option value="client2">Client 2</option>
+              <option value="all">All</option>
+              {clients.map((client) => (
+                <option key={client.client_id} value={client.client_name}>
+                  {client.client_name}
+                </option>
+              ))}
             </select>
           </div>
 
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              Display Type
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="displayType"
-                  value="completed"
-                  checked={displayType === 'completed'}
-                  onChange={(e) => setDisplayType(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Completed</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="displayType"
-                  value="incomplete"
-                  checked={displayType === 'incomplete'}
-                  onChange={(e) => setDisplayType(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Incomplete</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="displayType"
-                  value="both"
-                  checked={displayType === 'both'}
-                  onChange={(e) => setDisplayType(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Both</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              From Date
+              Start Date
             </label>
             <input
               type="date"
@@ -98,7 +156,7 @@ const ClientProfitabilityReport = () => {
 
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              To Date
+              End Date
             </label>
             <input
               type="date"
@@ -118,6 +176,7 @@ const ClientProfitabilityReport = () => {
           </button>
           <button
             type="button"
+            onClick={handleListClick}
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             List
@@ -131,30 +190,48 @@ const ClientProfitabilityReport = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service Name | Period</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Employee Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost per Hour</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Spent by Employee</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Employee Cost</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claims / Expenses Billable</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Claims / Expenses Non-billable</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost to Firm</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
-                No records found
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {showTable && (
+        <div className="overflow-x-auto mb-4">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3">Client Name</th>
+                <th className="px-6 py-3">Service Name | Period</th>
+                <th className="px-6 py-3">Employee Name</th>
+                <th className="px-6 py-3">Cost per Hour</th>
+                <th className="px-6 py-3">Time Spent by Employee</th>
+                <th className="px-6 py-3">Total Employee Cost</th>
+                <th className="px-6 py-3">Claims / Expenses Billable</th>
+                <th className="px-6 py-3">Claims / Expenses Non-billable</th>
+                <th className="px-6 py-3">Total Cost to Firm (Employee Cost + Claims)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {services.length > 0 ? (
+                services.map((service, index) => (
+                  <tr key={index}>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.clientName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.serviceName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.employeeName}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.costPerHour}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.timeSpent}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.totalEmployeeCost}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.billableClaims}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.nonBillableClaims}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{service.totalCostToFirm}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                    No records found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

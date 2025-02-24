@@ -1,16 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const BirthdayReport = () => {
+interface BirthdayReportData {
+  Name_of_Client?: string;
+  Date_of_Birth?: string;
+  Phone_Number?: string;
+  Email?: string;
+  employee_name?: string;
+  date_of_birth?: string;
+  phone?: string;
+  email?: string;
+  role?: string;
+  branch?: string;
+  status?: string;
+  todays_working_status?: string;
+  designation?: string;
+}
+
+const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+const BirthdayReport: React.FC = () => {
   const [displayFor, setDisplayFor] = useState('clients');
   const [branch, setBranch] = useState('head-office');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filteredData, setFilteredData] = useState<BirthdayReportData[]>([]);
 
-  const dummyData = [
-    { name: 'Neetu Cholthani', dob: '01/02/1983', phone: '8451903435', email: 'neetucholthani@gmail.com' },
-    { name: 'Jeetu Mulchandani', dob: '02/02/1984', phone: '9422486404', email: 'jeetumulchandani@gmail.com' },
-  ];
+  const fetchFilteredData = async () => {
+    try {
+      const response = await axios.post<BirthdayReportData[]>('http://localhost:5000/api/birthday-report', {
+        displayFor,
+        branch,
+        startDate,
+        endDate,
+        searchTerm
+      });
+      setFilteredData(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchFilteredData();
+  }, [displayFor, branch, startDate, endDate, searchTerm]);
 
   return (
     <div className="space-y-8">
@@ -60,6 +100,7 @@ const BirthdayReport = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="head-office">Head Office</option>
+              <option value="varsha-badlani-office">Varsha Badlani's Office</option>
             </select>
           </div>
 
@@ -107,6 +148,7 @@ const BirthdayReport = () => {
             </button>
             <button
               type="button"
+              onClick={fetchFilteredData}
               className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
             >
               List
@@ -123,29 +165,61 @@ const BirthdayReport = () => {
 
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-800 text-white">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name of Client (Company / Group)
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date of Birth
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Phone Number
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Email
-              </th>
+              {displayFor === 'clients' ? (
+                <>
+                  <th className="px-6 py-3 text-left">
+                    Name of Client (Company / Group)
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Date of Birth
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Phone Number
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Email
+                  </th>
+                </>
+              ) : (
+                <>
+                  <th className="px-6 py-3 text-left">
+                    Employee Name
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Date of Birth
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Phone
+                  </th>
+                  <th className="px-6 py-3 text-left">
+                    Email
+                  </th>
+                  
+                </>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {dummyData.map((item, index) => (
+            {filteredData.map((item, index) => (
               <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.dob}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.phone}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.email}</td>
+                {displayFor === 'clients' ? (
+                  <>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.Name_of_Client}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.Date_of_Birth ? formatDate(item.Date_of_Birth) : ''}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.Phone_Number}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.Email}</td>
+                  </>
+                ) : (
+                  <>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.employee_name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.date_of_birth ? formatDate(item.date_of_birth) : ''}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.phone}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 w-1/4">{item.email}</td>
+                    
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

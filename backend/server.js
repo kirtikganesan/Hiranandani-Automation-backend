@@ -78,7 +78,7 @@ app.get('/api/financial-details', (req, res) => {
 app.get("/api/client-details", (req, res) => {
   const searchQuery = req.query.search; // Get search term from query params
 
-  let sqlQuery = "SELECT * FROM client_details"; // Adjust table name if needed
+  let sqlQuery = "SELECT * FROM client_details ORDER BY client_name"; // Adjust table name if needed
   let queryParams = [];
 
   if (searchQuery) {
@@ -164,41 +164,6 @@ app.get('/api/employee-details', (req, res) => {
     });
 });
 
-
-
-
-// app.put("/api/employee-details/:id", (req, res) => {
-//   const employeeId = req.params.id;
-//   console.log("Updating Employee ID:", employeeId);
-//   console.log("Received Data:", req.body);
-
-//   const sql = `
-//     UPDATE employee_details 
-//     SET employee_name = ?, reports_to = ?, role = ?, phone = ?, email = ?, todays_working_status = ?
-//     WHERE id = ?`;
-
-//   const values = [
-//     req.body.employee_name,
-//     req.body.reports_to,
-//     req.body.role,
-//     req.body.phone,
-//     req.body.email,
-//     req.body.todays_working_status,
-//     employeeId,
-//   ];
-
-//   db.query(sql, values, (err, result) => {
-//     if (err) {
-//       console.error("Database error:", err);
-//       return res.status(500).json({ error: "Database error" });
-//     }
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ error: "Employee not found or no changes made" });
-//     }
-//     console.log("Employee updated successfully!");
-//     res.json({ message: "Employee updated successfully" });
-//   });
-// });
 
 
 app.get("/api/services-triggered-but-not-alloted", (req, res) => {
@@ -739,6 +704,119 @@ app.delete('/api/employees/:id', (req, res) => {
       return res.status(500).json({ error: 'Error deleting employee' });
     }
     res.status(200).json({ message: 'Employee deleted successfully' });
+  });
+});
+
+app.get('/api/unique-options', (req, res) => {
+  const query = `
+    SELECT
+      DISTINCT Client_Name AS clients,
+      Main_Category AS mainCategories,
+      Service_Name AS services
+    FROM single_invoice;
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching unique options:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    const uniqueOptions = {
+      clients: [...new Set(results.map(row => row.clients))],
+      mainCategories: [...new Set(results.map(row => row.mainCategories))],
+      services: [...new Set(results.map(row => row.services))]
+    };
+
+    res.json(uniqueOptions);
+  });
+});
+
+// Endpoint to fetch filtered data
+app.post('/api/filtered-data', (req, res) => {
+  const { client, serviceMainCategory, services } = req.body;
+
+  let query = 'SELECT * FROM single_invoice WHERE 1=1';
+  const params = [];
+
+  if (client) {
+    query += ' AND Client_Name = ?';
+    params.push(client);
+  }
+
+  if (serviceMainCategory) {
+    query += ' AND Main_Category = ?';
+    params.push(serviceMainCategory);
+  }
+
+  if (services) {
+    query += ' AND Service_Name = ?';
+    params.push(services);
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error fetching filtered data:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/birthday-report', (req, res) => {
+  const { displayFor, branch, startDate, endDate, searchTerm } = req.body;
+
+  let query = '';
+  const params = [];
+
+  if (displayFor === 'clients') {
+    query = 'SELECT * FROM birthday_report WHERE 1=1';
+
+    if (startDate && endDate) {
+      const startMonthDay = startDate.slice(5); // Extract MM-DD
+      const endMonthDay = endDate.slice(5); // Extract MM-DD
+      query += ' AND (DATE_FORMAT(Date_of_Birth, "%m-%d") BETWEEN ? AND ?)';
+      params.push(startMonthDay, endMonthDay);
+    }
+    if (searchTerm) {
+      query += ' AND Name_of_Client LIKE ?';
+      params.push(`%${searchTerm}%`);
+    }
+  } else if (displayFor === 'employees') {
+    query = `
+      SELECT
+        employee_name,
+        date_of_birth,
+        phone,
+        email,
+        role,
+        branch,
+        status,
+        todays_working_status,
+        designation
+      FROM employee_details
+      WHERE 1=1
+    `;
+    
+    if (startDate && endDate) {
+      const startMonthDay = startDate.slice(5); // Extract MM-DD
+      const endMonthDay = endDate.slice(5); // Extract MM-DD
+      query += ' AND (DATE_FORMAT(date_of_birth, "%m-%d") BETWEEN ? AND ?)';
+      params.push(startMonthDay, endMonthDay);
+    }
+    if (searchTerm) {
+      query += ' AND employee_name LIKE ?';
+      params.push(`%${searchTerm}%`);
+    }
+  }
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
   });
 });
 

@@ -1,10 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+interface Client {
+  client_id: string;
+  client_name: string;
+}
 
 const ClientHealthReport = () => {
   const [branch, setBranch] = useState('head-office');
   const [client, setClient] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [showTable, setShowTable] = useState(false);
+
+  useEffect(() => {
+    // Fetch client options from the endpoint
+    const fetchClients = async () => {
+      try {
+        const response = await axios.get('http://localhost:5000/api/client-details');
+        setClients(response.data);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      }
+    };
+
+    fetchClients();
+  }, []);
+
+  const handleListClick = () => {
+    setShowTable(true);
+  };
 
   return (
     <div className="space-y-8">
@@ -37,8 +63,11 @@ const ClientHealthReport = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="">Select client</option>
-              <option value="client1">Client 1</option>
-              <option value="client2">Client 2</option>
+              {clients.map((client) => (
+                <option key={client.client_id} value={client.client_id}>
+                  {client.client_name}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -76,6 +105,7 @@ const ClientHealthReport = () => {
           </button>
           <button
             type="button"
+            onClick={handleListClick}
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
           >
             List
@@ -108,32 +138,34 @@ const ClientHealthReport = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name of the Service</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Period</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time Spent</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Billed Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Balance</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={11} className="px-6 py-4 text-center text-gray-500">
-                No records found
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {showTable && (
+        <div className="overflow-x-auto mb-4">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3">Client</th>
+                <th className="px-6 py-3">Name of the Service</th>
+                <th className="px-6 py-3">Period</th>
+                <th className="px-6 py-3">Start Date</th>
+                <th className="px-6 py-3">Completion Date</th>
+                <th className="px-6 py-3">Status</th>
+                <th className="px-6 py-3">Estimated Time</th>
+                <th className="px-6 py-3">Time Spent</th>
+                <th className="px-6 py-3">Billed Amount</th>
+                <th className="px-6 py-3">Receipt Amount</th>
+                <th className="px-6 py-3">Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={11} className="px-6 py-4 text-center text-gray-500">
+                  No records found
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
