@@ -820,6 +820,48 @@ app.post('/api/birthday-report', (req, res) => {
   });
 });
 
+app.get('/api/client-report', (req, res) => {
+  const { branch, name } = req.query;
+
+  let query = 'SELECT * FROM client_details WHERE 1=1';
+
+
+  if (name && name !== 'All') {
+    query += ` AND client_name = '${name}'`;
+  }
+
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/dsc-expiry', (req, res) => {
+  const { startDate, endDate } = req.query;
+
+  const query = `
+    SELECT client, member_name, date_of_expiry
+    FROM digital_signature
+    WHERE date_of_expiry BETWEEN ? AND ?
+  `;
+
+  db.query(query, [startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
 // ✅ Start Server
 app.listen(port, () => {
   console.log(`🚀 Server is running on http://localhost:${port}`);

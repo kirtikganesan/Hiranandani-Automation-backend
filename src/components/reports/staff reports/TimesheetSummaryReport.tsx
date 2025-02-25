@@ -42,7 +42,7 @@ const TimesheetSummaryReport = () => {
   const [showTable, setShowTable] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/employees')
+    fetch('http://localhost:5000/api/employee-details')
       .then(response => response.json())
       .then(data => {
         setEmployees(data);

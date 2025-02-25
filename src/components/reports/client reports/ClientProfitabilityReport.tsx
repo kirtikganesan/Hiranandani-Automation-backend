@@ -181,12 +181,7 @@ const ClientProfitabilityReport = () => {
           >
             List
           </button>
-          <button
-            type="button"
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-success hover:bg-success-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-success"
-          >
-            Export
-          </button>
+
         </div>
       </div>
 

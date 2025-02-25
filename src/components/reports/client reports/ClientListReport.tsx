@@ -1,22 +1,101 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const ClientListReport = () => {
-  const [display, setDisplay] = useState('clientwise');
-  const [branch, setBranch] = useState('head-office');
-  const [select, setSelect] = useState('');
-  const [name, setName] = useState('');
-  const [entries, setEntries] = useState('25');
+// Define a TypeScript interface for the client data
+interface Client {
+  client_name: string;
+  full_name?: string;
+  total?: number;
+  unallotted?: number;
+  pastdue?: number;
+  probable_overdue?: number;
+  high?: number;
+  medium?: number;
+  low?: number;
+  documents?: number;
+  billed_outstanding?: number;
+  unbilled?: number;
+  client_group?: string;
+  branch: string;
+  email?: string;
+  services_prev_year?: string;
+  services_curr_year?: string;
+  phone?: string;
+  constitution?: string;
+  client_code?: string;
+  parent_company?: string;
+  erstwhile_name?: string;
+  client_cin?: string;
+  client_pan?: string;
+  client_tan?: string;
+  client_gstin?: string;
+  industry?: string;
+  business_nature?: string;
+  date_of_incorporation?: string;
+  branches?: string;
+  address_line_1?: string;
+  address_line_2?: string;
+  area?: string;
+  city?: string;
+  state?: string;
+  district?: string;
+  pincode?: string;
+  contact?: string;
+  number_of_plants?: number;
+  accountant_name?: string;
+  accountant_number?: string;
+  accountant_email?: string;
+  file_no?: string;
+  file_type?: string;
+  file_location?: string;
+  member_name?: string;
+}
 
-  const dummyData = [
-    {
-      name: 'Aakash Talreja (Aakash Chanderlal Talreja)',
-      constitution: 'Individual',
-      clientCode: 'Aakash Chanderlal Talreja',
-      pan: 'AXHPT5770E',
-      dob: '14/10/1996',
-      branch: 'Head Office'
+const ClientListReport: React.FC = () => {
+  const [branch, setBranch] = useState<string>('Head Office');
+  const [name, setName] = useState<string>('');
+  const [clients, setClients] = useState<Client[]>([]);
+  const [clientNames, setClientNames] = useState<string[]>([]);
+  const [showTable, setShowTable] = useState<boolean>(false);
+  useEffect(() => {
+    // Fetch client names when the component mounts
+    const fetchClientNames = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/client-details');
+        const data: { client_name: string }[] = await response.json();
+        setClientNames(data.map(client => client.client_name));
+      } catch (error) {
+        console.error('Error fetching client names:', error);
+      }
+    };
+
+    fetchClientNames();
+  }, []);
+
+  const fetchClientData = async () => {
+    try {
+      let url = `http://localhost:5000/api/client-report?branch=${branch}`;
+      if (name && name !== 'All') {
+        url += `&name=${name}`;
+      }
+      const response = await fetch(url);
+      const data: Client[] = await response.json();
+      setClients(data);
+      setShowTable(true);
+    } catch (error) {
+      console.error('Error fetching client data:', error);
     }
-  ];
+  };
+
+  const handleListClick = () => {
+    fetchClientData();
+  };
+
+  const handleResetClick = () => {
+    setBranch('Head Office');
+    setName('');
+    setClients([]);
+    setShowTable(false);
+  };
 
   return (
     <div className="space-y-8">
@@ -25,37 +104,7 @@ const ClientListReport = () => {
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
-        <div className="grid gap-6 md:grid-cols-4">
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Display<span className="text-error">*</span>
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="display"
-                  value="clientwise"
-                  checked={display === 'clientwise'}
-                  onChange={(e) => setDisplay(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Clientwise</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="display"
-                  value="groupwise"
-                  checked={display === 'groupwise'}
-                  onChange={(e) => setDisplay(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Groupwise</span>
-              </label>
-            </div>
-          </div>
-
+        <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
               Branch<span className="text-error">*</span>
@@ -65,20 +114,8 @@ const ClientListReport = () => {
               onChange={(e) => setBranch(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
-              <option value="head-office">Head Office</option>
-            </select>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
-              Select
-            </label>
-            <select
-              value={select}
-              onChange={(e) => setSelect(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-            >
-              <option value="">Name</option>
+              <option value="Head Office">Head Office</option>
+              <option value="Varsha Badlani's Office">Varsha Badlani's Office</option>
             </select>
           </div>
 
@@ -91,90 +128,74 @@ const ClientListReport = () => {
               onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
-              <option value="">Aakash Talreja (Aakash Chanderlal Talreja)</option>
+              <option value="All">All</option>
+              {clientNames.map((clientName, index) => (
+                <option key={index} value={clientName}>
+                  {clientName}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="flex justify-end space-x-4">
-          <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
+          <button
+            onClick={handleListClick}
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+          >
             List
           </button>
-          <button className="px-4 py-2 bg-error text-white rounded-md hover:bg-error-dark">
-            Cancel
-          </button>
-          <button className="px-4 py-2 bg-success text-white rounded-md hover:bg-success-dark">
-            Export to Excel
-          </button>
-          <button className="px-4 py-2 bg-success text-white rounded-md hover:bg-success-dark">
-            Address Labels
-          </button>
-        </div>
-      </div>
-
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <span>Show</span>
-          <select
-            value={entries}
-            onChange={(e) => setEntries(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+          <button
+            onClick={handleResetClick}
+            className="px-4 py-2 bg-error text-white rounded-md hover:bg-error-dark"
           >
-            <option value="25">25</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
-          <span>entries</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <span>Search:</span>
-          <input
-            type="text"
-            className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-          />
+            Reset
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Name (Name of Group)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Constitution</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client Code</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Company</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Erstwhile Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client CIN</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client PAN</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client TAN</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Client GSTIN</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Industry</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Business Nature</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth/Incorporation</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {dummyData.map((client, index) => (
-              <tr key={index}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.constitution}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.clientCode}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.pan}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"></td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.dob}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.branch}</td>
+      {showTable && (
+        <div className="overflow-x-auto mb-4">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3">Client Name (Name of Group)</th>
+                <th className="px-6 py-3">Constitution</th>
+                <th className="px-6 py-3">Client Code</th>
+                <th className="px-6 py-3">Parent Company</th>
+                <th className="px-6 py-3">Erstwhile Name</th>
+                <th className="px-6 py-3">Client CIN</th>
+                <th className="px-6 py-3">Client PAN</th>
+                <th className="px-6 py-3">Client TAN</th>
+                <th className="px-6 py-3">Client GSTIN</th>
+                <th className="px-6 py-3">Industry</th>
+                <th className="px-6 py-3">Business Nature</th>
+                <th className="px-6 py-3">Date of Birth/Incorporation</th>
+                <th className="px-6 py-3">Branch</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {clients.map((client, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.constitution}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_code}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.parent_company}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.erstwhile_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_cin}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_pan}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_tan}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.client_gstin}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.industry}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.business_nature}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.date_of_incorporation}</td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{client.branch}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
