@@ -861,6 +861,35 @@ app.get('/api/dsc-expiry', (req, res) => {
   });
 });
 
+app.get('/api/unique-services', (req, res) => {
+  const sql = 'SELECT DISTINCT Service_Name FROM single_invoice';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching services:', err);
+      return res.status(500).json({ error: 'Error fetching services' });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/udin-report', (req, res) => {
+  const { fromDate, toDate } = req.query;
+
+  // Ensure fromDate and toDate are in the correct format
+  const query = `
+    SELECT * FROM udin_report
+    WHERE Service_Completion_Date BETWEEN ? AND ?
+  `;
+
+  db.query(query, [fromDate, toDate], (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results);
+  });
+});
+
 
 // ✅ Start Server
 app.listen(port, () => {
