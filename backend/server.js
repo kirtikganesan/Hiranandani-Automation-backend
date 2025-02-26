@@ -78,7 +78,7 @@ app.get('/api/financial-details', (req, res) => {
 app.get("/api/client-details", (req, res) => {
   const searchQuery = req.query.search; // Get search term from query params
 
-  let sqlQuery = "SELECT * FROM client_details ORDER BY client_name"; // Adjust table name if needed
+  let sqlQuery = "SELECT * FROM client_details"; // Adjust table name if needed
   let queryParams = [];
 
   if (searchQuery) {
@@ -885,6 +885,88 @@ app.get('/api/udin-report', (req, res) => {
     if (err) {
       console.error('Database query error:', err);
       return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/billing-firms', (req, res) => {
+  const query = 'SELECT DISTINCT Billing_Firm FROM tds_reconciliation_report';
+  db.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+// Endpoint to get financial year options
+app.get('/api/financial-years', (req, res) => {
+  const years = [];
+  for (let year = 2024; year >= 2012; year--) {
+    years.push(`${year}-${year + 1}`);
+  }
+  res.json(years);
+});
+
+// Endpoint to get filtered data
+app.get('/api/tds-report', (req, res) => {
+  const { billingFirm, financialYear } = req.query;
+  let query = 'SELECT * FROM tds_reconciliation_report WHERE 1=1';
+
+  if (billingFirm) {
+    query += ` AND Billing_Firm = '${billingFirm}'`;
+  }
+
+  if (financialYear) {
+    query += ` AND FY_from_which_bf = '${financialYear}'`;
+  }
+
+  db.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+app.get('/api/unique-clients-in-reconciliation', (req, res) => {
+  const query = 'SELECT DISTINCT Client AS client_name FROM tds_reconciliation_report';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching clients:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/tds-reconciliation', (req, res) => {
+  const { clientName, startDate, endDate } = req.query;
+  let query = 'SELECT * FROM tds_reconciliation_report WHERE 1=1';
+
+  if (clientName) {
+    query += ` AND Client = '${clientName}'`;
+  }
+
+  if (startDate && endDate) {
+    query += ` AND Date BETWEEN '${startDate}' AND '${endDate}'`;
+  }
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching reconciliation data:', err);
+      res.status(500).send('Internal Server Error');
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/sac-summary-report', (req, res) => {
+  const query = 'SELECT * FROM sac_summary_report';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching SAC summary report:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
     }
     res.json(results);
   });

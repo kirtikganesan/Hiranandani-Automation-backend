@@ -1,45 +1,105 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 
-const TdsReconciliationReport = () => {
-  const [billingFirm, setBillingFirm] = useState('HIRANANDANI & ASSOCIATES');
-  const [financialYear, setFinancialYear] = useState('2024-2025');
+interface TdsReport {
+  Client: string;
+  TAN: string | null;
+  Date: string;
+  Number: string;
+  Billing_Firm: string;
+  Taxable_Amount: number;
+  TDS_Amount_bf: number;
+  FY_from_which_bf: string;
+  TDS_deducted_Current_year: number;
+  TDS_Claim_Current_year: number;
+  TDS_cf: number;
+  TDS_appearing_in_26AS: 'yes' | 'no';
+}
+
+const TdsReconciliationReport: React.FC = () => {
+  const [billingFirm, setBillingFirm] = useState<string>('');
+  const [financialYear, setFinancialYear] = useState<string>('');
+  const [billingFirms, setBillingFirms] = useState<{ Billing_Firm: string }[]>([]);
+  const [financialYears, setFinancialYears] = useState<string[]>([]);
+  const [data, setData] = useState<TdsReport[]>([]);
+
+  useEffect(() => {
+    // Fetch distinct Billing Firms
+    axios.get('http://localhost:5000/api/billing-firms')
+      .then(response => setBillingFirms(response.data))
+      .catch(error => console.error('Error fetching billing firms:', error));
+
+    // Fetch financial year options
+    axios.get('http://localhost:5000/api/financial-years')
+      .then(response => setFinancialYears(response.data))
+      .catch(error => console.error('Error fetching financial years:', error));
+  }, []);
+
+  const fetchData = () => {
+    const params = {
+      billingFirm: billingFirm || undefined,
+      financialYear: financialYear || undefined,
+    };
+
+    axios.get('http://localhost:5000/api/tds-report', { params })
+      .then(response => setData(response.data))
+      .catch(error => console.error('Error fetching data:', error));
+  };
+
+  const formatDate = (dateString: string): string => {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
 
   return (
     <div className="p-6 max-w-[1400px] mx-auto">
       <h1 className="text-2xl font-semibold mb-6">TDS Reconciliation Report</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
-            Billing Firm
-          </label>
+          <label className="text-sm font-medium text-gray-700">Billing Firm</label>
           <select
             value={billingFirm}
             onChange={(e) => setBillingFirm(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
           >
-            <option>HIRANANDANI & ASSOCIATES</option>
+            <option value="">All</option>
+            {billingFirms.map((firm, index) => (
+              <option key={index} value={firm.Billing_Firm}>
+                {firm.Billing_Firm}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-sm font-medium text-gray-700">
-            Financial Year
-          </label>
+          <label className="text-sm font-medium text-gray-700">Financial Year</label>
           <select
             value={financialYear}
             onChange={(e) => setFinancialYear(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-md"
           >
-            <option>2024-2025</option>
+            <option value="">All</option>
+            {financialYears.map((year, index) => (
+              <option key={index} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
       <div className="flex justify-end gap-2 mb-6">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md">Filter</button>
+        <button
+          onClick={fetchData}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md"
+        >
+          List
+        </button>
         <button className="px-4 py-2 bg-red-500 text-white rounded-md">Cancel</button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded-md">Export</button>
       </div>
 
       <div className="overflow-x-auto">
@@ -61,20 +121,22 @@ const TdsReconciliationReport = () => {
             </tr>
           </thead>
           <tbody>
-            <tr className="border-b border-gray-200">
-              <td className="px-4 py-3">ACCURA WINES PVT LTD</td>
-              <td className="px-4 py-3"></td>
-              <td className="px-4 py-3">24/01/2025</td>
-              <td className="px-4 py-3">A/24-25/64</td>
-              <td className="px-4 py-3">HIRANANDANI & ASSOCIATES</td>
-              <td className="px-4 py-3 text-right">6,000.00</td>
-              <td className="px-4 py-3 text-right">-</td>
-              <td className="px-4 py-3">-</td>
-              <td className="px-4 py-3 text-right">600.00</td>
-              <td className="px-4 py-3 text-right">0.00</td>
-              <td className="px-4 py-3 text-right">600.00</td>
-              <td className="px-4 py-3 text-center">No</td>
-            </tr>
+            {data.map((row, index) => (
+              <tr key={index} className="border-b border-gray-200">
+                <td className="px-4 py-3">{row.Client}</td>
+                <td className="px-4 py-3">{row.TAN}</td>
+                <td className="px-4 py-3">{formatDate(row.Date)}</td>
+                <td className="px-4 py-3">{row.Number}</td>
+                <td className="px-4 py-3">{row.Billing_Firm}</td>
+                <td className="px-4 py-3 text-right">{row.Taxable_Amount}</td>
+                <td className="px-4 py-3 text-right">{row.TDS_Amount_bf}</td>
+                <td className="px-4 py-3">{row.FY_from_which_bf}</td>
+                <td className="px-4 py-3 text-right">{row.TDS_deducted_Current_year}</td>
+                <td className="px-4 py-3 text-right">{row.TDS_Claim_Current_year}</td>
+                <td className="px-4 py-3 text-right">{row.TDS_cf}</td>
+                <td className="px-4 py-3 text-center">{row.TDS_appearing_in_26AS}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

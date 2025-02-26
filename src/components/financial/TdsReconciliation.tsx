@@ -2,29 +2,38 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 type Client = {
-  id: number;
   client_name: string;
 };
 
 type ReconciliationData = {
-  id: number;
-  client_name: string;
-  reconciliation_type: 'invoice' | 'receipt';
-  start_date: string;
-  end_date: string;
+  Client: string;
+  TAN: string | null;
+  Date: string;
+  Number: string;
+  Billing_Firm: string;
+  Taxable_Amount: number;
+  TDS_Amount_bf: number;
+  FY_from_which_bf: string;
+  TDS_deducted_Current_year: number;
+  TDS_Claim_Current_year: number;
+  TDS_cf: number;
+  TDS_appearing_in_26AS: 'yes' | 'no';
 };
 
 const TDSReconciliation = () => {
-  const [reconciliationType, setReconciliationType] = useState<'invoice' | 'receipt'>('invoice');
   const [selectedClient, setSelectedClient] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [clients, setClients] = useState<Client[]>([]);
   const [reconciliationData, setReconciliationData] = useState<ReconciliationData[]>([]);
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
+  };
 
   useEffect(() => {
-    // Fetch client list from the backend
-    axios.get('http://localhost:5000/api/clients')
+    // Fetch distinct client list from the backend
+    axios.get('http://localhost:5000/api/unique-clients-in-reconciliation')
       .then(response => {
         setClients(response.data);
       })
@@ -34,16 +43,16 @@ const TDSReconciliation = () => {
   }, []);
 
   const handleListClick = () => {
-    // Fetch reconciliation data from the backend
-    axios.get('http://localhost:5000/api/reconciliation', {
+    // Fetch reconciliation data from the backend based on selected filters
+    axios.get('http://localhost:5000/api/tds-reconciliation', {
       params: {
         clientName: selectedClient,
         startDate,
-        endDate,
-        reconciliationType
+        endDate
       }
     })
       .then(response => {
+        console.log('Fetched data:', response.data); // Log the fetched data
         setReconciliationData(response.data);
       })
       .catch(error => {
@@ -61,36 +70,6 @@ const TDSReconciliation = () => {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              Reconciliation based on
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="reconciliationType"
-                  value="invoice"
-                  checked={reconciliationType === 'invoice'}
-                  onChange={(e) => setReconciliationType(e.target.value as 'invoice')}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Invoice</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="reconciliationType"
-                  value="receipt"
-                  checked={reconciliationType === 'receipt'}
-                  onChange={(e) => setReconciliationType(e.target.value as 'receipt')}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Receipt</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
               Client
             </label>
             <select
@@ -99,8 +78,8 @@ const TDSReconciliation = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="">Select client</option>
-              {clients.map((client) => (
-                <option key={client.id} value={client.client_name}>
+              {clients.map((client, index) => (
+                <option key={index} value={client.client_name}>
                   {client.client_name}
                 </option>
               ))}
@@ -149,26 +128,40 @@ const TDSReconciliation = () => {
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="overflow-x-auto rounded-lg shadow">
         {reconciliationData.length > 0 ? (
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="w-full bg-white border-collapse border border-gray-300">
+            <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Client Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Reconciliation Type</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Start Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">End Date</th>
-                {/* Add more columns as needed */}
+                <th className="px-6 py-3">Client</th>
+                <th className="px-6 py-3">TAN</th>
+                <th className="px-6 py-3">Date</th>
+                <th className="px-6 py-3">Number</th>
+                <th className="px-6 py-3">Billing Firm</th>
+                <th className="px-6 py-3 ">Taxable Amount</th>
+                <th className="px-6 py-3 ">TDS Amount b/f</th>
+                <th className="px-6 py-3">F. Y. from which b/f</th>
+                <th className="px-6 py-3 ">TDS deducted in Current</th>
+                <th className="px-6 py-3 ">TDS Claim Current year</th>
+                <th className="px-6 py-3 ">TDS c/f</th>
+                <th className="px-6 py-3 ">TDS appearing in 26AS</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {reconciliationData.map((data) => (
-                <tr key={data.id}>
-                  <td className="px-6 py-4 text-sm">{data.client_name}</td>
-                  <td className="px-6 py-4 text-sm">{data.reconciliation_type}</td>
-                  <td className="px-6 py-4 text-sm">{data.start_date}</td>
-                  <td className="px-6 py-4 text-sm">{data.end_date}</td>
-                  {/* Add more columns as needed */}
+              {reconciliationData.map((data, index) => (
+                <tr key={index}>
+                  <td className="px-6 py-4 text-sm">{data.Client}</td>
+                  <td className="px-6 py-4 text-sm">{data.TAN}</td>
+                  <td className="px-6 py-4 text-sm">{formatDate(data.Date)}</td>
+                  <td className="px-6 py-4 text-sm">{data.Number}</td>
+                  <td className="px-6 py-4 text-sm">{data.Billing_Firm}</td>
+                  <td className="px-6 py-4 text-right text-sm">{data.Taxable_Amount}</td>
+                  <td className="px-6 py-4 text-right text-sm">{data.TDS_Amount_bf}</td>
+                  <td className="px-6 py-4 text-sm">{data.FY_from_which_bf}</td>
+                  <td className="px-6 py-4 text-right text-sm">{data.TDS_deducted_Current_year}</td>
+                  <td className="px-6 py-4 text-right text-sm">{data.TDS_Claim_Current_year}</td>
+                  <td className="px-6 py-4 text-right text-sm">{data.TDS_cf}</td>
+                  <td className="px-6 py-4 text-center text-sm">{data.TDS_appearing_in_26AS}</td>
                 </tr>
               ))}
             </tbody>
