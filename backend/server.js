@@ -76,7 +76,14 @@ app.get('/api/employee-names', (req, res) => {
 });
 
 app.get('/api/financial-details', (req, res) => {
-  db.query('SELECT * FROM financial_details', (err, results) => {
+  const { billingFirm } = req.query;
+  let query = 'SELECT * FROM financial_details';
+
+  if (billingFirm) {
+    query += ` WHERE billing_firm = '${billingFirm}'`;
+  }
+
+  db.query(query, (err, results) => {
     if (err) {
       console.error('Error fetching financial details:', err);
       return res.status(500).json({ message: 'Database error' });
@@ -908,6 +915,14 @@ app.get('/api/billing-firms', (req, res) => {
   });
 });
 
+app.get('/api/financial-billing-firms', (req, res) => {
+  const query = 'SELECT DISTINCT billing_firm FROM financial_details';
+  db.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
 // Endpoint to get financial year options
 app.get('/api/financial-years', (req, res) => {
   const years = [];
@@ -1041,6 +1056,22 @@ app.get('/api/all-client-outstanding', (req, res) => {
     res.json(results);
   });
 });
+
+
+app.get('/api/client-dashboard', (req, res) => {
+  const query = `SELECT * FROM client_dashboard`;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
 
 // ✅ Start Server
 app.listen(port, () => {

@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from "react";
 
 interface Client {
-  id: number;
-  client_name: string;
-  full_name: string;
-  total: number;
-  unallotted: number;
-  pastdue: number;
-  probable_overdue: number;
-  high: number;
-  medium: number;
-  low: number;
-  documents: string;
-  billed_outstanding: number;
-  unbilled: number;
+  Client_Name: string;
+  Total: number;
+  Unallotted: number;
+  Pastdue: number;
+  Probable_Overdue: number;
+  High: number;
+  Medium: number;
+  Low: number;
+  Documents: string;
+  Billed_Outstanding: number;
+  Unbilled: number;
 }
 
 interface Group {
@@ -30,15 +28,17 @@ const ClientDashboard = () => {
   const [groupName, setGroupName] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
-  const [showGroupList, setShowGroupList] = useState(false); // Toggle groups display
-  const [modalMessage, setModalMessage] = useState<string | null>(null); // New state for modal message
+  const [showGroupList, setShowGroupList] = useState(false);
+  const [modalMessage, setModalMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/client-details")
+    // Fetch client data
+    fetch("http://localhost:5000/api/client-dashboard")
       .then((response) => response.json())
       .then((data) => setFinancialData(data))
       .catch((error) => console.error("Error fetching data:", error));
   }, []);
+
   useEffect(() => {
     // Fetch groups
     fetch("http://localhost:5000/api/groups")
@@ -47,18 +47,17 @@ const ClientDashboard = () => {
         const updatedGroups: Group[] = groupData.map((group) => ({
           id: group.id,
           name: group.name,
-          members: JSON.parse(group.members) || [], // Convert string to actual array
+          members: JSON.parse(group.members) || [],
         }));
         setGroups(updatedGroups);
       })
       .catch((error) => console.error("Error fetching groups:", error));
   }, []);
-  
 
   const handleClientSelection = (client: Client) => {
     setSelectedClients((prev) =>
-      prev.includes(client)
-        ? prev.filter((c) => c !== client)
+      prev.some((c) => c.Client_Name === client.Client_Name)
+        ? prev.filter((c) => c.Client_Name !== client.Client_Name)
         : [...prev, client]
     );
   };
@@ -68,7 +67,7 @@ const ClientDashboard = () => {
       setModalMessage("Group should be created with a minimum of 2 members.");
       return;
     }
-    if(!groupName.trim()){
+    if (!groupName.trim()) {
       setModalMessage("Please enter Group name.");
       return;
     }
@@ -102,7 +101,7 @@ const ClientDashboard = () => {
 
   const confirmDelete = () => {
     if (groupToDelete === null) return;
-    
+
     fetch(`http://localhost:5000/api/groups/${groupToDelete}`, {
       method: "DELETE",
     })
@@ -136,7 +135,7 @@ const ClientDashboard = () => {
 
   const displayedData = selectedGroup
     ? financialData.filter((item) =>
-        Array.isArray(selectedGroup.members) && selectedGroup.members.some((client) => client.id === item.id)
+        Array.isArray(selectedGroup.members) && selectedGroup.members.some((client) => client.Client_Name === item.Client_Name)
       )
     : financialData;
 
@@ -165,7 +164,6 @@ const ClientDashboard = () => {
         </button>
       </div>
 
-      {/* Show the success/error modal */}
       {modalMessage && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-lg">
@@ -182,7 +180,6 @@ const ClientDashboard = () => {
         </div>
       )}
 
-      {/* Show Groups Section */}
       {showGroupList && groups.length > 0 && (
         <div className="mb-4">
           <h3 className="text-lg font-semibold">Your Groups:</h3>
@@ -205,7 +202,6 @@ const ClientDashboard = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && (
         <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-lg">
@@ -227,14 +223,15 @@ const ClientDashboard = () => {
           </div>
         </div>
       )}
+
       {selectedGroup && (
-  <button
-    className="bg-gray-500 text-white px-4 py-2 rounded mb-4"
-    onClick={() => setSelectedGroup(null)}
-  >
-    Back to All Clients
-  </button>
-)}
+        <button
+          className="bg-gray-500 text-white px-4 py-2 rounded mb-4"
+          onClick={() => setSelectedGroup(null)}
+        >
+          Back to All Clients
+        </button>
+      )}
 
       <div className="overflow-x-auto rounded-lg shadow">
         <table className="w-full border border-gray-300">
@@ -256,25 +253,25 @@ const ClientDashboard = () => {
           </thead>
           <tbody>
             {displayedData.map((item) => (
-              <tr key={item.id} className="border text-sm text-center">
-                <td className="p-2 ">
+              <tr key={item.Client_Name} className="border text-sm text-center">
+                <td className="p-2">
                   <input
                     type="checkbox"
-                    checked={selectedClients.includes(item)}
+                    checked={selectedClients.some(c => c.Client_Name === item.Client_Name)}
                     onChange={() => handleClientSelection(item)}
                   />
                 </td>
-                <td className="p-2 border">{item.client_name}</td>
-                <td className="p-2 border">{item.total}</td>
-                <td className="p-2 border">{item.unallotted}</td>
-                <td className="p-2 border">{item.pastdue}</td>
-                <td className="p-2 border">{item.probable_overdue}</td>
-                <td className="p-2 border">{item.high}</td>
-                <td className="p-2 border">{item.medium}</td>
-                <td className="p-2 border">{item.low}</td>
-                <td className="p-2 border">{item.documents}</td>
-                <td className="p-2 border">{item.billed_outstanding}</td>
-                <td className="p-2 border">{item.unbilled}</td>
+                <td className="p-2 border">{item.Client_Name}</td>
+                <td className="p-2 border">{item.Total}</td>
+                <td className="p-2 border">{item.Unallotted}</td>
+                <td className="p-2 border">{item.Pastdue}</td>
+                <td className="p-2 border">{item.Probable_Overdue}</td>
+                <td className="p-2 border">{item.High}</td>
+                <td className="p-2 border">{item.Medium}</td>
+                <td className="p-2 border">{item.Low}</td>
+                <td className="p-2 border">{item.Documents}</td>
+                <td className="p-2 border">{item.Billed_Outstanding}</td>
+                <td className="p-2 border">{item.Unbilled}</td>
               </tr>
             ))}
           </tbody>
