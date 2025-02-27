@@ -65,6 +65,16 @@ app.get('/api/employees', (req, res) => {
   });
 });
 
+app.get('/api/employee-names', (req, res) => {
+  db.query('SELECT employee_name FROM employee_details', (err, results) => {
+    if (err) {
+      console.error('Database query error:', err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results);
+  });
+});
+
 app.get('/api/financial-details', (req, res) => {
   db.query('SELECT * FROM financial_details', (err, results) => {
     if (err) {
@@ -972,6 +982,65 @@ app.get('/api/sac-summary-report', (req, res) => {
   });
 });
 
+app.get('/api/gst-summary-report', (req, res) => {
+  const { billingFirm, startDate, endDate } = req.query;
+
+  const query = `
+    SELECT * FROM gst_summary_report
+    WHERE Billing_Firm = ?
+    AND Invoice_Date BETWEEN ? AND ?
+  `;
+
+  db.query(query, [billingFirm, startDate, endDate], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/agewise-analysis', (req, res) => {
+  const { branch, billingProfile, asOnDate } = req.query;
+
+  // Ensure the asOnDate is in the correct format
+  const formattedAsOnDate = new Date(asOnDate).toISOString().split('T')[0];
+
+  const query = `
+    SELECT * FROM agewise_analysis
+    WHERE Branch = ?
+    AND Billing_Profile = ?
+    AND Invoice_Date < ?
+  `;
+
+  db.query(query, [branch, billingProfile, formattedAsOnDate], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/all-client-outstanding', (req, res) => {
+  const { billingFirm } = req.query;
+
+  const query = `
+    SELECT * FROM all_client_outstanding
+    WHERE Billing_Firm = ?
+  `;
+
+  db.query(query, [billingFirm], (err, results) => {
+    if (err) {
+      console.error('Error executing query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
 
 // ✅ Start Server
 app.listen(port, () => {
