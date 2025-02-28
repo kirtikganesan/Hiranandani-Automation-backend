@@ -1071,6 +1071,63 @@ app.get('/api/client-dashboard', (req, res) => {
   });
 });
 
+app.get('/api/invoices', (req, res) => {
+  const { startDate, endDate, client, status, billingFirm } = req.query;
+  let sql = 'SELECT * FROM invoices_or_outstanding WHERE 1=1';
+
+  if (startDate && endDate) {
+    sql += ` AND Date BETWEEN '${startDate}' AND '${endDate}'`;
+  }
+  if (client && client !== 'All') {
+    sql += ` AND Client = '${client}'`;
+  }
+  if (status) {
+    if (status === 'outstanding') {
+      sql += ' AND Outstanding_Amount > 0';
+    } else if (status === 'settled') {
+      sql += ' AND Outstanding_Amount = 0';
+    }
+  }
+  if (billingFirm) {
+    sql += ` AND Billing_Firm = '${billingFirm}'`;
+  }
+
+  db.query(sql, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+app.get('/api/unique-invoice-clients', (req, res) => {
+  const sql = 'SELECT DISTINCT Client AS client_name FROM invoices_or_outstanding';
+  db.query(sql, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+app.get('/api/billed-but-not-received', (req, res) => {
+  const { startDate, endDate, client, billingFirm } = req.query;
+  let sql = `
+    SELECT * FROM invoices_or_outstanding
+    WHERE Outstanding_Amount > 0
+  `;
+
+  if (startDate && endDate) {
+    sql += ` AND Date BETWEEN '${startDate}' AND '${endDate}'`;
+  }
+  if (client && client !== 'All') {
+    sql += ` AND Client = '${client}'`;
+  }
+  if (billingFirm && billingFirm !== 'All') {
+    sql += ` AND Billing_Firm = '${billingFirm}'`;
+  }
+
+  db.query(sql, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
 
 
 // ✅ Start Server
