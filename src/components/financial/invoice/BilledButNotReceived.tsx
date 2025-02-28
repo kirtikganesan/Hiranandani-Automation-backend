@@ -1,6 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+interface Client {
+  client_name: string;
+}
+
+interface BillingFirm {
+  billing_firm: string;
+}
+
+interface DataItem {
+  Date: string;
+  Invoice_No: string;
+  Client: string;
+  Service_Amount: number;
+  Taxable_Claim_Amount: number;
+  Total_Taxable_Amount: number;
+  CGST: number;
+  SGST: number;
+  IGST: number;
+  Non_Taxable_Amount: number;
+  Total_Bill_Amount: number;
+  Outstanding_Amount: number;
+  Discount_Amount: number;
+}
+
 const BilledNotReceived = () => {
   const [filters, setFilters] = useState({
     startDate: '',
@@ -9,9 +33,9 @@ const BilledNotReceived = () => {
     billingFirm: 'All'
   });
 
-  const [clients, setClients] = useState([]);
-  const [billingFirms, setBillingFirms] = useState([]);
-  const [data, setData] = useState([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [billingFirms, setBillingFirms] = useState<BillingFirm[]>([]);
+  const [data, setData] = useState<DataItem[]>([]);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -20,14 +44,14 @@ const BilledNotReceived = () => {
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get('http://localhost:5000/api/unique-invoice-clients').then(response => {
+    axios.get<Client[]>('http://localhost:5000/api/unique-invoice-clients').then(response => {
       setClients([{ client_name: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching clients:', error);
     });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms').then(response => {
+    axios.get<BillingFirm[]>('http://localhost:5000/api/financial-billing-firms').then(response => {
       setBillingFirms([{ billing_firm: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching billing firms:', error);
@@ -35,7 +59,7 @@ const BilledNotReceived = () => {
   }, []);
 
   const fetchData = () => {
-    axios.get('http://localhost:5000/api/billed-but-not-received', { params: filters }).then(response => {
+    axios.get<DataItem[]>('http://localhost:5000/api/billed-but-not-received', { params: filters }).then(response => {
       setData(response.data);
     }).catch(error => {
       console.error('Error fetching data:', error);
@@ -135,7 +159,6 @@ const BilledNotReceived = () => {
         </button>
       </div>
 
-
       <div className="overflow-x-auto">
         <table className="min-w-full border border-gray-300">
           <thead className="bg-gray-800 text-white">
@@ -162,7 +185,7 @@ const BilledNotReceived = () => {
               data.map((item, index) => {
                 const today = new Date();
                 const invoiceDate = new Date(item.Date);
-                const daysOverdue = Math.floor((today - invoiceDate) / (1000 * 60 * 60 * 24));
+                const daysOverdue = Math.floor((today.getTime() - invoiceDate.getTime()) / (1000 * 60 * 60 * 24));
                 return (
                   <tr key={index} className="border-t border-gray-300">
                     <td className="px-4 py-2"></td>
@@ -193,7 +216,6 @@ const BilledNotReceived = () => {
           </tbody>
         </table>
       </div>
-
     </div>
   );
 };

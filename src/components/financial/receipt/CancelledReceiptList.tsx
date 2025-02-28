@@ -1,182 +1,148 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 
-interface CancelledReceipt {
-  receiptNo: string;
-  date: string;
-  type: string;
-  clientName: string;
-  amount: number;
-  tds: number;
-  discount: number;
-  mode: string;
-  modeDetails: string;
-  reason: string;
+// Define an interface for the receipt data
+interface Receipt {
+  Receipt_No: string;
+  Date: string;
+  Type: string;
+  Client_Name: string;
+  Amount: number;
+  TDS: number;
+  Discount: number;
+  Mode: string;
+  Mode_Details: string;
+  Reason: string;
+  Billing_Firm: string;
 }
 
-const CancelledReceiptList = () => {
-  const [filters, setFilters] = useState({
-    startDate: '',
-    endDate: '',
-    clients: ''
-  });
+const CancelledReceipts: React.FC = () => {
+  const [billingFirms, setBillingFirms] = useState<string[]>([]);
+  const [filteredData, setFilteredData] = useState<Receipt[]>([]);
+  const [selectedBillingFirm, setSelectedBillingFirm] = useState<string>('');
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
+  };
 
-  const mockData: CancelledReceipt[] = [
-    {
-      receiptNo: 'HA-1',
-      date: '05/11/2024',
-      type: 'Against Invoice',
-      clientName: 'Amar Bhawani Saw Mills(Partnership Firm) (Amar Bhawani Saw Mills )',
-      amount: 11800.00,
-      tds: 0.00,
-      discount: 0.00,
-      mode: 'E-payment',
-      modeDetails: 'Transaction Id:NEFT',
-      reason: 'Wrong'
+  useEffect(() => {
+    // Fetch unique billing firms
+    const fetchData = async () => {
+      try {
+        const billingFirmsResponse = await axios.get<{ billing_firm: string }[]>('http://localhost:5000/api/financial-billing-firms');
+
+        // Log the data to inspect its structure
+        console.log('Billing Firms Response:', billingFirmsResponse.data);
+
+        // Ensure you're setting arrays of strings
+        const firmNames = billingFirmsResponse.data.map(firm => firm.billing_firm);
+
+        console.log('Firm Names:', firmNames);
+
+        setBillingFirms(firmNames);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleListClick = async () => {
+    try {
+      const response = await axios.get<{ data: Receipt[] }>('http://localhost:5000/api/cancelled-receipts');
+
+      // Log the response data to inspect its structure
+      console.log('API Response Data:', response.data);
+
+      // Ensure response.data is defined and is an array
+      const allData: Receipt[] = Array.isArray(response.data) ? response.data : [];
+
+      // Filter data based on selected billing firm
+      const filtered = allData.filter((item: Receipt) => {
+        return selectedBillingFirm === '' || item.Billing_Firm === selectedBillingFirm;
+      });
+
+      setFilteredData(filtered);
+    } catch (error) {
+      console.error('Error fetching cancelled receipts:', error);
     }
-  ];
-
-  const companies = [
-    'HIRANANDANI & ASSOCIATES',
-    'Hiranandani & Co',
-    'Oyster Management Consultants Private Limited',
-    'RIA ENTERPRISES',
-    'ANJANA ENTERPRISES'
-  ];
+  };
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-sm">
+    <div className="p-4 md:p-6">
       <h1 className="text-2xl font-bold mb-6">Cancelled Receipt List</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Start Date
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={filters.startDate}
-            onChange={(e) => setFilters({...filters, startDate: e.target.value})}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            End Date
-          </label>
-          <input
-            type="date"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={filters.endDate}
-            onChange={(e) => setFilters({...filters, endDate: e.target.value})}
-          />
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Clients
-          </label>
-          <select 
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={filters.clients}
-            onChange={(e) => setFilters({...filters, clients: e.target.value})}
-          >
-            <option value="">Select</option>
-          </select>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-2 mb-6">
-        {companies.map((company, index) => (
-          <button
-            key={index}
-            className={`px-4 py-2 rounded-md text-sm ${
-              index === 0 ? 'bg-green-500 text-white' : 'text-blue-600 hover:underline'
-            }`}
-          >
-            {company}
-          </button>
-        ))}
-      </div>
-
-      <div className="flex justify-end gap-2 mb-6">
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-          Filter
-        </button>
-        <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-          Reset
-        </button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
-          Export
-        </button>
-      </div>
-
-      <div className="mb-4 flex items-center gap-2">
-        <span>Show</span>
-        <select className="border border-gray-300 rounded-md p-1">
-          <option>10</option>
-          <option>25</option>
-          <option>50</option>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">Select Billing Firm</label>
+        <select
+          className="w-full p-2 border border-gray-300 rounded-md"
+          value={selectedBillingFirm}
+          onChange={(e) => setSelectedBillingFirm(e.target.value)}
+        >
+          <option value="">All Billing Firms</option>
+          {billingFirms.map((firm, index) => (
+            <option key={index} value={firm}>
+              {firm}
+            </option>
+          ))}
         </select>
-        <span>entries</span>
-        <div className="ml-auto">
-          <label className="text-sm text-gray-600 mr-2">Search:</label>
-          <input
-            type="text"
-            className="border border-gray-300 rounded-md p-1"
-          />
-        </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="min-w-full border border-gray-300">
-          <thead className="bg-gray-800 text-white">
-            <tr>
-              <th className="px-4 py-2 text-left">Receipt No</th>
-              <th className="px-4 py-2 text-left">Date</th>
-              <th className="px-4 py-2 text-left">Type</th>
-              <th className="px-4 py-2 text-left">Client Name</th>
-              <th className="px-4 py-2 text-left">Amount</th>
-              <th className="px-4 py-2 text-left">TDS</th>
-              <th className="px-4 py-2 text-left">Discount</th>
-              <th className="px-4 py-2 text-left">Mode</th>
-              <th className="px-4 py-2 text-left">Mode Details</th>
-              <th className="px-4 py-2 text-left">Reason</th>
-            </tr>
-          </thead>
-          <tbody>
-            {mockData.map((item, index) => (
-              <tr key={index} className="border-t border-gray-300">
-                <td className="px-4 py-2 text-blue-600 hover:underline">
-                  {item.receiptNo}
-                </td>
-                <td className="px-4 py-2">{item.date}</td>
-                <td className="px-4 py-2">{item.type}</td>
-                <td className="px-4 py-2">{item.clientName}</td>
-                <td className="px-4 py-2">{item.amount.toFixed(2)}</td>
-                <td className="px-4 py-2">{item.tds.toFixed(2)}</td>
-                <td className="px-4 py-2">{item.discount.toFixed(2)}</td>
-                <td className="px-4 py-2">{item.mode}</td>
-                <td className="px-4 py-2">{item.modeDetails}</td>
-                <td className="px-4 py-2">{item.reason}</td>
+      <button
+        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        onClick={handleListClick}
+      >
+        List
+      </button>
+
+      <div className="mt-8">
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-4 py-2 text-left">Receipt No</th>
+                <th className="px-4 py-2 text-left">Date</th>
+                <th className="px-4 py-2 text-left">Type</th>
+                <th className="px-4 py-2 text-left">Client Name</th>
+                <th className="px-4 py-2 text-left">Amount</th>
+                <th className="px-4 py-2 text-left">TDS</th>
+                <th className="px-4 py-2 text-left">Discount</th>
+                <th className="px-4 py-2 text-left">Mode</th>
+                <th className="px-4 py-2 text-left">Mode Details</th>
+                <th className="px-4 py-2 text-left">Reason</th>
+                <th className="px-4 py-2 text-left">Billing Firm</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex justify-between items-center mt-4">
-        <div>
-          Showing 1 to {mockData.length} of {mockData.length} entries
-        </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1 border border-gray-300 rounded">Previous</button>
-          <button className="px-3 py-1 bg-blue-500 text-white rounded">1</button>
-          <button className="px-3 py-1 border border-gray-300 rounded">Next</button>
+            </thead>
+            <tbody>
+              {filteredData.length > 0 ? (
+                filteredData.map((receipt, index) => (
+                  <tr key={index}>
+                    <td className="px-4 py-2">{receipt.Receipt_No}</td>
+                    <td className="px-4 py-2">{formatDate(receipt.Date)}</td>
+                    <td className="px-4 py-2">{receipt.Type}</td>
+                    <td className="px-4 py-2">{receipt.Client_Name}</td>
+                    <td className="px-4 py-2">{receipt.Amount}</td>
+                    <td className="px-4 py-2">{receipt.TDS}</td>
+                    <td className="px-4 py-2">{receipt.Discount}</td>
+                    <td className="px-4 py-2">{receipt.Mode}</td>
+                    <td className="px-4 py-2">{receipt.Mode_Details}</td>
+                    <td className="px-4 py-2">{receipt.Reason}</td>
+                    <td className="px-4 py-2">{receipt.Billing_Firm}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td className="px-4 py-2 text-center" colSpan={11}>
+                    No data available in table
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   );
 };
 
-export default CancelledReceiptList;
+export default CancelledReceipts;

@@ -1129,6 +1129,179 @@ app.get('/api/billed-but-not-received', (req, res) => {
   });
 });
 
+app.get('/api/cancelled-invoices', (req, res) => {
+  const { startDate, endDate, client, status, billingFirm } = req.query;
+  let sql = `
+    SELECT * FROM cancelled_invoice_list
+    WHERE 1=1
+  `;
+
+  if (startDate && endDate) {
+    sql += ` AND Date BETWEEN '${startDate}' AND '${endDate}'`;
+  }
+  if (client && client !== 'All') {
+    sql += ` AND Client = '${client}'`;
+  }
+  if (status === 'outstanding') {
+    sql += ' AND Outstanding_Amount > 0';
+  } else if (status === 'settled') {
+    sql += ' AND Outstanding_Amount = 0';
+  }
+  if (billingFirm && billingFirm !== 'All') {
+    sql += ` AND Billing_Firm = '${billingFirm}'`;
+  }
+
+  db.query(sql, (err, results) => {
+    if (err) throw err;
+    res.json(results);
+  });
+});
+
+app.get('/api/unique-non-billable-clients', (req, res) => {
+  const sql = 'SELECT DISTINCT client_name FROM non_billable_services';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching unique clients:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    const clients = results.map(row => row.client_name);
+    res.json(clients);
+  });
+});
+
+// Endpoint to fetch unique main categories
+app.get('/api/unique-non-billable-main-categories', (req, res) => {
+  const sql = 'SELECT DISTINCT main_category FROM non_billable_services';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching unique main categories:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    const mainCategories = results.map(row => row.main_category);
+    res.json(mainCategories);
+  });
+});
+
+// Endpoint to fetch unique services
+app.get('/api/unique-non-billable-services', (req, res) => {
+  const sql = 'SELECT DISTINCT service_name FROM non_billable_services';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching unique services:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    const services = results.map(row => row.service_name);
+    res.json(services);
+  });
+});
+
+// Endpoint to fetch filtered data
+app.get('/api/non-billable-services', (req, res) => {
+  const { client, serviceMainCategory, services, startDate, endDate } = req.query;
+  let sql = 'SELECT * FROM non_billable_services WHERE 1=1';
+
+  if (client) {
+    sql += ` AND client_name = '${client}'`;
+  }
+  if (serviceMainCategory) {
+    sql += ` AND main_category = '${serviceMainCategory}'`;
+  }
+  if (services) {
+    sql += ` AND service_name = '${services}'`;
+  }
+  if (startDate && endDate) {
+    sql += ` AND completion_date BETWEEN '${startDate}' AND '${endDate}'`;
+  }
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching filtered data:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/services-triggered-but-not-allotted-count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM services_triggered_but_not_alloted';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching services triggered but not allotted count:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results[0]);
+  });
+});
+
+// Endpoint to get the count of all services
+app.get('/api/single-invoice-count', (req, res) => {
+  const sql = 'SELECT COUNT(*) AS count FROM single_invoice';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching all services count:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results[0]);
+  });
+});
+
+app.get('/api/cancelled-receipts', (req, res) => {
+  const query = 'SELECT * FROM cancelled_receipt_list';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching cancelled receipts:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/unique-cancelled-list-clients', (req, res) => {
+  const query = 'SELECT DISTINCT Client_Name FROM cancelled_receipt_list';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching unique clients:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    // Map the results to an array of client names
+    const clients = results.map(row => row.Client_Name);
+    res.json(clients);
+  });
+});
+
+app.get('/api/unique-receipt-clients', (req, res) => {
+  const query = `SELECT DISTINCT client_name FROM receipt_list ORDER BY client_name ASC`;
+
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching unique clients:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+      }
+      res.json(results);
+  });
+});
+
+app.get('/api/receipt-list', (req, res) => {
+  const query = 'SELECT * FROM receipt_list ORDER BY date DESC';
+
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching receipt list:", err);
+          return res.status(500).json({ error: "Internal Server Error" });
+      }
+      res.json(results);
+  });
+});
+
+
 
 // ✅ Start Server
 app.listen(port, () => {
