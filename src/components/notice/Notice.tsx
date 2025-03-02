@@ -127,7 +127,7 @@ export default function Notice() {
   return (
     <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Notice</h1>
+        <h1 className="text-4xl font-bold text-gray-800">Notice</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
