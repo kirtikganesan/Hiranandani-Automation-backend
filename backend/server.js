@@ -1290,17 +1290,140 @@ app.get('/api/unique-receipt-clients', (req, res) => {
 });
 
 app.get('/api/receipt-list', (req, res) => {
-  const query = 'SELECT * FROM receipt_list ORDER BY date DESC';
+  const { startDate, endDate, clients, billingFirm } = req.query;
 
-  db.query(query, (err, results) => {
-      if (err) {
-          console.error("Error fetching receipt list:", err);
-          return res.status(500).json({ error: "Internal Server Error" });
-      }
-      res.json(results);
+  let query = 'SELECT * FROM receipt_list WHERE 1=1';
+
+  const params = [];
+
+  if (startDate) {
+    query += ' AND date >= ?';
+    params.push(startDate);
+  }
+
+  if (endDate) {
+    query += ' AND date <= ?';
+    params.push(endDate);
+  }
+
+  if (clients) {
+    query += ' AND client_name = ?';
+    params.push(clients);
+  }
+
+  if (billingFirm) {
+    query += ' AND billing_firm = ?';
+    params.push(billingFirm);
+  }
+
+  query += ' ORDER BY date DESC';
+
+  db.query(query, params, (err, results) => {
+    if (err) {
+      console.error("Error fetching receipt list:", err);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+    res.json(results);
   });
 });
 
+app.get('/api/unique-occupancy-employees', (req, res) => {
+  const query = 'SELECT DISTINCT Name_of_the_Employee FROM staff_occupancy_report';
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    const employees = results.map(row => row.Name_of_the_Employee);
+    res.json(employees);
+  });
+});
+
+app.get('/api/unique-occupancy-clients', (req, res) => {
+  const query = 'SELECT DISTINCT Client_Name FROM staff_occupancy_report';
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    const clients = results.map(row => row.Client_Name);
+    res.json(clients);
+  });
+});
+
+app.get('/api/staff-occupancy', (req, res) => {
+  const { employee, client } = req.query;
+  let query = 'SELECT * FROM staff_occupancy_report WHERE 1=1';
+  if (employee) {
+    query += ` AND Name_of_the_Employee = '${employee}'`;
+  }
+  if (client) {
+    query += ` AND Client_Name = '${client}'`;
+  }
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
+
+
+app.post('/api/save-icai-data', (req, res) => {
+  const {
+    letterName,
+    clientName,
+    financialYear,
+    noteX,
+    frn,
+    firmName,
+    personForSign,
+    dateOfSignature,
+    placeOfSignature,
+    designation,
+    udinNumber
+  } = req.body;
+
+  const query = `
+    INSERT INTO icai (
+      letterName, clientName, financialYear, noteX, frn, firmName,
+      personForSign, dateOfSignature, placeOfSignature, designation, udinNumber
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    query,
+    [
+      letterName,
+      clientName,
+      financialYear,
+      noteX,
+      frn,
+      firmName,
+      personForSign,
+      dateOfSignature,
+      placeOfSignature,
+      designation,
+      udinNumber
+    ],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      res.json({ message: 'Data saved successfully', results });
+    }
+  );
+});
+
+app.get('/api/icai-data', (req, res) => {
+  const { letterName } = req.query;
+  const query = 'SELECT * FROM icai WHERE letterName = ?';
+
+  db.query(query, [letterName], (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
+});
 
 
 // ✅ Start Server

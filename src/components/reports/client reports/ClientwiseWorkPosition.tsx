@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const ClientwiseWorkPosition = () => {
-  const [type, setType] = useState('client-wise');
   const [branch, setBranch] = useState('head-office');
   const [serviceType, setServiceType] = useState('all');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
   const [clientwise, setClientwise] = useState('');
+  const [clients, setClients] = useState<string[]>([]);
+  const [showTable, setShowTable] = useState(false);
+
+  useEffect(() => {
+    // Fetch client options from the backend
+    fetch('http://localhost:5000/api/clients')
+      .then(response => response.json())
+      .then(data => {
+        setClients(data.map((item: { client_name: string }) => item.client_name));
+      })
+      .catch(error => {
+        console.error('Error fetching clients:', error);
+      });
+  }, []);
+
+  const handleListClick = () => {
+    setShowTable(true);
+    // Here you can add logic to fetch data and populate the table
+  };
 
   return (
     <div className="space-y-8">
@@ -18,36 +36,6 @@ const ClientwiseWorkPosition = () => {
         <div className="grid gap-6 md:grid-cols-3">
           <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700">
-              Type<span className="text-error">*</span>
-            </label>
-            <div className="flex space-x-4">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="type"
-                  value="client-wise"
-                  checked={type === 'client-wise'}
-                  onChange={(e) => setType(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Client-wise</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  name="type"
-                  value="group-wise"
-                  checked={type === 'group-wise'}
-                  onChange={(e) => setType(e.target.value)}
-                  className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                />
-                <span>Group-wise</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <label className="block text-sm font-medium text-gray-700">
               Branch<span className="text-error">*</span>
             </label>
             <select
@@ -56,6 +44,7 @@ const ClientwiseWorkPosition = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="head-office">Head Office</option>
+              <option value="varsha-office">Varsha Badlani's Office</option>
             </select>
           </div>
 
@@ -123,21 +112,27 @@ const ClientwiseWorkPosition = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="">Select client</option>
-              <option value="client1">Aakash Talreja (Aakash Chanderlal Talreja)</option>
+              {clients.map((client, index) => (
+                <option key={index} value={client}>
+                  {client}
+                </option>
+              ))}
             </select>
           </div>
         </div>
 
         <div className="flex justify-end space-x-4">
+        <button
+            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
+            onClick={handleListClick}
+          >
+            List
+          </button>
           <button className="px-4 py-2 bg-error text-white rounded-md hover:bg-error-dark">
             Cancel
           </button>
-          <button className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark">
-            List
-          </button>
-          <button className="px-4 py-2 bg-success text-white rounded-md hover:bg-success-dark">
-            Export
-          </button>
+          
+      
         </div>
 
         <div className="text-sm text-error">
@@ -145,33 +140,35 @@ const ClientwiseWorkPosition = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name of the Client (Group)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name of the Service</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Triggered Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">% Completed</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Staff</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estimated Time (Days:Hours:Minutes)</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours Spent</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount Billed</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={12} className="px-6 py-4 text-center text-gray-500">
-                No data available in table
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      {showTable && (
+        <div className="overflow-x-auto mb-4">
+          <table className="min-w-full border border-gray-300">
+            <thead className="bg-gray-800 text-white">
+              <tr>
+                <th className="px-6 py-3 text-left">Name of the Client (Group)</th>
+                <th className="px-6 py-3 text-left">Branch</th>
+                <th className="px-6 py-3 text-left">Name of the Service</th>
+                <th className="px-6 py-3 text-left">Triggered Date</th>
+                <th className="px-6 py-3 text-left">Completion Date</th>
+                <th className="px-6 py-3 text-left">Due Date</th>
+                <th className="px-6 py-3 text-left">Status</th>
+                <th className="px-6 py-3 text-left">% Completed</th>
+                <th className="px-6 py-3 text-left">Staff</th>
+                <th className="px-6 py-3 text-left">Estimated Time (Days:Hours:Minutes)</th>
+                <th className="px-6 py-3 text-left">Hours Spent</th>
+                <th className="px-6 py-3 text-left">Amount Billed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={12} className="px-6 py-4 text-center text-gray-500">
+                  No data available in table
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
