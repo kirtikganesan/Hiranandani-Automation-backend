@@ -352,6 +352,72 @@ app.post('/api/appointments', (req, res) => {
   );
 });
 
+app.put('/api/appointments/:id', (req, res) => {
+  const appointmentId = req.params.id;
+  const {
+    appointment_date,
+    client_name,
+    to_meet,
+    from_time,
+    to_time,
+    financial_year,
+    enter_location,
+    service_name,
+    meeting_purpose,
+    status
+  } = req.body;
+
+  const sql = `
+    UPDATE appointment
+    SET appointment_date = ?, client_name = ?, to_meet = ?, from_time = ?, to_time = ?,
+        financial_year = ?, enter_location = ?, service_name = ?,
+        meeting_purpose = ?, status = ?
+    WHERE id = ?
+  `;
+  const values = [
+    appointment_date,
+    client_name,
+    to_meet,
+    from_time,
+    to_time,
+    financial_year,
+    enter_location,
+    service_name,
+    meeting_purpose,
+    status,
+    appointmentId
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.status(200).json({ message: 'Appointment updated successfully' });
+  });
+});
+
+// DELETE endpoint to delete an appointment
+app.delete('/api/appointments/:id', (req, res) => {
+  const appointmentId = req.params.id;
+  const sql = 'DELETE FROM appointment WHERE id = ?';
+
+  db.query(sql, [appointmentId], (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    res.status(200).json({ message: 'Appointment deleted successfully' });
+  });
+});
+
+
 app.post("/api/manual-assignment", (req, res) => {
   const {
     financialYear,
@@ -573,6 +639,22 @@ app.post('/api/digital-signatures', (req, res) => {
       }
       res.status(201).json({ id: result.insertId, ...req.body });
     });
+  });
+});
+
+app.delete('/api/digital-signatures/:id', (req, res) => {
+  const signatureId = req.params.id;
+  const query = 'DELETE FROM digital_signature WHERE id = ?';
+
+  db.query(query, [signatureId], (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Digital Signature not found' });
+    }
+    res.status(200).json({ message: 'Digital Signature deleted successfully' });
   });
 });
 

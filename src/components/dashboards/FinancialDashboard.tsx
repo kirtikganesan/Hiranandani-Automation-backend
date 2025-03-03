@@ -10,7 +10,6 @@ interface FinancialData {
   total_bill_amount: number;
   outstanding_amount: number;
   settled_amount: number;
-  days_since_outstanding: number;
   remark: string;
   billing_firm: string;
 }
@@ -19,6 +18,13 @@ const FinancialDashboard: React.FC = () => {
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
+  };
+
+  const calculateDaysSinceOutstanding = (dateString: string) => {
+    const date = new Date(dateString);
+    const currentDate = new Date();
+    const timeDifference = currentDate.getTime() - date.getTime();
+    return Math.ceil(timeDifference / (1000 * 3600 * 24)); // Calculate days
   };
 
   const [financialData, setFinancialData] = useState<FinancialData[]>([]);
@@ -87,7 +93,6 @@ const FinancialDashboard: React.FC = () => {
               <th className="border px-4 py-3 text-center font-semibold">Outstanding Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Settled Amount</th>
               <th className="border px-4 py-3 text-center font-semibold">Days Since Outstanding</th>
-              <th className="border px-4 py-3 text-center font-semibold">Remark</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -101,8 +106,7 @@ const FinancialDashboard: React.FC = () => {
                 <td className="border px-4 py-2">{item.total_bill_amount}</td>
                 <td className="border px-4 py-2">{item.outstanding_amount}</td>
                 <td className="border px-4 py-2">{item.settled_amount}</td>
-                <td className="border px-4 py-2">{item.days_since_outstanding}</td>
-                <td className="border px-4 py-2"></td>
+                <td className="border px-4 py-2">{calculateDaysSinceOutstanding(item.date)}</td>
               </tr>
             ))}
           </tbody>

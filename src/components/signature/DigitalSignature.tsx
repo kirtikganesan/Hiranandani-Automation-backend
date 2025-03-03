@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Trash } from 'lucide-react';
 import axios from 'axios';
 
 type Signature = {
@@ -38,6 +38,7 @@ const DigitalSignature = () => {
     received_by: 'LAL HIRANANDANI',
   });
   const [error, setError] = useState('');
+  const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -132,6 +133,17 @@ const DigitalSignature = () => {
       });
   };
 
+  const handleDelete = (id: number) => {
+    axios.delete(`http://localhost:5000/api/digital-signatures/${id}`)
+      .then(() => {
+        setSignatures(signatures.filter(signature => signature.id !== id));
+        setDeleteId(null);
+      })
+      .catch(error => {
+        console.error('Error deleting digital signature:', error);
+      });
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -214,6 +226,7 @@ const DigitalSignature = () => {
                 <th className="px-6 py-3 text-left">Date of expiry</th>
                 <th className="px-6 py-3 text-left">Password</th>
                 <th className="px-6 py-3 text-left">Received by</th>
+                <th className="px-6 py-3 text-left">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -227,6 +240,14 @@ const DigitalSignature = () => {
                   <td className="px-6 py-4 text-sm">{formatDate(signature.date_of_expiry)}</td>
                   <td className="px-6 py-4 text-sm">{signature.password}</td>
                   <td className="px-6 py-4 text-sm">{signature.received_by}</td>
+                  <td className="px-6 py-4 text-sm">
+                    <button
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => setDeleteId(signature.id)}
+                    >
+                      <Trash className="mr-2" /> Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -362,6 +383,22 @@ const DigitalSignature = () => {
             <button onClick={() => setIsSuccessModalVisible(false)} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
               OK
             </button>
+          </div>
+        </div>
+      )}
+
+      {deleteId !== null && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold mb-4">Are you sure you want to delete?</h3>
+            <div className="flex justify-end">
+              <button onClick={() => setDeleteId(null)} className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 mr-2">
+                Cancel
+              </button>
+              <button onClick={() => handleDelete(deleteId!)} className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                Yes
+              </button>
+            </div>
           </div>
         </div>
       )}
