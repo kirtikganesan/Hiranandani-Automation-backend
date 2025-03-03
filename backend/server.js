@@ -112,6 +112,89 @@ app.get("/api/client-details", (req, res) => {
   });
 });
 
+app.post('/api/client-details', (req, res) => {
+  const {
+    client_name,
+    full_name,
+    client_group,
+    branch,
+    email,
+    phone,
+    constitution,
+    client_code,
+    client_pan,
+    client_tan,
+    client_gstin,
+    industry,
+    date_of_incorporation,
+    address_line_1,
+    address_line_2,
+    area,
+    city,
+    state,
+    district,
+    pincode
+  } = req.body;
+
+  const sql = `
+    INSERT INTO client_details (
+      client_name,
+      full_name,
+      client_group,
+      branch,
+      email,
+      phone,
+      constitution,
+      client_code,
+      client_pan,
+      client_tan,
+      client_gstin,
+      industry,
+      date_of_incorporation,
+      address_line_1,
+      address_line_2,
+      area,
+      city,
+      state,
+      district,
+      pincode
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    client_name,
+    full_name,
+    client_group,
+    branch,
+    email,
+    phone,
+    constitution,
+    client_code,
+    client_pan,
+    client_tan,
+    client_gstin,
+    industry,
+    date_of_incorporation,
+    address_line_1,
+    address_line_2,
+    area,
+    city,
+    state,
+    district,
+    pincode
+  ];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.status(201).json({ id: result.insertId, ...req.body });
+  });
+});
+
+
+
 
 app.post('/api/groups', (req, res) => {
   const { name, members } = req.body;
@@ -438,6 +521,61 @@ app.get('/api/digital-signatures', (req, res) => {
     res.json(results);
   });
 });
+
+app.post('/api/digital-signatures', (req, res) => {
+  const {
+    client,
+    member_name,
+    location,
+    date_of_received,
+    date_of_expiry,
+    password,
+    received_by
+  } = req.body;
+
+  // Check if the digital signature for the selected client already exists
+  const checkSql = 'SELECT * FROM digital_signature WHERE client = ?';
+  db.query(checkSql, [client], (err, result) => {
+    if (err) {
+      console.error('Database error:', err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (result.length > 0) {
+      return res.status(409).json({ error: 'Selected client\'s digital signature already exists' });
+    }
+
+    // Insert the new digital signature
+    const insertSql = `
+      INSERT INTO digital_signature (
+        client,
+        member_name,
+        location,
+        date_of_received,
+        date_of_expiry,
+        password,
+        received_by
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+      client,
+      member_name,
+      location,
+      date_of_received,
+      date_of_expiry,
+      password,
+      received_by
+    ];
+
+    db.query(insertSql, values, (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      res.status(201).json({ id: result.insertId, ...req.body });
+    });
+  });
+});
+
 
 app.get('/api/clients', (req, res) => {
   const sql = 'SELECT client_name FROM client_details';

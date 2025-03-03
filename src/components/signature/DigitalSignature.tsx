@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Download, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import axios from 'axios';
 
 type Signature = {
@@ -14,11 +14,31 @@ type Signature = {
   received_by: string;
 };
 
+type Client = {
+  id: number;
+  client_name: string;
+};
+
 const DigitalSignature = () => {
   const [signatures, setSignatures] = useState<Signature[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [status, setStatus] = useState<'all' | 'live' | 'expired'>('all');
+  const [isFormVisible, setIsFormVisible] = useState(false);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const [formData, setFormData] = useState({
+    client: '',
+    member_name: '',
+    location: 'Office',
+    date_of_received: new Date().toISOString().split('T')[0],
+    date_of_expiry: '',
+    password: '',
+    confirmPassword: '',
+    received_by: 'LAL HIRANANDANI',
+  });
+  const [error, setError] = useState('');
+
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
@@ -34,6 +54,15 @@ const DigitalSignature = () => {
       })
       .catch(error => {
         console.error('Error fetching digital signatures:', error);
+      });
+
+    // Fetch client details
+    axios.get('http://localhost:5000/api/client-details')
+      .then(response => {
+        setClients(response.data);
+      })
+      .catch(error => {
+        console.error('Error fetching clients:', error);
       });
   }, [page, limit, status]);
 
@@ -51,16 +80,68 @@ const DigitalSignature = () => {
     setPage(1); // Reset to the first page when status changes
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value,
+    }));
+
+    if (name === 'client') {
+      const selectedClient = clients.find(client => client.client_name === value);
+      if (selectedClient) {
+        const memberName = selectedClient.client_name.split('(')[0].trim();
+        setFormData(prevData => ({
+          ...prevData,
+          member_name: memberName,
+        }));
+      }
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    setError('');
+
+    axios.post('http://localhost:5000/api/digital-signatures', formData)
+      .then(response => {
+        setSignatures([...signatures, response.data]);
+        setIsFormVisible(false);
+        setIsSuccessModalVisible(true);
+        setFormData({
+          client: '',
+          member_name: '',
+          location: 'Office',
+          date_of_received: new Date().toISOString().split('T')[0],
+          date_of_expiry: '',
+          password: '',
+          confirmPassword: '',
+          received_by: 'LAL HIRANANDANI',
+        });
+      })
+      .catch(error => {
+        if (error.response && error.response.status === 409) {
+          setError('Selected client\'s digital signature already exists');
+        } else {
+          console.error('Error adding digital signature:', error);
+        }
+      });
+  };
+
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold">Digital Signature</h2>
         <div className="space-x-2">
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Add
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            DSC Returned
+          <button
+            className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 flex"
+            onClick={() => setIsFormVisible(true)}
+          >
+            <Plus className="mr-2" /> Add
           </button>
         </div>
       </div>
@@ -118,7 +199,6 @@ const DigitalSignature = () => {
               </select>
               <span className="text-sm">entries</span>
             </div>
-        
           </div>
         </div>
 
@@ -134,7 +214,6 @@ const DigitalSignature = () => {
                 <th className="px-6 py-3 text-left">Date of expiry</th>
                 <th className="px-6 py-3 text-left">Password</th>
                 <th className="px-6 py-3 text-left">Received by</th>
-                <th className="px-6 py-3 text-left">Action</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -148,19 +227,6 @@ const DigitalSignature = () => {
                   <td className="px-6 py-4 text-sm">{formatDate(signature.date_of_expiry)}</td>
                   <td className="px-6 py-4 text-sm">{signature.password}</td>
                   <td className="px-6 py-4 text-sm">{signature.received_by}</td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex space-x-2">
-                      <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        Return
-                      </button>
-                      <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
-                        DSC Authority Letter
-                      </button>
-                      <button className="text-red-600 hover:text-red-900">
-                        <X className="h-5 w-5" />
-                      </button>
-                    </div>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -183,6 +249,122 @@ const DigitalSignature = () => {
           </button>
         </div>
       </div>
+
+      {isFormVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50 overflow-y-auto">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-2xl max-h-full overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Add New Digital Signature</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block mb-2">Client Name</label>
+                <select
+                  name="client"
+                  value={formData.client}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                >
+                  <option value="">Select Client</option>
+                  {clients.map(client => (
+                    <option key={client.id} value={client.client_name}>
+                      {client.client_name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Member Name</label>
+                <input
+                  type="text"
+                  name="member_name"
+                  value={formData.member_name}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Location</label>
+                <select
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                >
+                  <option value="Office">Office</option>
+                  <option value="Home">Home</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Date of Received</label>
+                <input
+                  type="date"
+                  name="date_of_received"
+                  value={formData.date_of_received}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                  readOnly
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Date of Expiry</label>
+                <input
+                  type="date"
+                  name="date_of_expiry"
+                  value={formData.date_of_expiry}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block mb-2">Confirm Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md"
+                  required
+                />
+              </div>
+              {error && <p className="text-red-500 mb-4">{error}</p>}
+              <div className="flex justify-end">
+                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 mr-2">
+                  Submit
+                </button>
+                <button type="button" onClick={() => setIsFormVisible(false)} className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isSuccessModalVisible && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold mb-4">Digital Signature Added Successfully</h3>
+            <button onClick={() => setIsSuccessModalVisible(false)} className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

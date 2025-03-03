@@ -20,16 +20,27 @@ const AllServices = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/all-services").then((response) => {
-      setServices(response.data);
-    }).catch((error) => console.error("Error fetching services:", error));
-
     axios.get("http://localhost:5000/api/employee-details").then((response) => {
       setEmployees(response.data);
     }).catch((error) => console.error("Error fetching employees:", error));
   }, []);
+
+  useEffect(() => {
+    const fetchServices = () => {
+      let url = "http://localhost:5000/api/all-services";
+      if (selectedEmployee) {
+        url += `?alloted_to=${selectedEmployee}`;
+      }
+      axios.get(url).then((response) => {
+        setServices(response.data);
+      }).catch((error) => console.error("Error fetching services:", error));
+    };
+
+    fetchServices();
+  }, [selectedEmployee]);
 
   const handleEditClick = (service: Service) => {
     setSelectedService(service);
@@ -49,6 +60,21 @@ const AllServices = () => {
   return (
     <div className="container mx-auto p-4">
       <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">All Services</h2>
+      <div className="mb-4">
+        <label className="mr-2">Select Employee:</label>
+        <select
+          value={selectedEmployee || ""}
+          onChange={e => setSelectedEmployee(e.target.value)}
+          className="px-3 py-2 border rounded-md"
+        >
+          <option value="">All Employees</option>
+          {employees.map(emp => (
+            <option key={emp.id} value={emp.employee_name}>
+              {emp.employee_name}
+            </option>
+          ))}
+        </select>
+      </div>
       <div className="overflow-x-auto rounded-lg shadow">
         <table className="min-w-full bg-white border border-gray-300 shadow-lg">
           <thead>
@@ -89,7 +115,11 @@ const AllServices = () => {
             <input type="text" value={selectedService.services} onChange={e => setSelectedService({ ...selectedService, services: e.target.value })} className="w-full px-3 py-2 border rounded-md mb-2" />
             <label>Alloted To:</label>
             <select value={selectedService.alloted_to} onChange={e => setSelectedService({ ...selectedService, alloted_to: e.target.value })} className="w-full px-3 py-2 border rounded-md mb-2">
-              {employees.map(emp => (<option key={emp.id} value={emp.employee_name}>{emp.employee_name}</option>))}
+              {employees.map(emp => (
+                <option key={emp.id} value={emp.employee_name}>
+                  {emp.employee_name}
+                </option>
+              ))}
             </select>
             <label>Due Date:</label>
             <input
