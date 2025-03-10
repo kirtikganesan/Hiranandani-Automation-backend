@@ -1,7 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import * as XLSX from 'xlsx';
 
-const InvoiceList = () => {
+interface Client {
+  client_name: string;
+}
+
+interface BillingFirm {
+  billing_firm: string;
+}
+
+interface Invoice {
+  Date: string;
+  Invoice_No: string;
+  Client: string;
+  Gross_Amount: number;
+  Discount_Amount: number;
+  Service_Amount: number;
+  Taxable_Claim_Amount: number;
+  Total_Taxable_Amount: number;
+  CGST: number;
+  SGST: number;
+  IGST: number;
+  Non_Taxable_Amount: number;
+  Total_Bill_Amount: number;
+  Outstanding_Amount: number;
+  Settled_Amount: number;
+  Days_Overdue?: number;
+}
+
+const InvoiceList: React.FC = () => {
   const [filters, setFilters] = useState({
     startDate: '',
     endDate: '',
@@ -10,9 +38,9 @@ const InvoiceList = () => {
     billingFirm: ''
   });
 
-  const [clients, setClients] = useState([]);
-  const [billingFirms, setBillingFirms] = useState([]);
-  const [invoices, setInvoices] = useState([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [billingFirms, setBillingFirms] = useState<BillingFirm[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -37,11 +65,19 @@ const InvoiceList = () => {
 
   const fetchInvoices = () => {
     axios.get('http://localhost:5000/api/invoices', { params: filters }).then(response => {
-      const updatedInvoices = response.data.map(invoice => {
+      const updatedInvoices = response.data.map((invoice: Invoice) => {
         const today = new Date();
         const invoiceDate = new Date(invoice.Date);
-        const daysOverdue = Math.floor((today - invoiceDate) / (1000 * 60 * 60 * 24));
-        return { ...invoice, Days_Overdue: daysOverdue };
+  
+        // Ensure both are valid Date objects
+        if (!isNaN(today.getTime()) && !isNaN(invoiceDate.getTime())) {
+          const timeDifference = today.getTime() - invoiceDate.getTime();
+          const daysOverdue = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+          return { ...invoice, Days_Overdue: daysOverdue };
+        }
+  
+        // If invoiceDate is invalid, return the invoice without Days_Overdue
+        return invoice;
       });
       setInvoices(updatedInvoices);
     }).catch(error => {
@@ -62,6 +98,16 @@ const InvoiceList = () => {
       billingFirm: ''
     });
     setInvoices([]); // Clear the invoices list
+  };
+
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(invoices.map(item => ({
+      ...item,
+      Date: formatDate(item.Date)
+    })));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices');
+    XLSX.writeFile(workbook, 'Invoices.xlsx');
   };
 
   return (
@@ -171,6 +217,12 @@ const InvoiceList = () => {
           onClick={handleResetClick}
         >
           Reset
+        </button>
+        <button
+          className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+          onClick={exportToExcel}
+        >
+          Export to Excel
         </button>
       </div>
 

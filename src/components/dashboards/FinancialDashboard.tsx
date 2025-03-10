@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import * as XLSX from 'xlsx';
 
 interface FinancialData {
   id: number;
@@ -61,6 +62,17 @@ const FinancialDashboard: React.FC = () => {
     fetchFinancialData();
   }, [selectedFirm]);
 
+  const exportToExcel = () => {
+    const worksheet = XLSX.utils.json_to_sheet(financialData.map(item => ({
+      ...item,
+      date: formatDate(item.date),
+      days_since_outstanding: calculateDaysSinceOutstanding(item.date)
+    })));
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'FinancialData');
+    XLSX.writeFile(workbook, 'FinancialData.xlsx');
+  };
+
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">Financial Dashboard</h2>
@@ -80,6 +92,9 @@ const FinancialDashboard: React.FC = () => {
           ))}
         </select>
       </div>
+      <button onClick={exportToExcel} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
+        Export to Excel
+      </button>
       <div className="overflow-x-auto rounded-lg shadow">
         <table className="w-full bg-white border-collapse border border-gray-300">
           <thead>

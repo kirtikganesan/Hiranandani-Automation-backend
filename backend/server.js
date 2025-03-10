@@ -133,7 +133,8 @@ app.post('/api/client-details', (req, res) => {
     city,
     state,
     district,
-    pincode
+    pincode,
+    services
   } = req.body;
 
   const sql = `
@@ -157,8 +158,9 @@ app.post('/api/client-details', (req, res) => {
       city,
       state,
       district,
-      pincode
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      pincode,
+      services
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
@@ -181,7 +183,8 @@ app.post('/api/client-details', (req, res) => {
     city,
     state,
     district,
-    pincode
+    pincode,
+    services 
   ];
 
   db.query(sql, values, (err, result) => {
@@ -1642,6 +1645,58 @@ app.get('/api/icai-data', (req, res) => {
       return res.status(500).json({ error: err.message });
     }
     res.json(results);
+  });
+});
+
+app.put('/api/client-details/:clientCode', (req, res) => {
+  const { clientCode } = req.params;
+  const { client_name, client_group, branch, email, phone, constitution, client_pan, client_tan, client_gstin, industry, date_of_incorporation, address_line_1, address_line_2, area, city, state, district, pincode, services } = req.body;
+
+  const query = `
+    UPDATE client_details
+    SET client_name = ?, client_group = ?, branch = ?, email = ?, phone = ?, constitution = ?, client_pan = ?, client_tan = ?, client_gstin = ?, industry = ?, date_of_incorporation = ?, address_line_1 = ?, address_line_2 = ?, area = ?, city = ?, state = ?, district = ?, pincode = ?, services = ?
+    WHERE client_code = ?;
+  `;
+
+  db.query(query, [client_name, client_group, branch, email, phone, constitution, client_pan, client_tan, client_gstin, industry, date_of_incorporation, address_line_1, address_line_2, area, city, state, district, pincode, services, clientCode], (err, result) => {
+    if (err) {
+      console.error('Error updating client:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    res.json({ message: 'Client updated successfully' });
+  });
+});
+
+// Delete client
+app.delete('/api/client-details/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = 'DELETE FROM client_details WHERE id = ?';
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting client:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    res.json({ message: 'Client deleted successfully' });
+  });
+});
+
+// Add new service
+app.post('/api/add-service', (req, res) => {
+  const { serviceName } = req.body;
+
+  const query = 'INSERT INTO single_invoice (Service_Name) VALUES (?)';
+
+  db.query(query, [serviceName], (err, result) => {
+    if (err) {
+      console.error('Error adding service:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    res.json({ serviceName });
   });
 });
 

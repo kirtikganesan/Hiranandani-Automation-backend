@@ -56,6 +56,11 @@ const ClientListReport: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [clientNames, setClientNames] = useState<string[]>([]);
   const [showTable, setShowTable] = useState<boolean>(false);
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
+  };
+
   useEffect(() => {
     // Fetch client names when the component mounts
     const fetchClientNames = async () => {
@@ -100,7 +105,7 @@ const ClientListReport: React.FC = () => {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-navy">Client List Report</h2>
+        <h2 className="text-3xl font-bold text-navy my-5 text-center">Client List Report</h2>
       </div>
 
       <div className="bg-white p-6 rounded-lg shadow-sm space-y-6">
