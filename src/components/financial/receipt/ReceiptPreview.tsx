@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { generatePDF, ReceiptData } from './utils/pdfGenerator';
 import img from "../../../assets/calogo.png"
@@ -10,8 +9,33 @@ interface ReceiptPreviewProps {
 }
 
 const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ data, onClose }) => {
+  const [receiptNo, setReceiptNo] = useState<string>(data.receiptNo);
+
+  // useEffect(() => {
+  //   // Fetch the maximum receipt number for the selected billing firm
+  //   const fetchMaxReceiptNo = async () => {
+  //     try {
+  //       const response = await fetch(`http://localhost:5000/api/max-receipt-no?billingFirm=${data.billingFirm}`);
+  //       const result = await response.json();
+  //       const maxReceiptNo = result.maxReceiptNo;
+
+  //       // Generate the new receipt number
+  //       if (maxReceiptNo) {
+  //         const prefix = maxReceiptNo.split('-')[0];
+  //         const number = parseInt(maxReceiptNo.split('-')[1], 10) + 1;
+  //         const newReceiptNo = `${prefix}-${number.toString().padStart(2, '0')}`;
+  //         setReceiptNo(newReceiptNo);
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching max receipt number:', error);
+  //     }
+  //   };
+
+  //   fetchMaxReceiptNo();
+  // }, [data.billingFirm]);
+
   const handleDownloadPDF = () => {
-    generatePDF(data);
+    generatePDF({ ...data, receiptNo });
   };
 
   // Calculate totals
@@ -37,21 +61,22 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ data, onClose }) => {
           {/* Receipt Header */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center mb-1">
-              <img 
-                src={img}
-                alt="CA Logo" 
-                className="h-14 mr-2" 
-              />
+              {data.billingFirm === "HIRANANDANI AND ASSOCIATES" && (
+                <img
+                  src={img}
+                  alt="CA Logo"
+                  className="h-14 mr-2"
+                />
+              )}
               <div>
-                <h1 className="text-xl font-bold tracking-tight">HIRANANDANI & ASSOCIATES</h1>
-                <p className="text-sm font-medium">Chartered Accountants</p>
+                <h1 className="text-xl font-bold tracking-tight">{data.billingFirm}</h1>
               </div>
             </div>
             <p className="text-xs mt-1">204, 205, 206 and 207, 2nd FLOOR, MANOHAR PALACE,</p>
             <p className="text-xs">BEHIND SAPNA TALKIES, FURNITURE BAZAR, ULHASNAGAR,ULHASNAGAR 421003</p>
             <p className="text-xs">Contact No. 9321022496   Email: hiranandaniandassociates@gmail.com</p>
           </div>
-          
+
           <div className="h-px bg-gray-200 my-4"></div>
 
           {/* Receipt Details */}
@@ -59,17 +84,17 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ data, onClose }) => {
             <p className="text-sm"><span className="font-medium">No:</span> {data.receiptNo}</p>
             <p className="text-sm"><span className="font-medium">Date:</span> {data.receiptDate}</p>
           </div>
-          
+
           <h2 className="text-center font-bold text-lg mb-6">
             RECEIPT
           </h2>
-          
+
           {/* Receipt Body */}
           <div className="mb-6">
             <p className="text-sm mb-6">
               Received with thanks from <span className="font-medium">{data.clientName}</span> a sum of <span className="font-medium">{formatCurrency(data.totalAmount)}</span> (Rupees Only) by {data.paymentType} as per the details given below:
             </p>
-            
+
             {/* Receipt Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-200">
@@ -132,10 +157,8 @@ const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ data, onClose }) => {
               </table>
             </div>
           </div>
-          
+
           {/* Receipt Footer */}
-          
-          
           <div className="flex justify-end gap-3 mt-8">
             <button
               onClick={onClose}

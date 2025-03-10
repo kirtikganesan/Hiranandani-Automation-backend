@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import ReceiptPreview from './ReceiptPreview';
 import { ReceiptData } from './utils/pdfGenerator';
@@ -7,6 +6,7 @@ import { ReceiptData } from './utils/pdfGenerator';
 interface ReceiptForm {
   receiptType: 'invoice' | 'advance';
   clientName: string;
+  billingFirm: string;
   receiptDate: Date | undefined;
   paymentType: string;
   emailPrimary: boolean;
@@ -28,6 +28,7 @@ const ReceiptGenerator: React.FC = () => {
   const [formData, setFormData] = useState<ReceiptForm>({
     receiptType: 'invoice',
     clientName: '',
+    billingFirm: '',
     receiptDate: new Date(),
     paymentType: '',
     emailPrimary: false,
@@ -45,18 +46,44 @@ const ReceiptGenerator: React.FC = () => {
     chequeNo: '',
   });
 
-  const [clients] = useState<string[]>([
-    'Aarti Bhor',
-    'Rajesh Sharma',
-    'Priya Patel',
-    'Sunil Mehta',
-    'Anita Desai'
-  ]);
-  
+  const [clients, setClients] = useState<string[]>([]);
+  const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    // Fetch clients
+    fetch('http://localhost:5000/api/clients')
+      .then(response => response.json())
+      .then(data => {
+        setClients(data.map((client: { client_name: string }) => client.client_name));
+      })
+      .catch(error => console.error('Error fetching clients:', error));
+
+    // Fetch billing firms
+    fetch('http://localhost:5000/api/financial-billing-firms')
+      .then(response => response.json())
+      .then(data => {
+        setBillingFirms(data.map((firm: { billing_firm: string }) => firm.billing_firm));
+      })
+      .catch(error => console.error('Error fetching billing firms:', error));
+  }, []);
+
+  useEffect(() => {
+    // Calculate total amount automatically
+    if (formData.receiptType === 'invoice') {
+      const totalAmount = (formData.invoiceAmount || 0) -
+                          (formData.previouslyReceivedTDS || 0) -
+                          (formData.currentTDS || 0) -
+                          (formData.discount || 0);
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        totalAmount: totalAmount > 0 ? totalAmount : 0
+      }));
+    }
+  }, [formData.invoiceAmount, formData.previouslyReceivedTDS, formData.currentTDS, formData.discount]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,7 +91,7 @@ const ReceiptGenerator: React.FC = () => {
       ...formData,
       [name]: value,
     });
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -77,7 +104,7 @@ const ReceiptGenerator: React.FC = () => {
       ...formData,
       [name]: value ? parseFloat(value) : null,
     });
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -96,7 +123,7 @@ const ReceiptGenerator: React.FC = () => {
       ...formData,
       [name]: value,
     });
-    
+
     // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
@@ -108,7 +135,7 @@ const ReceiptGenerator: React.FC = () => {
       ...formData,
       [fieldName]: date ? new Date(date) : undefined,
     });
-    
+
     // Clear error for this field
     if (errors[fieldName]) {
       setErrors({ ...errors, [fieldName]: '' });
@@ -117,7 +144,7 @@ const ReceiptGenerator: React.FC = () => {
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.clientName) {
       newErrors.clientName = "Please select a client name";
     }
@@ -147,7 +174,7 @@ const ReceiptGenerator: React.FC = () => {
         newErrors.invoiceAmount = "Please enter the invoice amount";
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -156,50 +183,59 @@ const ReceiptGenerator: React.FC = () => {
     if (!validate()) {
       return;
     }
-
+  
     setIsGenerating(true);
-
-    // Simulate API call
-    setTimeout(() => {
-      const netAmountReceived = formData.totalAmount || 0;
-      const invoiceAmount = formData.invoiceAmount || 0;
-      const previouslyReceivedTDS = formData.previouslyReceivedTDS || 0;
-      const currentTDS = formData.currentTDS || 0;
-      const discount = formData.discount || 0;
-      
-      const balanceOutstanding = 
-        invoiceAmount - 
-        previouslyReceivedTDS - 
-        currentTDS - 
-        discount - 
-        netAmountReceived;
-
-      const receipt: ReceiptData = {
-        receiptNo: `HA-${Math.floor(Math.random() * 100)}`,
-        receiptDate: formData.receiptDate ? format(formData.receiptDate, 'dd/MM/yyyy') : '',
-        clientName: formData.clientName,
-        paymentType: formData.paymentType,
-        totalAmount: formData.totalAmount || 0,
-        invoiceDetails: [
-          {
-            invoiceNo: formData.invoiceNo,
-            invoiceDate: formData.invoiceDate ? format(formData.invoiceDate, 'dd/MM/yyyy') : '',
-            invoiceAmount: invoiceAmount,
-            previouslyReceivedTDS: previouslyReceivedTDS,
-            currentTDS: currentTDS,
-            discount: discount,
-            netAmountReceived: netAmountReceived,
-            balanceOutstanding: balanceOutstanding > 0 ? balanceOutstanding : 0
-          }
-        ]
-      };
-
-      setReceiptData(receipt);
-      setShowReceiptModal(true);
-      setIsGenerating(false);
-    }, 1000);
+  
+    // Fetch the new receipt number for the selected billing firm
+    fetch(`http://localhost:5000/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
+      .then(response => response.json())
+      .then(result => {
+        const newReceiptNo = result.maxReceiptNo; // This is already the new receipt number
+        
+        // Continue with creating receipt data
+        const netAmountReceived = formData.totalAmount || 0;
+        const invoiceAmount = formData.invoiceAmount || 0;
+        const previouslyReceivedTDS = formData.previouslyReceivedTDS || 0;
+        const currentTDS = formData.currentTDS || 0;
+        const discount = formData.discount || 0;
+  
+        const balanceOutstanding =
+          invoiceAmount -
+          previouslyReceivedTDS -
+          currentTDS -
+          discount -
+          netAmountReceived;
+  
+        const receipt: ReceiptData = {
+          receiptNo: newReceiptNo,
+          receiptDate: formData.receiptDate ? format(formData.receiptDate, 'dd/MM/yyyy') : '',
+          clientName: formData.clientName,
+          paymentType: formData.paymentType,
+          totalAmount: formData.totalAmount || 0,
+          invoiceDetails: [
+            {
+              invoiceNo: formData.invoiceNo,
+              invoiceDate: formData.invoiceDate ? format(formData.invoiceDate, 'dd/MM/yyyy') : '',
+              invoiceAmount: invoiceAmount,
+              previouslyReceivedTDS: previouslyReceivedTDS,
+              currentTDS: currentTDS,
+              discount: discount,
+              netAmountReceived: netAmountReceived,
+              balanceOutstanding: balanceOutstanding > 0 ? balanceOutstanding : 0
+            }
+          ],
+          billingFirm: formData.billingFirm
+        };
+  
+        setReceiptData(receipt);
+        setShowReceiptModal(true);
+        setIsGenerating(false);
+      })
+      .catch(error => {
+        console.error('Error generating receipt number:', error);
+        setIsGenerating(false);
+      });
   };
-
   return (
     <>
       <div className="w-full max-w-6xl mx-auto p-6 space-y-8">
@@ -216,9 +252,9 @@ const ReceiptGenerator: React.FC = () => {
                 <label className="text-base font-medium">Receipt Type</label>
                 <div className="flex flex-wrap gap-4">
                   <div className="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      id="invoice" 
+                    <input
+                      type="radio"
+                      id="invoice"
                       checked={formData.receiptType === 'invoice'}
                       onChange={() => handleSelectChange('receiptType', 'invoice')}
                       className="h-4 w-4 text-blue-600"
@@ -226,9 +262,9 @@ const ReceiptGenerator: React.FC = () => {
                     <label htmlFor="invoice" className="cursor-pointer">Against Invoice</label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      id="advance" 
+                    <input
+                      type="radio"
+                      id="advance"
                       checked={formData.receiptType === 'advance'}
                       onChange={() => handleSelectChange('receiptType', 'advance')}
                       className="h-4 w-4 text-blue-600"
@@ -243,9 +279,9 @@ const ReceiptGenerator: React.FC = () => {
                   <label htmlFor="clientName" className="block text-sm font-medium">
                     Client Name <span className="text-red-500">*</span>
                   </label>
-                  <select 
+                  <select
                     id="clientName"
-                    value={formData.clientName} 
+                    value={formData.clientName}
                     onChange={(e) => handleSelectChange('clientName', e.target.value)}
                     className={`w-full h-10 px-3 py-2 rounded-md border ${errors.clientName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
                   >
@@ -257,6 +293,26 @@ const ReceiptGenerator: React.FC = () => {
                     ))}
                   </select>
                   {errors.clientName && <p className="text-red-500 text-xs">{errors.clientName}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="billingFirm" className="block text-sm font-medium">
+                    Billing Firm <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    id="billingFirm"
+                    value={formData.billingFirm}
+                    onChange={(e) => handleSelectChange('billingFirm', e.target.value)}
+                    className={`w-full h-10 px-3 py-2 rounded-md border ${errors.billingFirm ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
+                  >
+                    <option value="">Select Billing Firm</option>
+                    {billingFirms.map((firm, index) => (
+                      <option key={index} value={firm}>
+                        {firm}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.billingFirm && <p className="text-red-500 text-xs">{errors.billingFirm}</p>}
                 </div>
 
                 <div className="space-y-2">
@@ -277,9 +333,9 @@ const ReceiptGenerator: React.FC = () => {
                   <label htmlFor="paymentType" className="block text-sm font-medium">
                     Type of Payment <span className="text-red-500">*</span>
                   </label>
-                  <select 
+                  <select
                     id="paymentType"
-                    value={formData.paymentType} 
+                    value={formData.paymentType}
                     onChange={(e) => handleSelectChange('paymentType', e.target.value)}
                     className={`w-full h-10 px-3 py-2 rounded-md border ${errors.paymentType ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
                   >
@@ -401,8 +457,6 @@ const ReceiptGenerator: React.FC = () => {
                 </div>
               )}
 
-              
-
               <div className="space-y-2">
                 <label htmlFor="totalAmount" className="block text-sm font-medium">
                   Total Amount <span className="text-red-500">*</span>
@@ -419,12 +473,12 @@ const ReceiptGenerator: React.FC = () => {
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
-                <button 
+                <button
                   className="px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-100 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 text-white transition-colors"
                   onClick={handleGenerateReceipt}
                   disabled={isGenerating}
@@ -446,9 +500,9 @@ const ReceiptGenerator: React.FC = () => {
       </div>
 
       {showReceiptModal && receiptData && (
-        <ReceiptPreview 
-          data={receiptData} 
-          onClose={() => setShowReceiptModal(false)} 
+        <ReceiptPreview
+          data={receiptData}
+          onClose={() => setShowReceiptModal(false)}
         />
       )}
     </>

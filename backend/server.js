@@ -1700,6 +1700,71 @@ app.post('/api/add-service', (req, res) => {
   });
 });
 
+app.get('/api/max-receipt-no', (req, res) => {
+  const billingFirm = req.query.billingFirm;
+
+  if (!billingFirm) {
+    return res.status(400).json({ error: 'Billing firm is required' });
+  }
+
+  // Get prefix for the billing firm
+  let prefix = '';
+  if (billingFirm === 'HIRANANDANI AND ASSOCIATES') {
+    prefix = 'HA';
+  } 
+  else if (billingFirm === 'Hiranandani And Co') {
+    prefix = 'HC';
+  }
+    else if (billingFirm === 'Oyster Management Consultants Private Limited') {
+      prefix = 'O';
+    }
+      else if (billingFirm === 'RIA ENTERPRISES') {
+        prefix = 'RE';
+    }
+
+    else if (billingFirm === 'ANJANA ENTERPRISES') {
+      prefix = 'AE';
+  }
+  else {
+    // Create a prefix from the first letters of each word
+    prefix = billingFirm.split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase();
+  }
+
+  // Count the number of receipts for this billing firm
+  const query = `
+    SELECT COUNT(*) AS receiptCount
+    FROM receipt_list
+    WHERE billing_firm = ?
+  `;
+
+  db.query(query, [billingFirm], (err, results) => {
+    if (err) {
+      console.error('Error counting receipts:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+
+    // Get the count from the results
+    const count = results[0].receiptCount || 0;
+    
+    // The new receipt number will be the count + 1
+    let nextNumber=0;
+    if(billingFirm === 'RIA ENTERPRISES'){
+      nextNumber = count + 2;
+    }
+    else{
+      nextNumber = count + 1;
+    }
+    
+    // Format it with the prefix and zero-padding
+    const newReceiptNo = `${prefix}-${nextNumber.toString().padStart(2, '0')}`;
+    
+    res.json({ maxReceiptNo: newReceiptNo, prefix, count: nextNumber });
+  });
+});
+
 
 // ✅ Start Server
 app.listen(port, () => {
