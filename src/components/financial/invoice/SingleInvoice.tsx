@@ -174,7 +174,6 @@ const SingleInvoice = () => {
           <table className="min-w-full border border-gray-300">
             <thead className="bg-gray-800 text-white">
               <tr>
-                <th className="px-4 py-2 text-left"></th>
                 <th className="px-4 py-2 text-left">Client Code</th>
                 <th className="px-4 py-2 text-left">Client Name</th>
                 <th className="px-4 py-2 text-left">Main Category</th>
@@ -187,9 +186,6 @@ const SingleInvoice = () => {
             <tbody>
               {currentData.map((item, index) => (
                 <tr key={index} className="border-t border-gray-300">
-                  <td className="px-4 py-2">
-                    <input type="checkbox" className="form-checkbox" />
-                  </td>
                   <td className="px-4 py-2">{item.Client_Code}</td>
                   <td className="px-4 py-2">{item.Client_Name}</td>
                   <td className="px-4 py-2">{item.Main_Category}</td>

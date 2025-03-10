@@ -196,9 +196,7 @@ const List = () => {
           <tbody>
             {receiptList.map((item, index) => (
               <tr key={index} className="border-t border-gray-300">
-                <td className="px-4 py-2 text-blue-600 hover:underline">
-                  {item.receipt_no}
-                </td>
+                <td className="px-4 py-2">{item.receipt_no}</td>
                 <td className="px-4 py-2">{formatDate(item.date)}</td>
                 <td className="px-4 py-2">{item.type}</td>
                 <td className="px-4 py-2">{item.client_name}</td>
