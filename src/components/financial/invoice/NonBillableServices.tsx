@@ -194,9 +194,6 @@ const NonBillableServices = () => {
         >
           Reset
         </button>
-        <button className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600">
-          Export
-        </button>
       </div>
 
       <div className="mt-8">
