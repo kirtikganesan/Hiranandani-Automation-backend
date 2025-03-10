@@ -100,31 +100,7 @@ const NonBillableServices = () => {
       <h1 className="text-2xl font-bold mb-6">Non Billable Services</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Type
-          </label>
-          <div className="flex gap-4">
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio"
-                checked={filters.type === 'service'}
-                onChange={() => setFilters({...filters, type: 'service'})}
-              />
-              <span className="ml-2">Service</span>
-            </label>
-            <label className="inline-flex items-center">
-              <input
-                type="radio"
-                className="form-radio"
-                checked={filters.type === 'notice'}
-                onChange={() => setFilters({...filters, type: 'notice'})}
-              />
-              <span className="ml-2">Notice</span>
-            </label>
-          </div>
-        </div>
+        
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
