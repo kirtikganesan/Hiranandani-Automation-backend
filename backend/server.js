@@ -20,7 +20,7 @@ const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
   password: '',  // Update this with your actual MySQL password
-  database: 'hiranandani'  // Ensure this database exists
+  database: 'hiranandani2'  // Ensure this database exists
 });
 
 // ✅ Connect to the database
