@@ -4,6 +4,7 @@ import { Building2, Menu, X } from 'lucide-react';
 import logo from "../assets/newfavicon.png"
 import loginbg from "../assets/loginbg.avif"
 import axios from 'axios';
+const apiUrl = process.env.REACT_APP_API_URL;
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => boolean;
@@ -21,7 +22,7 @@ const LoginPage = () => {
 
     try {
       // Send the login request to the backend
-      const response = await axios.post('https://hiranandani-automation.onrender.com/login', { email, password });
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/login`, { email, password });
       console.log(response.status);
       
       // Check if the response is successful (status 200)
