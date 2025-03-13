@@ -27,13 +27,13 @@ const Leaves = () => {
   });
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/employees")
+    axios.get("https://hiranandani-automation.onrender.com/api/employees")
       .then((response) => setEmployees(response.data))
       .catch((error) => console.error("Error fetching employees:", error));
   }, []);
 
   useEffect(() => {
-    axios.get<Leave[]>("http://localhost:5000/api/leaves")
+    axios.get<Leave[]>("https://hiranandani-automation.onrender.com/api/leaves")
       .then(response => setLeaves(response.data))
       .catch(error => console.error("Error fetching leaves:", error));
   }, []);
@@ -44,7 +44,7 @@ const Leaves = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    axios.post("http://localhost:5000/api/apply-leave", formData)
+    axios.post("https://hiranandani-automation.onrender.com/api/apply-leave", formData)
       .then(() => alert("Leave applied successfully"))
       .catch((error) => console.error("Error submitting leave:", error));
   };

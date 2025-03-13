@@ -24,7 +24,7 @@ const KnowledgeBase = () => {
 
   const fetchKnowledgeItems = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/knowledge_base");
+      const response = await axios.get("https://hiranandani-automation.onrender.com/api/knowledge_base");
       setKnowledgeItems(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching knowledge items:", error);
@@ -36,7 +36,7 @@ const KnowledgeBase = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/knowledge_base", formData);
+      await axios.post("https://hiranandani-automation.onrender.com/api/knowledge_base", formData);
       setFormData({ category: "", title: "", link: "" }); // Clear form
       fetchKnowledgeItems(); // Refresh table
     } catch (error) {

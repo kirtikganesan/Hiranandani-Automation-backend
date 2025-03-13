@@ -36,7 +36,7 @@ const AdvanceList = () => {
 
   useEffect(() => {
     // Fetch clients
-    axios.get('http://localhost:5000/api/clients')
+    axios.get('https://hiranandani-automation.onrender.com/api/clients')
       .then(response => {
         setClients(response.data);
       })
@@ -45,7 +45,7 @@ const AdvanceList = () => {
       });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms')
+    axios.get('https://hiranandani-automation.onrender.com/api/financial-billing-firms')
       .then(response => {
         setBillingFirms(response.data);
       })

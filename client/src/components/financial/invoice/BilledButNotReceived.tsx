@@ -44,14 +44,14 @@ const BilledNotReceived = () => {
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get<Client[]>('http://localhost:5000/api/unique-invoice-clients').then(response => {
+    axios.get<Client[]>('https://hiranandani-automation.onrender.com/api/unique-invoice-clients').then(response => {
       setClients([{ client_name: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching clients:', error);
     });
 
     // Fetch billing firms
-    axios.get<BillingFirm[]>('http://localhost:5000/api/financial-billing-firms').then(response => {
+    axios.get<BillingFirm[]>('https://hiranandani-automation.onrender.com/api/financial-billing-firms').then(response => {
       setBillingFirms([{ billing_firm: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching billing firms:', error);
@@ -59,7 +59,7 @@ const BilledNotReceived = () => {
   }, []);
 
   const fetchData = () => {
-    axios.get<DataItem[]>('http://localhost:5000/api/billed-but-not-received', { params: filters }).then(response => {
+    axios.get<DataItem[]>('https://hiranandani-automation.onrender.com/api/billed-but-not-received', { params: filters }).then(response => {
       setData(response.data);
     }).catch(error => {
       console.error('Error fetching data:', error);

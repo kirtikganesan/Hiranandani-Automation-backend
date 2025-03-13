@@ -61,7 +61,7 @@ export default function Notice() {
     // Fetch client names from the API when the component mounts
     const fetchClients = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/clients');
+        const response = await axios.get('https://hiranandani-automation.onrender.com/api/clients');
         // Ensure the response data is an array
         if (Array.isArray(response.data)) {
           setClients(response.data);
@@ -107,7 +107,7 @@ export default function Notice() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/notices', formDataToSend, {
+      const response = await axios.post('https://hiranandani-automation.onrender.com/api/notices', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

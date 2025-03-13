@@ -41,7 +41,7 @@ export default function Claims() {
 
   useEffect(() => {
     // Fetch employee data from the backend API
-    axios.get('http://localhost:5000/api/employees')
+    axios.get('https://hiranandani-automation.onrender.com/api/employees')
       .then(response => {
         // Assuming the response contains an array of employee objects with an employee_name field
         const employeeNames = response.data.map((employee: any) => employee.employee_name);
@@ -83,7 +83,7 @@ export default function Claims() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/claims', formDataToSend, {
+      const response = await axios.post('https://hiranandani-automation.onrender.com/api/claims', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

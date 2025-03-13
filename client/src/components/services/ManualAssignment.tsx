@@ -22,10 +22,10 @@ export default function ManualAssignment() {
 
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/client-details").then((response) => {
+    axios.get("https://hiranandani-automation.onrender.com/api/client-details").then((response) => {
       setClients(response.data);
     });
-    axios.get("http://localhost:5000/api/employee-details").then((response) => {
+    axios.get("https://hiranandani-automation.onrender.com/api/employee-details").then((response) => {
       setEmployees(response.data);
     });
   }, []);
@@ -36,7 +36,7 @@ export default function ManualAssignment() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/manual-assignment", {
+      const response = await fetch("https://hiranandani-automation.onrender.com/api/manual-assignment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

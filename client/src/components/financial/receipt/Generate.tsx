@@ -55,7 +55,7 @@ const ReceiptGenerator: React.FC = () => {
 
   useEffect(() => {
     // Fetch clients
-    fetch('http://localhost:5000/api/clients')
+    fetch('https://hiranandani-automation.onrender.com/api/clients')
       .then(response => response.json())
       .then(data => {
         setClients(data.map((client: { client_name: string }) => client.client_name));
@@ -63,7 +63,7 @@ const ReceiptGenerator: React.FC = () => {
       .catch(error => console.error('Error fetching clients:', error));
 
     // Fetch billing firms
-    fetch('http://localhost:5000/api/financial-billing-firms')
+    fetch('https://hiranandani-automation.onrender.com/api/financial-billing-firms')
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((firm: { billing_firm: string }) => firm.billing_firm));
@@ -187,7 +187,7 @@ const ReceiptGenerator: React.FC = () => {
     setIsGenerating(true);
   
     // Fetch the new receipt number for the selected billing firm
-    fetch(`http://localhost:5000/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
+    fetch(`https://hiranandani-automation.onrender.com/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
       .then(response => response.json())
       .then(result => {
         const newReceiptNo = result.maxReceiptNo; // This is already the new receipt number

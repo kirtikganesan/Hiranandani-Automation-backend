@@ -29,7 +29,7 @@ const CancelledReceipts: React.FC = () => {
     // Fetch unique billing firms
     const fetchData = async () => {
       try {
-        const billingFirmsResponse = await axios.get<{ billing_firm: string }[]>('http://localhost:5000/api/financial-billing-firms');
+        const billingFirmsResponse = await axios.get<{ billing_firm: string }[]>('https://hiranandani-automation.onrender.com/api/financial-billing-firms');
 
         // Log the data to inspect its structure
         console.log('Billing Firms Response:', billingFirmsResponse.data);
@@ -50,7 +50,7 @@ const CancelledReceipts: React.FC = () => {
 
   const handleListClick = async () => {
     try {
-      const response = await axios.get<{ data: Receipt[] }>('http://localhost:5000/api/cancelled-receipts');
+      const response = await axios.get<{ data: Receipt[] }>('https://hiranandani-automation.onrender.com/api/cancelled-receipts');
 
       // Log the response data to inspect its structure
       console.log('API Response Data:', response.data);

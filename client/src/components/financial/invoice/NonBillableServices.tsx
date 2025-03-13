@@ -43,9 +43,9 @@ const NonBillableServices = () => {
     const fetchUniqueValues = async () => {
       try {
         const [clientsResponse, mainCategoriesResponse, servicesResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/unique-non-billable-clients'),
-          axios.get('http://localhost:5000/api/unique-non-billable-main-categories'),
-          axios.get('http://localhost:5000/api/unique-non-billable-services')
+          axios.get('https://hiranandani-automation.onrender.com/api/unique-non-billable-clients'),
+          axios.get('https://hiranandani-automation.onrender.com/api/unique-non-billable-main-categories'),
+          axios.get('https://hiranandani-automation.onrender.com/api/unique-non-billable-services')
         ]);
 
         setClients(clientsResponse.data);
@@ -61,7 +61,7 @@ const NonBillableServices = () => {
 
   const handleFilter = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/non-billable-services', {
+      const response = await axios.get('https://hiranandani-automation.onrender.com/api/non-billable-services', {
         params: filters
       });
       console.log('Fetched Data:', response.data); // Log the fetched data

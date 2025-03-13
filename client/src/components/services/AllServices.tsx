@@ -23,14 +23,14 @@ const AllServices = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/employee-details").then((response) => {
+    axios.get("https://hiranandani-automation.onrender.com/api/employee-details").then((response) => {
       setEmployees(response.data);
     }).catch((error) => console.error("Error fetching employees:", error));
   }, []);
 
   useEffect(() => {
     const fetchServices = () => {
-      let url = "http://localhost:5000/api/all-services";
+      let url = "https://hiranandani-automation.onrender.com/api/all-services";
       if (selectedEmployee) {
         url += `?alloted_to=${selectedEmployee}`;
       }
@@ -49,7 +49,7 @@ const AllServices = () => {
 
   const handleUpdate = () => {
     if (!selectedService) return;
-    axios.put(`http://localhost:5000/api/update-service/${selectedService.id}`, selectedService)
+    axios.put(`https://hiranandani-automation.onrender.com/api/update-service/${selectedService.id}`, selectedService)
       .then(() => {
         setServices(services.map(s => s.id === selectedService.id ? selectedService : s));
         setModalOpen(false);

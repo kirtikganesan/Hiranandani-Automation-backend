@@ -26,7 +26,7 @@ const SingleInvoice = () => {
 
   useEffect(() => {
     // Fetch unique options from the backend
-    fetch('http://localhost:5000/api/unique-options')
+    fetch('https://hiranandani-automation.onrender.com/api/unique-options')
       .then(response => response.json())
       .then(data => {
         setUniqueClients(data.clients);
@@ -38,7 +38,7 @@ const SingleInvoice = () => {
 
   const handleFilterClick = () => {
     // Fetch filtered data based on the selected filters
-    fetch('http://localhost:5000/api/filtered-data', {
+    fetch('https://hiranandani-automation.onrender.com/api/filtered-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

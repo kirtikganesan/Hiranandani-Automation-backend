@@ -38,7 +38,7 @@ const Employees = () => {
 
   const fetchEmployees = () => {
     axios
-      .get("http://localhost:5000/api/employees")
+      .get("https://hiranandani-automation.onrender.com/api/employees")
       .then((response) => {
         setEmployees(response.data);
         setLoading(false);
@@ -59,7 +59,7 @@ const Employees = () => {
   const confirmDelete = () => {
     if (selectedEmployee) {
       axios
-        .delete(`http://localhost:5000/api/employees/${selectedEmployee.id}`)
+        .delete(`https://hiranandani-automation.onrender.com/api/employees/${selectedEmployee.id}`)
         .then(() => {
           setEmployees((prevEmployees) => prevEmployees.filter((emp) => emp.id !== selectedEmployee.id));
           setModalOpen(false);
@@ -86,7 +86,7 @@ const Employees = () => {
   const submitEdit = () => {
     if (editFormData) {
       axios
-        .put(`http://localhost:5000/api/employees/${editFormData.id}`, editFormData)
+        .put(`https://hiranandani-automation.onrender.com/api/employees/${editFormData.id}`, editFormData)
         .then(() => {
           setEmployees((prevEmployees) =>
             prevEmployees.map((emp) => (emp.id === editFormData.id ? editFormData : emp))
@@ -122,7 +122,7 @@ const Employees = () => {
 
   const submitNewEmployee = () => {
     axios
-      .post("http://localhost:5000/api/employees", newEmployeeFormData)
+      .post("https://hiranandani-automation.onrender.com/api/employees", newEmployeeFormData)
       .then((response) => {
         setEmployees([...employees, { ...newEmployeeFormData, id: response.data.id }]);
         setEditModalOpen(false);

@@ -16,7 +16,7 @@ const Appointment = () => {
 
   // Fetch client names from the backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/client-details') // Fetch client names from API
+    fetch('https://hiranandani-automation.onrender.com/api/client-details') // Fetch client names from API
       .then((response) => response.json())
       .then((data) => {
         setClients(data.map((client: { client_name: string }) => client.client_name)); // Extract client names
@@ -41,7 +41,7 @@ const Appointment = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch('https://hiranandani-automation.onrender.com/api/appointments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

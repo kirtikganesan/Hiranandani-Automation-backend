@@ -33,7 +33,7 @@ const List = () => {
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get('http://localhost:5000/api/unique-receipt-clients')
+    axios.get('https://hiranandani-automation.onrender.com/api/unique-receipt-clients')
       .then(response => {
         if (Array.isArray(response.data)) {
           setClients(response.data.map((client: { client_name: string }) => client.client_name));
@@ -46,7 +46,7 @@ const List = () => {
       });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms')
+    axios.get('https://hiranandani-automation.onrender.com/api/financial-billing-firms')
       .then(response => {
         if (Array.isArray(response.data)) {
           setBillingFirms(response.data.map((firm: { billing_firm: string }) => firm.billing_firm));
@@ -61,7 +61,7 @@ const List = () => {
 
   const fetchReceiptList = () => {
     const { startDate, endDate, clients, billingFirm } = filters;
-    let query = 'http://localhost:5000/api/receipt-list?';
+    let query = 'https://hiranandani-automation.onrender.com/api/receipt-list?';
   
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);

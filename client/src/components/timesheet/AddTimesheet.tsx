@@ -18,7 +18,7 @@ const AddTimesheet = () => {
   const [clients, setClients] = useState<string[]>([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/client-details")
+    axios.get("https://hiranandani-automation.onrender.com/api/client-details")
       .then((response) => {
         setClients(response.data.map((client: { client_name: string }) => client.client_name));
       })
@@ -61,7 +61,7 @@ const AddTimesheet = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/timesheets", formData);
+      await axios.post("https://hiranandani-automation.onrender.com/api/timesheets", formData);
       alert("Timesheet added successfully!");
       setFormData({
         timesheet_date: "",
