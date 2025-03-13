@@ -4,7 +4,7 @@ const mysql = require('mysql2');
 const multer = require("multer");
 const fs = require("fs");
 const path = require("path");
-
+require('dotenv').config();
 const app = express();
 const port = 5000;
 
@@ -17,10 +17,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // ✅ Create a connection to the database
 const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '',  // Update this with your actual MySQL password
-  database: 'hiranandani'  // Ensure this database exists
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME
 });
 
 // ✅ Connect to the database
@@ -1767,6 +1767,6 @@ app.get('/api/max-receipt-no', (req, res) => {
 
 
 // ✅ Start Server
-app.listen(port, () => {
-  console.log(`🚀 Server is running on http://localhost:${port}`);
+app.listen(process.env.PORT | port, () => {
+  console.log(`🚀 Server is running on https://hiranandani-automation.onrender.com:${port}`);
 });
