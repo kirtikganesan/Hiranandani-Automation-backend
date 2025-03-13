@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 require('dotenv').config();
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
 app.use(cors({ origin: '*' }));
 app.use(express.json());
@@ -1767,6 +1767,6 @@ app.get('/api/max-receipt-no', (req, res) => {
 
 
 // ✅ Start Server
-app.listen(process.env.PORT | port, () => {
+app.listen(port, () => {
   console.log(`🚀 Server is running on https://hiranandani-automation.onrender.com:${port}`);
 });
