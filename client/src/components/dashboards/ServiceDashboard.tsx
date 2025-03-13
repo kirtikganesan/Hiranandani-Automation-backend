@@ -31,8 +31,8 @@ const ServiceDashboard = () => {
     const fetchData = async () => {
       try {
         const [servicesTriggeredResponse, completedServicesResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/services-triggered-but-not-allotted-count'),
-          axios.get('http://localhost:5000/api/single-invoice-count')
+          axios.get('https://hiranandani-automation.onrender.com/api/services-triggered-but-not-allotted-count'),
+          axios.get('https://hiranandani-automation.onrender.com/api/single-invoice-count')
         ]);
 
         const servicesTriggeredCount = servicesTriggeredResponse.data.count;

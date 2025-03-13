@@ -25,7 +25,7 @@ const EmployeeDashboard: React.FC = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/employees")
+    fetch("https://hiranandani-automation.onrender.com/api/employees")
       .then(response => response.json())
       .then(data => setEmployees(data))
       .catch(error => console.error("Error fetching data:", error));
