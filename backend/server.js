@@ -6,7 +6,7 @@ const fs = require("fs");
 const path = require("path");
 require('dotenv').config();
 const app = express();
-const port = process.env.PORT;
+const port = process.env.PORT || 5000;
 
 app.use(cors({ 
   origin: 'https://hiranandani-automation.vercel.app' 

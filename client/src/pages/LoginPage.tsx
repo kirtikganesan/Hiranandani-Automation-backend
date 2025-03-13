@@ -4,7 +4,6 @@ import { Building2, Menu, X } from 'lucide-react';
 import logo from "../assets/newfavicon.png"
 import loginbg from "../assets/loginbg.avif"
 import axios from 'axios';
-const apiUrl = process.env.REACT_APP_API_URL;
 
 interface LoginPageProps {
   onLogin: (email: string, password: string) => boolean;
