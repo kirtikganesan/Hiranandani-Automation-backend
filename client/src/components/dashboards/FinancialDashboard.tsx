@@ -31,6 +31,7 @@ const FinancialDashboard: React.FC = () => {
   const [financialData, setFinancialData] = useState<FinancialData[]>([]);
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [selectedFirm, setSelectedFirm] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Fetch billing firms
   useEffect(() => {
@@ -73,6 +74,14 @@ const FinancialDashboard: React.FC = () => {
     XLSX.writeFile(workbook, 'FinancialData.xlsx');
   };
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredData = financialData.filter((item) =>
+    item.client.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4 text-gray-800 text-center">Financial Dashboard</h2>
@@ -91,6 +100,15 @@ const FinancialDashboard: React.FC = () => {
             </option>
           ))}
         </select>
+      </div>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search Clients"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="border p-2 mr-2"
+        />
       </div>
       <button onClick={exportToExcel} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
         Export to Excel
@@ -111,7 +129,7 @@ const FinancialDashboard: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {financialData.map((item) => (
+            {filteredData.map((item) => (
               <tr key={item.id} className="text-sm text-center">
                 <td className="border px-4 py-2">{formatDate(item.date)}</td>
                 <td className="border px-4 py-2">{item.invoice_no}</td>
