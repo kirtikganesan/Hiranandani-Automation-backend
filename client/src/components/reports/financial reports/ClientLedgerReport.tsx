@@ -12,7 +12,7 @@ const ClientLedgerReport: React.FC = () => {
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch('https://hiranandani-automation.onrender.com/api/billing-firms')
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -23,7 +23,7 @@ const ClientLedgerReport: React.FC = () => {
       .catch(error => console.error('Error fetching billing firms:', error));
 
     // Fetch clients
-    fetch('http://localhost:5000/api/clients')
+    fetch('https://hiranandani-automation.onrender.com/api/clients')
       .then(response => response.json())
       .then(data => {
         setClients(data.map((item: { client_name: string }) => item.client_name));

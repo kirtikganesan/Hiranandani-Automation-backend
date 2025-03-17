@@ -37,19 +37,19 @@ const StaffOccupancyReport = () => {
 
   useEffect(() => {
     // Fetch unique employee names from the backend
-    fetch('http://localhost:5000/api/unique-occupancy-employees')
+    fetch('https://hiranandani-automation.onrender.com/api/unique-occupancy-employees')
       .then(response => response.json())
       .then(data => setEmployees(['All', ...data]));
 
     // Fetch unique client names from the backend
-    fetch('http://localhost:5000/api/unique-occupancy-clients')
+    fetch('https://hiranandani-automation.onrender.com/api/unique-occupancy-clients')
       .then(response => response.json())
       .then(data => setClients(['All', ...data]));
   }, []);
 
   const handleListClick = () => {
     // Fetch filtered data from the backend based on selected filters
-    let query = 'http://localhost:5000/api/staff-occupancy?';
+    let query = 'https://hiranandani-automation.onrender.com/api/staff-occupancy?';
     if (filters.employee && filters.employee !== 'All') {
       query += `employee=${filters.employee}&`;
     }

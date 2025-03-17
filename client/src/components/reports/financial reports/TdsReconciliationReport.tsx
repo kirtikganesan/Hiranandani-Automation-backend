@@ -25,12 +25,12 @@ const TdsReconciliationReport: React.FC = () => {
 
   useEffect(() => {
     // Fetch distinct Billing Firms
-    axios.get('http://localhost:5000/api/billing-firms')
+    axios.get('https://hiranandani-automation.onrender.com/api/billing-firms')
       .then(response => setBillingFirms(response.data))
       .catch(error => console.error('Error fetching billing firms:', error));
 
     // Fetch financial year options
-    axios.get('http://localhost:5000/api/financial-years')
+    axios.get('https://hiranandani-automation.onrender.com/api/financial-years')
       .then(response => setFinancialYears(response.data))
       .catch(error => console.error('Error fetching financial years:', error));
   }, []);
@@ -41,7 +41,7 @@ const TdsReconciliationReport: React.FC = () => {
       financialYear: financialYear || undefined,
     };
 
-    axios.get('http://localhost:5000/api/tds-report', { params })
+    axios.get('https://hiranandani-automation.onrender.com/api/tds-report', { params })
       .then(response => setData(response.data))
       .catch(error => console.error('Error fetching data:', error));
   };

@@ -23,7 +23,7 @@ const StaffLeaveReport = () => {
     // Fetch employees from the API when the component mounts
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/employees');
+        const response = await axios.get('https://hiranandani-automation.onrender.com/api/employees');
         setEmployees(response.data);
       } catch (error) {
         console.error('Error fetching employees:', error);

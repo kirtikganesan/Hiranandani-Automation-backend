@@ -11,7 +11,7 @@ const ClientwiseWorkPosition = () => {
 
   useEffect(() => {
     // Fetch client options from the backend
-    fetch('http://localhost:5000/api/clients')
+    fetch('https://hiranandani-automation.onrender.com/api/clients')
       .then(response => response.json())
       .then(data => {
         setClients(data.map((item: { client_name: string }) => item.client_name));

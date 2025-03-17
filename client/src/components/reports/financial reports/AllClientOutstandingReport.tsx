@@ -10,7 +10,7 @@ const AllClientOutstandingReport: React.FC = () => {
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch('https://hiranandani-automation.onrender.com/api/billing-firms')
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -27,7 +27,7 @@ const AllClientOutstandingReport: React.FC = () => {
       billingFirm,
     });
 
-    fetch(`http://localhost:5000/api/all-client-outstanding?${queryParams}`)
+    fetch(`https://hiranandani-automation.onrender.com/api/all-client-outstanding?${queryParams}`)
       .then(response => response.json())
       .then(data => {
         setData(data);

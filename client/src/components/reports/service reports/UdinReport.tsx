@@ -14,7 +14,7 @@ const UdinReport = () => {
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/employees');
+        const response = await axios.get('https://hiranandani-automation.onrender.com/api/employees');
         setEmployees([{ id: 0, employee_name: 'All' }, ...response.data]);
       } catch (error) {
         console.error('Error fetching employees:', error);
@@ -26,7 +26,7 @@ const UdinReport = () => {
 
   const handleListClick = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/udin-report', {
+      const response = await axios.get('https://hiranandani-automation.onrender.com/api/udin-report', {
         params: { fromDate, toDate },
       });
 

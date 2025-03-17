@@ -32,7 +32,7 @@ const ClientProfitabilityReport = () => {
     // Fetch client options from the endpoint
     const fetchClients = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/client-details');
+        const response = await axios.get('https://hiranandani-automation.onrender.com/api/client-details');
         setClients(response.data);
       } catch (error) {
         console.error('Error fetching clients:', error);

@@ -12,7 +12,7 @@ const ServicewiseRevenueAnalysisReport = () => {
     // Fetch services from the API when the component mounts
     const fetchServices = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/unique-services');
+        const response = await axios.get('https://hiranandani-automation.onrender.com/api/unique-services');
         const serviceNames = response.data.map((item: any) => item.Service_Name);
         setServices(serviceNames);
         setService(serviceNames[0] || ''); // Set the first service as default

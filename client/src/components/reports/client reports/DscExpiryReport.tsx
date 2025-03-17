@@ -21,7 +21,7 @@ const DscExpiryReport: React.FC = () => {
 
   const fetchDscData = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/dsc-expiry?startDate=${startDate}&endDate=${endDate}`);
+      const response = await fetch(`https://hiranandani-automation.onrender.com/api/dsc-expiry?startDate=${startDate}&endDate=${endDate}`);
       const data: Dsc[] = await response.json();
       setDscData(data);
       setShowTable(true);

@@ -35,7 +35,7 @@ const BirthdayReport: React.FC = () => {
 
   const fetchFilteredData = async () => {
     try {
-      const response = await axios.post<BirthdayReportData[]>('http://localhost:5000/api/birthday-report', {
+      const response = await axios.post<BirthdayReportData[]>('https://hiranandani-automation.onrender.com/api/birthday-report', {
         displayFor,
         branch,
         startDate,
