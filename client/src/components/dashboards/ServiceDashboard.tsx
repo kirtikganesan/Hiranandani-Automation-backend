@@ -31,8 +31,8 @@ const ServiceDashboard = () => {
     const fetchData = async () => {
       try {
         const [servicesTriggeredResponse, completedServicesResponse] = await Promise.all([
-          axios.get('https://hiranandani-backend.vercel.app/api/services-triggered-but-not-allotted-count'),
-          axios.get('https://hiranandani-backend.vercel.app/api/single-invoice-count')
+          axios.get('https://hiranandani-automation.onrender.com/api/services-triggered-but-not-allotted-count'),
+          axios.get('https://hiranandani-automation.onrender.com/api/single-invoice-count')
         ]);
 
         const servicesTriggeredCount = servicesTriggeredResponse.data.count;
