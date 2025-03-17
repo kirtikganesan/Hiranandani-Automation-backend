@@ -69,8 +69,8 @@ const LoginPage = () => {
               {/* Desktop Navigation */}
               <div className="hidden md:flex items-center space-x-8">
                 <Link to="/" className="text-white hover:text-gray-300">Home</Link>
-                <Link to="/about" className="text-white hover:text-gray-300">About Us</Link>
-                <Link to="/features" className="text-white hover:text-gray-300">Features</Link>
+                <Link to="https://hiranandani-automation.vercel.app/about" className="text-white hover:text-gray-300">About Us</Link>
+                <Link to="https://hiranandani-automation.vercel.app/features" className="text-white hover:text-gray-300">Features</Link>
               </div>
             </div>
 
