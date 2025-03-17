@@ -25,11 +25,13 @@ const ClientDashboard = () => {
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
-  const [groupName, setGroupName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [groupToDelete, setGroupToDelete] = useState<number | null>(null);
   const [showGroupList, setShowGroupList] = useState(false);
   const [modalMessage, setModalMessage] = useState<string | null>(null);
+  const [showGroupNameModal, setShowGroupNameModal] = useState(false);
+  const [groupName, setGroupName] = useState("");
 
   useEffect(() => {
     // Fetch client data
@@ -67,6 +69,10 @@ const ClientDashboard = () => {
       setModalMessage("Group should be created with a minimum of 2 members.");
       return;
     }
+    setShowGroupNameModal(true);
+  };
+
+  const confirmCreateGroup = () => {
     if (!groupName.trim()) {
       setModalMessage("Please enter Group name.");
       return;
@@ -86,6 +92,7 @@ const ClientDashboard = () => {
         setGroups([...groups, { id: data.groupId, name: groupName, members: selectedClients }]);
         setSelectedClients([]);
         setGroupName("");
+        setShowGroupNameModal(false);
         setModalMessage("Group created successfully.");
       })
       .catch((error) => {
@@ -133,11 +140,19 @@ const ClientDashboard = () => {
     setModalMessage(null);
   };
 
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const filteredClients = financialData.filter((client) =>
+    client.Client_Name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const displayedData = selectedGroup
     ? financialData.filter((item) =>
         Array.isArray(selectedGroup.members) && selectedGroup.members.some((client) => client.Client_Name === item.Client_Name)
       )
-    : financialData;
+    : filteredClients;
 
   return (
     <div className="p-4">
@@ -145,9 +160,9 @@ const ClientDashboard = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Enter Group Name"
-          value={groupName}
-          onChange={(e) => setGroupName(e.target.value)}
+          placeholder="Search Clients"
+          value={searchQuery}
+          onChange={handleSearch}
           className="border p-2 mr-2"
         />
         <button
@@ -174,6 +189,34 @@ const ClientDashboard = () => {
                 onClick={closeModal}
               >
                 Ok
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showGroupNameModal && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-lg">
+            <h3 className="text-xl mb-4">Enter Group Name</h3>
+            <input
+              type="text"
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+              className="border p-2 mb-4"
+            />
+            <div className="flex justify-end">
+              <button
+                className="bg-gray-300 text-black px-4 py-2 rounded mr-2"
+                onClick={() => setShowGroupNameModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded"
+                onClick={confirmCreateGroup}
+              >
+                Create
               </button>
             </div>
           </div>
