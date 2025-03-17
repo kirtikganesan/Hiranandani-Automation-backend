@@ -21,7 +21,7 @@ const LoginPage = () => {
 
     try {
       // Send the login request to the backend
-      const response = await axios.post(`${process.env.REACT_APP_BACKEND_URL}/login`, { email, password });
+      const response = await axios.post('https://hiranandani-backend.vercel.app/login', { email, password });
       console.log(response.status);
       
       // Check if the response is successful (status 200)
