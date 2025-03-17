@@ -14,8 +14,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/features" element={<FeaturesPage />} />
+        <Route path="https://hiranandani-automation.vercel.app/about" element={<AboutPage />} />
+        <Route path="https://hiranandani-automation.vercel.app/features" element={<FeaturesPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/dashboard/*" element={<Dashboard />} />
       </Routes>
