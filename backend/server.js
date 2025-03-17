@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({ 
-  origin: 'https://hiranandani-automation.vercel.app' 
+  origin: 'https://hiranandaniautomation.vercel.app' 
 }));
 app.use(express.json());
 
