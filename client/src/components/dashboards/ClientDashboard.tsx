@@ -35,7 +35,7 @@ const ClientDashboard = () => {
 
   useEffect(() => {
     // Fetch client data
-    fetch("https://hiranandani-automation.onrender.com/api/client-dashboard")
+    fetch("http://localhost:5000/api/client-dashboard")
       .then((response) => response.json())
       .then((data) => setFinancialData(data))
       .catch((error) => console.error("Error fetching data:", error));
@@ -43,7 +43,7 @@ const ClientDashboard = () => {
 
   useEffect(() => {
     // Fetch groups
-    fetch("https://hiranandani-automation.onrender.com/api/groups")
+    fetch("http://localhost:5000/api/groups")
       .then((res) => res.json())
       .then((groupData: { id: number; name: string; members: string }[]) => {
         const updatedGroups: Group[] = groupData.map((group) => ({
@@ -80,7 +80,7 @@ const ClientDashboard = () => {
 
     const newGroup: Group = { id: Date.now(), name: groupName, members: selectedClients };
 
-    fetch("https://hiranandani-automation.onrender.com/api/groups", {
+    fetch("http://localhost:5000/api/groups", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -109,7 +109,7 @@ const ClientDashboard = () => {
   const confirmDelete = () => {
     if (groupToDelete === null) return;
 
-    fetch(`https://hiranandani-automation.onrender.com/api/groups/${groupToDelete}`, {
+    fetch(`http://localhost:5000/api/groups/${groupToDelete}`, {
       method: "DELETE",
     })
       .then((response) => response.json())

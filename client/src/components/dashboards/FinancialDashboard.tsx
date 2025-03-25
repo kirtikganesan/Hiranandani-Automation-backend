@@ -35,7 +35,7 @@ const FinancialDashboard: React.FC = () => {
 
   // Fetch billing firms
   useEffect(() => {
-    fetch("https://hiranandani-automation.onrender.com/api/financial-billing-firms")
+    fetch("http://localhost:5000/api/financial-billing-firms")
       .then((response) => response.json())
       .then((data) => {
         const firms = data.map((item: any) => item.billing_firm);
@@ -49,7 +49,7 @@ const FinancialDashboard: React.FC = () => {
     const fetchFinancialData = async () => {
       try {
         const response = await fetch(
-          `https://hiranandani-automation.onrender.com/api/financial-details${
+          `http://localhost:5000/api/financial-details${
             selectedFirm ? `?billingFirm=${selectedFirm}` : ""
           }`
         );

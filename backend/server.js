@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({ 
-  origin: 'https://hiranandani-automation.vercel.app' 
+  origin: 'http://localhost:5173',
 }));
 app.use(express.json());
 
@@ -1766,6 +1766,379 @@ app.get('/api/max-receipt-no', (req, res) => {
     res.json({ maxReceiptNo: newReceiptNo, prefix, count: nextNumber });
   });
 });
+
+
+app.get('/api/service-main', (req, res) => {
+  db.query('SELECT * FROM service_main_category', (err, results) => {
+    if (err) return res.status(500).json(err);
+    res.json(results);
+  });
+});
+
+// Add a new service
+app.post('/api/service-main', (req, res) => {
+  const { service_name, dependent_services, gst_billing_categories } = req.body;
+  db.query(
+    'INSERT INTO service_main_category (service_name, dependent_services, gst_billing_categories) VALUES (?, ?, ?)',
+    [service_name, dependent_services, gst_billing_categories],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: 'Service added successfully' });
+    }
+  );
+});
+
+// Update a service
+app.put('/api/service-main/:id', (req, res) => {
+  const { service_name } = req.body;
+  db.query(
+    'UPDATE service_main_category SET service_name = ? WHERE id = ?',
+    [service_name, req.params.id],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: 'Service updated successfully' });
+    }
+  );
+});
+
+// Delete a service
+app.delete('/api/service-main/:id', (req, res) => {
+  db.query('DELETE FROM service_main_category WHERE id = ?', [req.params.id], (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json({ message: 'Service deleted successfully' });
+  });
+});
+
+app.get("/api/categories", (req, res) => {
+  const sql = "SELECT * FROM gst_billing_categories";
+  db.query(sql, (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json(result);
+    }
+  });
+});
+
+// Add a new GST Billing Category
+app.post("/api/categories", (req, res) => {
+  const { gst_billing_category, sac_code, igst_18, cgst_9, sgst_9 } = req.body;
+  
+  if (!gst_billing_category || !sac_code || !igst_18 || !cgst_9 || !sgst_9) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
+
+  const sql =
+    "INSERT INTO gst_billing_categories (gst_billing_category, sac_code, igst_18, cgst_9, sgst_9) VALUES (?, ?, ?, ?, ?)";
+  db.query(sql, [gst_billing_category, sac_code, igst_18, cgst_9, sgst_9], (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json({ message: "Added successfully" });
+    }
+  });
+});
+
+// Update an existing GST Billing Category
+app.put("/api/categories/:id", (req, res) => {
+  const { id } = req.params;
+  const { gst_billing_category, sac_code, igst_18, cgst_9, sgst_9 } = req.body;
+
+  const sql =
+    "UPDATE gst_billing_categories SET gst_billing_category = ?, sac_code = ?, igst_18 = ?, cgst_9 = ?, sgst_9 = ? WHERE id = ?";
+  db.query(
+    sql,
+    [gst_billing_category, sac_code, igst_18, cgst_9, sgst_9, id],
+    (err, result) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+      } else {
+        res.json({ message: "Updated successfully" });
+      }
+    }
+  );
+});
+
+// Delete a GST Billing Category
+app.delete("/api/categories/:id", (req, res) => {
+  const { id } = req.params;
+  const sql = "DELETE FROM gst_billing_categories WHERE id = ?";
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.json({ message: "Deleted successfully" });
+    }
+  });
+});
+
+app.get('/api/billing-profiles', (req, res) => {
+  const sql = 'SELECT * FROM billing_profile';
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('Error fetching billing profiles:', err);
+      res.status(500).json({ error: 'Error fetching billing profiles' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Get a single billing profile by ID
+app.get('/api/billing-profiles/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = `
+    SELECT 
+      id,
+      firm_type AS firmType, 
+      name, 
+      contact_number AS contactNumber, 
+      email_id AS emailId, 
+      partner_email_id AS partnerEmailId, 
+      address_line1 AS addressLine1, 
+      address_line2 AS addressLine2, 
+      city, 
+      state, 
+      district, 
+      pincode, 
+      pan, 
+      gst, 
+      cin, 
+      udyam_registration AS udyamRegistration, 
+      msme_category AS msmeCategory, 
+      reminder_days AS reminderDays, 
+      credit_period AS creditPeriod, 
+      account_no AS accountNo, 
+      ifsc_code AS ifscCode, 
+      bank_name AS bankName, 
+      branch, 
+      upi_id AS upiId, 
+      billing_series AS billingSeries, 
+      financial_year AS financialYear, 
+      receipt_no_starts_at AS receiptNoStartsAt, 
+      width_of_numerical_part AS widthOfNumericalPart, 
+      prefill_with_zero AS prefillWithZero, 
+      prefix, 
+      suffix, 
+      prefix_applicable_from AS prefixApplicableFrom, 
+      suffix_applicable_from AS suffixApplicableFrom,
+      status
+    FROM billing_profile 
+    WHERE id = ?
+  `;
+
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error('Error fetching billing profile:', err);
+      res.status(500).json({ error: 'Error fetching billing profile' });
+      return;
+    }
+    if (results.length === 0) {
+      res.status(404).json({ error: 'Billing profile not found' });
+      return;
+    }
+    res.json(results[0]);
+  });
+});
+
+// Create a new billing profile
+app.post('/api/billing-profiles', (req, res) => {
+  const {
+    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
+  } = req.body;
+
+  const sql = `INSERT INTO billing_profile (firm_type, name, contact_number, email_id, partner_email_id, address_line1, address_line2, city, state, district, pincode, pan, gst, cin, udyam_registration, msme_category, reminder_days, credit_period, account_no, ifsc_code, bank_name, branch, upi_id, billing_series, financial_year, receipt_no_starts_at, width_of_numerical_part, prefill_with_zero, prefix, suffix, prefix_applicable_from, suffix_applicable_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+
+  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom], (err, result) => {
+    if (err) {
+      console.error('Error creating billing profile:', err);
+      res.status(500).json({ error: 'Error creating billing profile' });
+      return;
+    }
+    res.status(201).json({ id: result.insertId, ...req.body });
+  });
+});
+
+// Update a billing profile
+app.put('/api/billing-profiles/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
+  } = req.body;
+
+  const sql = `UPDATE billing_profile SET firm_type = ?, name = ?, contact_number = ?, email_id = ?, partner_email_id = ?, address_line1 = ?, address_line2 = ?, city = ?, state = ?, district = ?, pincode = ?, pan = ?, gst = ?, cin = ?, udyam_registration = ?, msme_category = ?, reminder_days = ?, credit_period = ?, account_no = ?, ifsc_code = ?, bank_name = ?, branch = ?, upi_id = ?, billing_series = ?, financial_year = ?, receipt_no_starts_at = ?, width_of_numerical_part = ?, prefill_with_zero = ?, prefix = ?, suffix = ?, prefix_applicable_from = ?, suffix_applicable_from = ? WHERE id = ?`;
+
+  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom, id], (err, result) => {
+    if (err) {
+      console.error('Error updating billing profile:', err);
+      res.status(500).json({ error: 'Error updating billing profile' });
+      return;
+    }
+    res.json({ id, ...req.body });
+  });
+});
+
+// Delete a billing profile
+app.delete('/api/billing-profiles/:id', (req, res) => {
+  const { id } = req.params;
+  const sql = 'DELETE FROM billing_profile WHERE id = ?';
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Error deleting billing profile:', err);
+      res.status(500).json({ error: 'Error deleting billing profile' });
+      return;
+    }
+    res.json({ message: 'Billing profile deleted successfully' });
+  });
+});
+
+app.get('/api/services', (req, res) => {
+  // Extract query parameters
+  const { 
+    financialYear = '2025-2026', 
+    serviceMainCategory = '', 
+    searchTerm = '' 
+  } = req.query;
+
+  // Construct the base query
+  let query = `
+    SELECT * FROM services 
+    WHERE 1=1
+  `;
+  const queryParams = [];
+
+  // Add financial year filter
+
+  // Add service main category filter
+  if (serviceMainCategory) {
+    query += ' AND service_main_category = ?';
+    queryParams.push(serviceMainCategory);
+  }
+
+  // Add search term filter
+  if (searchTerm) {
+    query += ' AND service_name LIKE ?';
+    queryParams.push(`%${searchTerm}%`);
+  }
+
+  // Execute the query
+  db.query(query, queryParams, (err, results) => {
+    if (err) {
+      console.error('Error fetching services:', err);
+      res.status(500).json({ error: 'Failed to fetch services' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to add a new service
+app.post('/api/services', (req, res) => {
+  const { 
+    serviceMainCategory, 
+    serviceName, 
+    financialYear, 
+    gstBillingCategory, 
+    dueDate, 
+    udin, 
+    noOfClients = 0, 
+    noOfTasks 
+  } = req.body;
+
+  const query = `
+    INSERT INTO services 
+    (service_main_category, service_name, financial_year, gst_billing_category, 
+     due_date, udin, no_of_clients, no_of_tasks) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    serviceMainCategory, 
+    serviceName, 
+    financialYear, 
+    gstBillingCategory, 
+    dueDate ? 'YES' : 'NO', 
+    udin ? 'YES' : 'NO', 
+    noOfClients, 
+    noOfTasks
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error adding service:', err);
+      res.status(500).json({ error: 'Failed to add service' });
+      return;
+    }
+
+    res.status(201).json({ 
+      id: result.insertId, 
+      ...req.body 
+    });
+  });
+});
+
+// Endpoint to update a service
+app.put('/api/services/:id', (req, res) => {
+  const { id } = req.params;
+  const { 
+    serviceMainCategory, 
+    serviceName, 
+    gstBillingCategory, 
+    dueDate, 
+    udin, 
+    noOfTasks 
+  } = req.body;
+
+  const query = `
+    UPDATE services 
+    SET 
+      service_main_category = ?, 
+      service_name = ?, 
+      gst_billing_category = ?, 
+      due_date = ?, 
+      udin = ?, 
+      no_of_tasks = ? 
+    WHERE id = ?
+  `;
+
+  const values = [
+    serviceMainCategory, 
+    serviceName, 
+    gstBillingCategory, 
+    dueDate ? 'YES' : 'NO', 
+    udin ? 'YES' : 'NO', 
+    noOfTasks, 
+    id
+  ];
+
+  db.query(query, values, (err) => {
+    if (err) {
+      console.error('Error updating service:', err);
+      res.status(500).json({ error: 'Failed to update service' });
+      return;
+    }
+
+    res.json({ message: 'Service updated successfully' });
+  });
+});
+
+// Endpoint to delete a service
+app.delete('/api/services/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = 'DELETE FROM services WHERE id = ?';
+
+  db.query(query, [id], (err) => {
+    if (err) {
+      console.error('Error deleting service:', err);
+      res.status(500).json({ error: 'Failed to delete service' });
+      return;
+    }
+
+    res.json({ message: 'Service deleted successfully' });
+  });
+});
+
 
 
 // ✅ Start Server

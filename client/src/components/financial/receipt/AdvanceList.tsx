@@ -36,7 +36,7 @@ const AdvanceList = () => {
 
   useEffect(() => {
     // Fetch clients
-    axios.get('https://hiranandani-automation.onrender.com/api/clients')
+    axios.get('http://localhost:5000/api/clients')
       .then(response => {
         setClients(response.data);
       })

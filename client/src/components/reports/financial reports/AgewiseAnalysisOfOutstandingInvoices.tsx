@@ -14,7 +14,7 @@ const AgewiseAnalysisOfOutstandingInvoices: React.FC = () => {
 
   useEffect(() => {
     // Fetch billing profiles
-    fetch('https://hiranandani-automation.onrender.com/api/billing-firms')
+    fetch('http://localhost:5000/api/billing-firms')
       .then(response => response.json())
       .then(data => {
         setBillingProfiles(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -33,7 +33,7 @@ const AgewiseAnalysisOfOutstandingInvoices: React.FC = () => {
       asOnDate,
     });
 
-    fetch(`https://hiranandani-automation.onrender.com/api/agewise-analysis?${queryParams}`)
+    fetch(`http://localhost:5000/api/agewise-analysis?${queryParams}`)
       .then(response => response.json())
       .then(data => {
         setFilteredData(data);

@@ -29,7 +29,7 @@ export default function InwardDocument() {
 
   useEffect(() => {
     // Fetch client names from the backend API
-    axios.get('https://hiranandani-automation.onrender.com/api/clients')
+    axios.get('http://localhost:5000/api/clients')
       .then(response => {
         const clientNames = response.data.map((client: any) => client.client_name);
         setClients(clientNames);
@@ -96,7 +96,7 @@ export default function InwardDocument() {
     });
 
     try {
-      const response = await axios.post('https://hiranandani-automation.onrender.com/api/documents', formDataToSend, {
+      const response = await axios.post('http://localhost:5000/api/documents', formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

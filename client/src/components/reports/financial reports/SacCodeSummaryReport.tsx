@@ -20,7 +20,7 @@ const SacCodeSummaryReport = () => {
 
   useEffect(() => {
     // Fetch financial years
-    axios.get('https://hiranandani-automation.onrender.com/api/financial-years')
+    axios.get('http://localhost:5000/api/financial-years')
       .then(response => {
         setFinancialYears(response.data);
         setFinancialYear(response.data[0]); // Set default financial year
@@ -30,7 +30,7 @@ const SacCodeSummaryReport = () => {
       });
 
     // Fetch billing firms
-    axios.get('https://hiranandani-automation.onrender.com/api/billing-firms')
+    axios.get('http://localhost:5000/api/billing-firms')
       .then(response => {
         setBillingFirms(response.data);
         setBillingProfile(response.data[0]?.Billing_Firm || ''); // Set default billing firm
@@ -43,7 +43,7 @@ const SacCodeSummaryReport = () => {
   const handleListClick = () => {
     if (financialYear === '2024-2025') {
       // Fetch and filter data based on selected billing firm
-      axios.get('https://hiranandani-automation.onrender.com/api/sac-summary-report')
+      axios.get('http://localhost:5000/api/sac-summary-report')
         .then(response => {
           const filtered = response.data.filter((item: SacSummaryReport) => item.Billing_Firm === billingProfile);
           setFilteredData(filtered);

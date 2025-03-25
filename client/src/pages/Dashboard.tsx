@@ -25,6 +25,10 @@ import FinancialDashboard from '../components/dashboards/FinancialDashboard';
 
 // Import Service Components
 import AllServices from '../components/services/AllServices';
+import ServiceMainCategory from '../components/services/ServiceMainCategory';
+import GstBillingCategories from '../components/services/GstBillingCategories';
+import BillingProfile from '../components/services/BillingProfile';
+import ModifyServices from '../components/services/ModifyServices';
 import ServicesTriggeredButNotAlloted from '../components/services/ServicesTriggeredButNotAlloted';
 import ManualAssignment from '../components/services/ManualAssignment';
 
@@ -186,6 +190,18 @@ const Dashboard = () => {
               <div className="bg-gray-800 pl-8">
                 <Link to="/dashboard/services/all-services" className="block py-2 px-4 hover:bg-gray-700">
                   All Services
+                </Link>
+                <Link to="/dashboard/services/service-main-category" className="block py-2 px-4 hover:bg-gray-700">
+                  Service Main Category
+                </Link>
+                <Link to="/dashboard/services/gst-billing-categories" className="block py-2 px-4 hover:bg-gray-700">
+                  GST Billing Categories
+                </Link>
+                <Link to="/dashboard/services/billing-profile" className="block py-2 px-4 hover:bg-gray-700">
+                  Billing Profile
+                </Link>
+                <Link to="/dashboard/services/modify-services" className="block py-2 px-4 hover:bg-gray-700">
+                  Modify Services
                 </Link>
                 <Link to="/dashboard/services/triggered-but-not-alloted" className="block py-2 px-4 hover:bg-gray-700">
                   Triggered but Not Alloted
@@ -475,6 +491,10 @@ const Dashboard = () => {
 
           {/* Services Routes */}
           <Route path="services/all-services" element={<AllServices />} />
+          <Route path="services/service-main-category" element={<ServiceMainCategory />} />
+          <Route path="services/gst-billing-categories" element={<GstBillingCategories />} />
+          <Route path="services/billing-profile" element={<BillingProfile />} />
+          <Route path="services/modify-services" element={<ModifyServices />} />
           <Route path="services/triggered-but-not-alloted" element={<ServicesTriggeredButNotAlloted />} />
           <Route path="services/manual-assignment" element={<ManualAssignment />} />
 

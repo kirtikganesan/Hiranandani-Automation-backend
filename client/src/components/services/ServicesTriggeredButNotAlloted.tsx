@@ -37,7 +37,7 @@ const ServicesTriggeredButNotAlloted = () => {
 
   const fetchServices = () => {
     axios
-      .get("https://hiranandani-automation.onrender.com/api/services-triggered-but-not-alloted")
+      .get("http://localhost:5000/api/services-triggered-but-not-alloted")
       .then((response) => {
         setServices(response.data);
         setLoading(false);
@@ -51,7 +51,7 @@ const ServicesTriggeredButNotAlloted = () => {
 
   const fetchEmployees = () => {
     axios
-      .get("https://hiranandani-automation.onrender.com/api/employees")
+      .get("http://localhost:5000/api/employees")
       .then((response) => {
         setEmployees(response.data);
       })
@@ -73,7 +73,7 @@ const ServicesTriggeredButNotAlloted = () => {
     }
 
     axios
-      .post("https://hiranandani-automation.onrender.com/api/assign-service", {
+      .post("http://localhost:5000/api/assign-service", {
         services: taskName,
         alloted_to: selectedEmployee,
         due_date: selectedService.statutory_due_date,

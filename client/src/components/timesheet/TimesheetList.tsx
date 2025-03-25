@@ -24,7 +24,7 @@ const TimesheetList: React.FC = () => {
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
-        axios.get('https://hiranandani-automation.onrender.com/api/timesheet')
+        axios.get('http://localhost:5000/api/timesheet')
             .then(response => {
                 setTimesheetData(response.data);
                 setLoading(false);

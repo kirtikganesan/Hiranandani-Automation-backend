@@ -49,14 +49,14 @@ const InvoiceList: React.FC = () => {
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get('https://hiranandani-automation.onrender.com/api/unique-invoice-clients').then(response => {
+    axios.get('http://localhost:5000/api/unique-invoice-clients').then(response => {
       setClients([{ client_name: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching clients:', error);
     });
 
     // Fetch billing firms
-    axios.get('https://hiranandani-automation.onrender.com/api/financial-billing-firms').then(response => {
+    axios.get('http://localhost:5000/api/financial-billing-firms').then(response => {
       setBillingFirms(response.data);
     }).catch(error => {
       console.error('Error fetching billing firms:', error);
@@ -64,7 +64,7 @@ const InvoiceList: React.FC = () => {
   }, []);
 
   const fetchInvoices = () => {
-    axios.get('https://hiranandani-automation.onrender.com/api/invoices', { params: filters }).then(response => {
+    axios.get('http://localhost:5000/api/invoices', { params: filters }).then(response => {
       const updatedInvoices = response.data.map((invoice: Invoice) => {
         const today = new Date();
         const invoiceDate = new Date(invoice.Date);

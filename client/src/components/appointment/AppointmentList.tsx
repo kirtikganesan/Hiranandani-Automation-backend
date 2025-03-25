@@ -33,7 +33,7 @@ const AppointmentList = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch("https://hiranandani-automation.onrender.com/api/appointments");
+        const response = await fetch("http://localhost:5000/api/appointments");
         const data: Appointment[] = await response.json();
         setAppointments(data);
       } catch (error) {

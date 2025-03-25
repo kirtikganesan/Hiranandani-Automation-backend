@@ -33,7 +33,7 @@ const TDSReconciliation = () => {
 
   useEffect(() => {
     // Fetch distinct client list from the backend
-    axios.get('https://hiranandani-automation.onrender.com/api/unique-clients-in-reconciliation')
+    axios.get('http://localhost:5000/api/unique-clients-in-reconciliation')
       .then(response => {
         setClients(response.data);
       })
@@ -44,7 +44,7 @@ const TDSReconciliation = () => {
 
   const handleListClick = () => {
     // Fetch reconciliation data from the backend based on selected filters
-    axios.get('https://hiranandani-automation.onrender.com/api/tds-reconciliation', {
+    axios.get('http://localhost:5000/api/tds-reconciliation', {
       params: {
         clientName: selectedClient,
         startDate,

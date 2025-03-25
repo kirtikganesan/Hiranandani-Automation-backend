@@ -12,7 +12,7 @@ const DocumentMovementReport: React.FC = () => {
     // Fetch client names when the component mounts
     const fetchClientNames = async () => {
       try {
-        const response = await fetch('https://hiranandani-automation.onrender.com/api/client-details');
+        const response = await fetch('http://localhost:5000/api/client-details');
         const data: { client_name: string }[] = await response.json();
         setClientNames(data.map(client => client.client_name));
       } catch (error) {

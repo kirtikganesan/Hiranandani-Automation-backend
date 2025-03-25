@@ -50,7 +50,7 @@ const CancelledReceipts: React.FC = () => {
 
   const handleListClick = async () => {
     try {
-      const response = await axios.get<{ data: Receipt[] }>('https://hiranandani-automation.onrender.com/api/cancelled-receipts');
+      const response = await axios.get<{ data: Receipt[] }>('http://localhost:5000/api/cancelled-receipts');
 
       // Log the response data to inspect its structure
       console.log('API Response Data:', response.data);

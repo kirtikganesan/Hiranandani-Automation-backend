@@ -47,7 +47,7 @@ const DigitalSignature = () => {
 
   useEffect(() => {
     // Fetch data from the backend
-    axios.get('https://hiranandani-automation.onrender.com/api/digital-signatures', {
+    axios.get('http://localhost:5000/api/digital-signatures', {
       params: { page, limit, status }
     })
       .then(response => {
@@ -58,7 +58,7 @@ const DigitalSignature = () => {
       });
 
     // Fetch client details
-    axios.get('https://hiranandani-automation.onrender.com/api/client-details')
+    axios.get('http://localhost:5000/api/client-details')
       .then(response => {
         setClients(response.data);
       })
@@ -108,7 +108,7 @@ const DigitalSignature = () => {
     }
     setError('');
 
-    axios.post('https://hiranandani-automation.onrender.com/api/digital-signatures', formData)
+    axios.post('http://localhost:5000/api/digital-signatures', formData)
       .then(response => {
         setSignatures([...signatures, response.data]);
         setIsFormVisible(false);
@@ -134,7 +134,7 @@ const DigitalSignature = () => {
   };
 
   const handleDelete = (id: number) => {
-    axios.delete(`https://hiranandani-automation.onrender.com/api/digital-signatures/${id}`)
+    axios.delete(`http://localhost:5000/api/digital-signatures/${id}`)
       .then(() => {
         setSignatures(signatures.filter(signature => signature.id !== id));
         setDeleteId(null);

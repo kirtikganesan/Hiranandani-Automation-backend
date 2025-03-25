@@ -29,7 +29,7 @@ export default function ClaimList() {
     // Fetch claims from the API when the component mounts
     const fetchClaims = async () => {
       try {
-        const response = await axios.get('https://hiranandani-automation.onrender.com/api/claims');
+        const response = await axios.get('http://localhost:5000/api/claims');
         setClaims(response.data);
       } catch (error) {
         console.error('Error fetching claims:', error);

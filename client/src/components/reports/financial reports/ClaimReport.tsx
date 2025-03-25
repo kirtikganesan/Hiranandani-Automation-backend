@@ -24,7 +24,7 @@ const ClaimReport = () => {
 
   useEffect(() => {
     // Fetch employee names
-    fetch('https://hiranandani-automation.onrender.com/api/employees')
+    fetch('http://localhost:5000/api/employees')
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -34,7 +34,7 @@ const ClaimReport = () => {
       .catch(error => console.error('Error fetching employees:', error));
 
     // Fetch client names
-    fetch('https://hiranandani-automation.onrender.com/api/clients')
+    fetch('http://localhost:5000/api/clients')
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data)) {

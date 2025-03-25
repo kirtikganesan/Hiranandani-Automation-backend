@@ -55,7 +55,7 @@ const ReceiptGenerator: React.FC = () => {
 
   useEffect(() => {
     // Fetch clients
-    fetch('https://hiranandani-automation.onrender.com/api/clients')
+    fetch('http://localhost:5000/api/clients')
       .then(response => response.json())
       .then(data => {
         setClients(data.map((client: { client_name: string }) => client.client_name));

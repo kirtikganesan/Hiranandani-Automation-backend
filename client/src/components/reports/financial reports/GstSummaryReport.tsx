@@ -32,7 +32,7 @@ const GstSummaryReport = () => {
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('https://hiranandani-automation.onrender.com/api/billing-firms')
+    fetch('http://localhost:5000/api/billing-firms')
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -51,7 +51,7 @@ const GstSummaryReport = () => {
       endDate,
     });
 
-    fetch(`https://hiranandani-automation.onrender.com/api/gst-summary-report?${queryParams}`)
+    fetch(`http://localhost:5000/api/gst-summary-report?${queryParams}`)
       .then(response => response.json())
       .then((data: GstSummaryReportData[]) => {
         setFilteredData(data);

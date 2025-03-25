@@ -88,7 +88,7 @@ const IcaiFormats = () => {
       letterName: letters[parseInt(selectedLetter.split('-')[1])],
     };
 
-    fetch('https://hiranandani-automation.onrender.com/api/save-icai-data', {
+    fetch('http://localhost:5000/api/save-icai-data', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +108,7 @@ const IcaiFormats = () => {
   };
 
   const fetchTableData = () => {
-    fetch(`https://hiranandani-automation.onrender.com/api/icai-data?letterName=${letters[parseInt(selectedLetter.split('-')[1])]}`)
+    fetch(`http://localhost:5000/api/icai-data?letterName=${letters[parseInt(selectedLetter.split('-')[1])]}`)
       .then(response => response.json())
       .then((data: IcaiData[]) => {
         setTableData(data);
