@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import * as XLSX from 'xlsx';
+import DeleteModal from './../../services/DeleteModal'; // Assuming DeleteModal is in the same directory
 
 interface Client {
   client_name: string;
@@ -11,6 +12,7 @@ interface BillingFirm {
 }
 
 interface Invoice {
+  id: number;
   Date: string;
   Invoice_No: string;
   Client: string;
@@ -41,6 +43,9 @@ const InvoiceList: React.FC = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [billingFirms, setBillingFirms] = useState<BillingFirm[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -68,14 +73,14 @@ const InvoiceList: React.FC = () => {
       const updatedInvoices = response.data.map((invoice: Invoice) => {
         const today = new Date();
         const invoiceDate = new Date(invoice.Date);
-  
+
         // Ensure both are valid Date objects
         if (!isNaN(today.getTime()) && !isNaN(invoiceDate.getTime())) {
           const timeDifference = today.getTime() - invoiceDate.getTime();
           const daysOverdue = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
           return { ...invoice, Days_Overdue: daysOverdue };
         }
-  
+
         // If invoiceDate is invalid, return the invoice without Days_Overdue
         return invoice;
       });
@@ -108,6 +113,54 @@ const InvoiceList: React.FC = () => {
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Invoices');
     XLSX.writeFile(workbook, 'Invoices.xlsx');
+  };
+
+  const handleEdit = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSave = () => {
+    if (selectedInvoice) {
+      axios.put(`http://localhost:5000/api/invoices/${selectedInvoice.id}`, selectedInvoice)
+        .then(response => {
+          setInvoices(invoices.map(invoice =>
+            invoice.id === selectedInvoice.id ? response.data : invoice
+          ));
+          setIsEditModalOpen(false);
+        })
+        .catch(error => {
+          console.error('Error updating invoice:', error);
+        });
+    }
+  };
+
+  const handleCancel = () => {
+    setIsEditModalOpen(false);
+    setSelectedInvoice(null);
+  };
+
+  const handleDelete = (invoice: Invoice) => {
+    setSelectedInvoice(invoice);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (selectedInvoice) {
+      axios.delete(`http://localhost:5000/api/invoices/${selectedInvoice.id}`)
+        .then(() => {
+          setInvoices(invoices.filter(invoice => invoice.id !== selectedInvoice.id));
+          setIsDeleteModalOpen(false);
+        })
+        .catch(error => {
+          console.error('Error deleting invoice:', error);
+        });
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedInvoice(null);
   };
 
   return (
@@ -246,11 +299,12 @@ const InvoiceList: React.FC = () => {
               <th className="px-4 py-2 text-left">Outstanding Amount</th>
               <th className="px-4 py-2 text-left">Settled Amount</th>
               <th className="px-4 py-2 text-left">Days O/s</th>
+              <th className="px-4 py-2 text-left">Actions</th>
             </tr>
           </thead>
           <tbody>
             {invoices.map((item, index) => (
-              <tr key={index} className="border-t border-gray-300">
+              <tr key={item.id} className="border-t border-gray-300">
                 <td className="px-4 py-2">{formatDate(item.Date)}</td>
                 <td className="px-4 py-2">{item.Invoice_No}</td>
                 <td className="px-4 py-2">{item.Client}</td>
@@ -267,11 +321,188 @@ const InvoiceList: React.FC = () => {
                 <td className="px-4 py-2">{item.Outstanding_Amount}</td>
                 <td className="px-4 py-2">{item.Settled_Amount}</td>
                 <td className="px-4 py-2">{item.Days_Overdue}</td>
+                <td className="px-4 py-2">
+                  <button
+                    onClick={() => handleEdit(item)}
+                    className="text-blue-500 hover:underline mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
+      {isEditModalOpen && selectedInvoice && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-xl">
+            <h2 className="text-xl font-semibold mb-4">Edit Invoice</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+              <input
+                type="date"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Date}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Date: e.target.value})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Invoice No</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Invoice_No}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Invoice_No: e.target.value})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Client</label>
+              <input
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Client}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Client: e.target.value})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Gross Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Gross_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Gross_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Discount Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Discount_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Discount_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Service Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Service_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Service_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Taxable Claim Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Taxable_Claim_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Taxable_Claim_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Total Taxable Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Total_Taxable_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Total_Taxable_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">CGST</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.CGST}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, CGST: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">SGST</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.SGST}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, SGST: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">IGST</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.IGST}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, IGST: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Non Taxable Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Non_Taxable_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Non_Taxable_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Total Bill Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Total_Bill_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Total_Bill_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Outstanding Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Outstanding_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Outstanding_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Settled Amount</label>
+              <input
+                type="number"
+                className="w-full p-2 border border-gray-300 rounded-md"
+                value={selectedInvoice.Settled_Amount}
+                onChange={(e) => setSelectedInvoice({...selectedInvoice, Settled_Amount: parseFloat(e.target.value)})}
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={handleCancel}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <DeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 };

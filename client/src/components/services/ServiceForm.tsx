@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ServiceFormData, Task } from '../../types/service';
 
 interface ServiceFormProps {
@@ -6,6 +6,8 @@ interface ServiceFormProps {
   onSubmit: (data: ServiceFormData) => void;
   onCancel: () => void;
   isEdit?: boolean;
+  mainCategories: string[];
+  gstCategories: string[];
 }
 
 const ServiceForm: React.FC<ServiceFormProps> = ({
@@ -13,18 +15,20 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
   onSubmit,
   onCancel,
   isEdit = false,
+  mainCategories,
+  gstCategories,
 }) => {
   const [currentTab, setCurrentTab] = useState<'service' | 'dueDate'>('service');
   const [formData, setFormData] = useState<ServiceFormData>({
-    serviceMainCategory: initialData?.serviceMainCategory || '',
-    serviceName: initialData?.serviceName || '',
-    gstBillingCategory: initialData?.gstBillingCategory || '',
-    dueDate: initialData?.dueDate || false,
-    udin: initialData?.udin || false,
-    tasks: initialData?.tasks || [],
-    financialYear: initialData?.financialYear || '',
-    periodicity: initialData?.periodicity || '',
-    ratePerPeriodicity: initialData?.ratePerPeriodicity || '',
+    ServiceMainCategory: '',
+    ServiceName: '',
+    GSTBillingCategory: '',
+    DueDate: 'NO',
+    UDIN: 'NO',
+    tasks: [],
+    financialYear: '',
+    periodicity: '',
+    ratePerPeriodicity: '',
   });
 
   const [newTask, setNewTask] = useState<Task>({
@@ -34,6 +38,24 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     hours: 0,
     minutes: 0,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      console.log('Initial Data:', initialData); // Debugging log
+      setFormData({
+        ServiceMainCategory: initialData.ServiceMainCategory || '',
+        ServiceName: initialData.ServiceName || '',
+        GSTBillingCategory: initialData.GSTBillingCategory || '',
+        DueDate: initialData.DueDate || 'NO',
+        UDIN: initialData.UDIN || 'NO',
+        tasks: initialData.tasks || [],
+        financialYear: initialData.financialYear || '',
+        periodicity: initialData.periodicity || '',
+        ratePerPeriodicity: initialData.ratePerPeriodicity || '',
+      });
+      setCurrentTab('service');
+    }
+  }, [initialData]);
 
   const handleAddTask = () => {
     if (newTask.taskName) {
@@ -63,16 +85,18 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
         >
           Service & Task
         </button>
-        <button
-          className={`px-4 py-2 ${
-            currentTab === 'dueDate'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : 'text-gray-500'
-          }`}
-          onClick={() => setCurrentTab('dueDate')}
-        >
-          Service Due Date
-        </button>
+        {!isEdit && (
+          <button
+            className={`px-4 py-2 ${
+              currentTab === 'dueDate'
+                ? 'border-b-2 border-blue-500 text-blue-500'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setCurrentTab('dueDate')}
+          >
+            Service Due Date
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit}>
@@ -85,15 +109,18 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 </label>
                 <select
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  value={formData.serviceMainCategory}
+                  value={formData.ServiceMainCategory}
                   onChange={(e) =>
-                    setFormData({ ...formData, serviceMainCategory: e.target.value })
+                    setFormData({ ...formData, ServiceMainCategory: e.target.value })
                   }
                   required
                 >
                   <option value="">Select</option>
-                  <option value="ROC">ROC</option>
-                  <option value="Accounting">Accounting</option>
+                  {mainCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -103,9 +130,9 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 <input
                   type="text"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  value={formData.serviceName}
+                  value={formData.ServiceName}
                   onChange={(e) =>
-                    setFormData({ ...formData, serviceName: e.target.value })
+                    setFormData({ ...formData, ServiceName: e.target.value })
                   }
                   required
                 />
@@ -119,72 +146,77 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
                 </label>
                 <select
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                  value={formData.gstBillingCategory}
+                  value={formData.GSTBillingCategory}
                   onChange={(e) =>
-                    setFormData({ ...formData, gstBillingCategory: e.target.value })
+                    setFormData({ ...formData, GSTBillingCategory: e.target.value })
                   }
                   required
                 >
                   <option value="">Select</option>
-                  <option value="998231">Corporate Tax Services</option>
-                  <option value="998222">Accounting Services</option>
+                  {gstCategories.map((category) => (
+                    <option key={category} value={category}>
+                      {category}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
-            <div className="flex space-x-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Due Date*
-                </label>
-                <div className="mt-1">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio"
-                      checked={formData.dueDate}
-                      onChange={() => setFormData({ ...formData, dueDate: true })}
-                    />
-                    <span className="ml-2">Yes</span>
+            {!isEdit && (
+              <div className="flex space-x-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Due Date*
                   </label>
-                  <label className="inline-flex items-center ml-6">
-                    <input
-                      type="radio"
-                      className="form-radio"
-                      checked={!formData.dueDate}
-                      onChange={() => setFormData({ ...formData, dueDate: false })}
-                    />
-                    <span className="ml-2">No</span>
-                  </label>
+                  <div className="mt-1">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        checked={formData.DueDate === 'YES'}
+                        onChange={() => setFormData({ ...formData, DueDate: 'YES' })}
+                      />
+                      <span className="ml-2">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center ml-6">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        checked={formData.DueDate === 'NO'}
+                        onChange={() => setFormData({ ...formData, DueDate: 'NO' })}
+                      />
+                      <span className="ml-2">No</span>
+                    </label>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  UDIN*
-                </label>
-                <div className="mt-1">
-                  <label className="inline-flex items-center">
-                    <input
-                      type="radio"
-                      className="form-radio"
-                      checked={formData.udin}
-                      onChange={() => setFormData({ ...formData, udin: true })}
-                    />
-                    <span className="ml-2">Yes</span>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    UDIN*
                   </label>
-                  <label className="inline-flex items-center ml-6">
-                    <input
-                      type="radio"
-                      className="form-radio"
-                      checked={!formData.udin}
-                      onChange={() => setFormData({ ...formData, udin: false })}
-                    />
-                    <span className="ml-2">No</span>
-                  </label>
+                  <div className="mt-1">
+                    <label className="inline-flex items-center">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        checked={formData.UDIN === 'YES'}
+                        onChange={() => setFormData({ ...formData, UDIN: 'YES' })}
+                      />
+                      <span className="ml-2">Yes</span>
+                    </label>
+                    <label className="inline-flex items-center ml-6">
+                      <input
+                        type="radio"
+                        className="form-radio"
+                        checked={formData.UDIN === 'NO'}
+                        onChange={() => setFormData({ ...formData, UDIN: 'NO' })}
+                      />
+                      <span className="ml-2">No</span>
+                    </label>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             <div className="mt-4">
               <h3 className="text-lg font-medium mb-2">Tasks</h3>

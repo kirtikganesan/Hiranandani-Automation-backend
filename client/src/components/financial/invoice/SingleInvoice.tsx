@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import InvoiceDetails from './InvoiceDetails'; // Import the new component
 
 interface CompletedService {
   Client_Code: string;
@@ -21,11 +22,13 @@ const SingleInvoice = () => {
   const [uniqueMainCategories, setUniqueMainCategories] = useState<string[]>([]);
   const [uniqueServices, setUniqueServices] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<CompletedService[]>([]);
-  const [entriesToShow, setEntriesToShow] = useState<number>(10); // Default to 10 entries
-  const [currentPage, setCurrentPage] = useState<number>(1); // Default to page 1
+  const [selectedRows, setSelectedRows] = useState<Set<number>>(new Set());
+  const [entriesToShow, setEntriesToShow] = useState<number>(10);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    // Fetch unique options from the backend
     fetch('http://localhost:5000/api/unique-options')
       .then(response => response.json())
       .then(data => {
@@ -37,7 +40,6 @@ const SingleInvoice = () => {
   }, []);
 
   const handleFilterClick = () => {
-    // Fetch filtered data based on the selected filters
     fetch('http://localhost:5000/api/filtered-data', {
       method: 'POST',
       headers: {
@@ -48,20 +50,19 @@ const SingleInvoice = () => {
       .then(response => response.json())
       .then(data => {
         setFilteredData(data);
-        setCurrentPage(1); // Reset to the first page on filtering
+        setCurrentPage(1);
       })
       .catch(error => console.error('Error fetching filtered data:', error));
   };
 
   const handleResetClick = () => {
-    // Reset the filters and filtered data
     setFilters({
       client: '',
       serviceMainCategory: '',
       services: ''
     });
     setFilteredData([]);
-    setCurrentPage(1); // Reset to the first page
+    setCurrentPage(1);
   };
 
   const handleNextClick = () => {
@@ -73,6 +74,32 @@ const SingleInvoice = () => {
   const handlePreviousClick = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleCheckboxChange = (index: number) => {
+    setSelectedRows(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(index)) {
+        newSelected.delete(index);
+      } else {
+        newSelected.add(index);
+      }
+      return newSelected;
+    });
+  };
+
+  const handleRaiseBillClick = () => {
+    const selectedClients = Array.from(selectedRows).map(index => filteredData[index].Client_Name);
+    const uniqueSelectedClients = [...new Set(selectedClients)];
+
+    if (uniqueSelectedClients.length === 0) {
+      setErrorMessage('Select at least 1 client.');
+    } else if (uniqueSelectedClients.length > 1) {
+      setErrorMessage('Select only one client.');
+    } else {
+      setShowInvoice(true);
+      setErrorMessage('');
     }
   };
 
@@ -174,6 +201,7 @@ const SingleInvoice = () => {
           <table className="min-w-full border border-gray-300">
             <thead className="bg-gray-800 text-white">
               <tr>
+                <th className="px-4 py-2 text-left">Select</th>
                 <th className="px-4 py-2 text-left">Client Code</th>
                 <th className="px-4 py-2 text-left">Client Name</th>
                 <th className="px-4 py-2 text-left">Main Category</th>
@@ -186,6 +214,13 @@ const SingleInvoice = () => {
             <tbody>
               {currentData.map((item, index) => (
                 <tr key={index} className="border-t border-gray-300">
+                  <td className="px-4 py-2">
+                    <input
+                      type="checkbox"
+                      checked={selectedRows.has(startIndex + index)}
+                      onChange={() => handleCheckboxChange(startIndex + index)}
+                    />
+                  </td>
                   <td className="px-4 py-2">{item.Client_Code}</td>
                   <td className="px-4 py-2">{item.Client_Name}</td>
                   <td className="px-4 py-2">{item.Main_Category}</td>
@@ -213,10 +248,27 @@ const SingleInvoice = () => {
               Next
             </button>
           </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+              onClick={handleRaiseBillClick}
+            >
+              Raise Bill
+            </button>
+            <button
+              className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+              onClick={() => alert('Non-Billable clicked')}
+            >
+              Non-Billable
+            </button>
+          </div>
+          {errorMessage && <p className="text-red-500 mt-2">{errorMessage}</p>}
         </div>
       ) : (
         <p className="text-center text-gray-500">No records found</p>
       )}
+
+      {showInvoice && <InvoiceDetails data={currentData.filter((_, i) => selectedRows.has(startIndex + i))} setShowInvoice={setShowInvoice} />}
     </div>
   );
 };

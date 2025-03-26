@@ -10,10 +10,12 @@ const ModifyServices: React.FC = () => {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
-  const [selectedYear, setSelectedYear] = useState('2025-2026');
+  const [selectedYear, setSelectedYear] = useState('2024-2025');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [mainCategories, setMainCategories] = useState<string[]>([]);
+  const [gstCategories, setGstCategories] = useState<string[]>([]);
 
   // Fetch services from backend
   const fetchServices = async () => {
@@ -35,15 +37,39 @@ const ModifyServices: React.FC = () => {
     }
   };
 
-  // Fetch services when filters change
+  // Fetch distinct service main categories
+  const fetchMainCategories = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/services/main-categories');
+      setMainCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch service main categories:', error);
+      // Optional: Add error handling toast or notification
+    }
+  };
+
+  // Fetch distinct GST billing categories
+  const fetchGstCategories = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/api/services/gst-categories');
+      setGstCategories(response.data);
+    } catch (error) {
+      console.error('Failed to fetch GST billing categories:', error);
+      // Optional: Add error handling toast or notification
+    }
+  };
+
+  // Fetch services and main categories when filters change
   useEffect(() => {
     fetchServices();
+    fetchMainCategories();
+    fetchGstCategories();
   }, [selectedYear, selectedCategory, searchTerm]);
 
   // Add new service
   const handleAdd = async (data: ServiceFormData) => {
     try {
-      const response = await axios.post('/api/services', {
+      const response = await axios.post('http://localhost:5000/api/services', {
         serviceMainCategory: data.ServiceMainCategory,
         serviceName: data.ServiceName,
         financialYear: data.financialYear,
@@ -52,7 +78,7 @@ const ModifyServices: React.FC = () => {
         udin: data.UDIN,
         noOfTasks: data.tasks.length,
       });
-      
+
       // Update local state
       setServices([...services, response.data]);
       setShowAddForm(false);
@@ -66,7 +92,7 @@ const ModifyServices: React.FC = () => {
   const handleEdit = async (data: ServiceFormData) => {
     if (editingService) {
       try {
-        await axios.put(`/api/services/${editingService.id}`, {
+        await axios.put(`http://localhost:5000/api/services/${editingService.id}`, {
           serviceMainCategory: data.ServiceMainCategory,
           serviceName: data.ServiceName,
           gstBillingCategory: data.GSTBillingCategory,
@@ -95,8 +121,8 @@ const ModifyServices: React.FC = () => {
   const confirmDelete = async () => {
     if (serviceToDelete) {
       try {
-        await axios.delete(`/api/services/${serviceToDelete}`);
-        
+        await axios.delete(`http://localhost:5000/api/services/${serviceToDelete}`);
+
         // Refetch services to ensure latest data
         fetchServices();
         setDeleteModalOpen(false);
@@ -137,8 +163,11 @@ const ModifyServices: React.FC = () => {
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
               >
-                <option value="2025-2026">2025-2026</option>
-                <option value="2024-2025">2024-2025</option>
+                {Array.from({ length: 11 }, (_, i) => `20${14 + i}-20${15 + i}`).map((year) => (
+                  <option key={year} value={year}>
+                    {year}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -151,8 +180,11 @@ const ModifyServices: React.FC = () => {
                 onChange={(e) => setSelectedCategory(e.target.value)}
               >
                 <option value="">Select</option>
-                <option value="ROC">ROC</option>
-                <option value="Accounting">Accounting</option>
+                {mainCategories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -192,7 +224,7 @@ const ModifyServices: React.FC = () => {
                     <tr key={service.id} className="border-b">
                       <td className="px-4 py-2">{service.ServiceMainCategory}</td>
                       <td className="px-4 py-2">{service.ServiceName}</td>
-                      <td className="px-4 py-2">2024-2025</td>
+                      <td className="px-4 py-2">{selectedYear}</td>
                       <td className="px-4 py-2">{service.GSTBillingCategory}</td>
                       <td className="px-4 py-2">{service.DueDate}</td>
                       <td className="px-4 py-2">{service.UDIN}</td>
@@ -208,11 +240,12 @@ const ModifyServices: React.FC = () => {
                               serviceName: service.ServiceName,
                               financialYear: service.financialYear,
                               gstBillingCategory: service.GSTBillingCategory,
-                              dueDate: service.DueDate === 'YES',
-                              udin: service.UDIN === 'YES',
+                              dueDate: service.DueDate,
+                              udin: service.UDIN,
                               noOfClients: service.NoOfClients,
                               noOfTasks: service.NoOfTasks
                             };
+                            console.log('Editing Service:', editData); // Debugging log
                             setEditingService(editData as unknown as Service);
                           }}
                           className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
@@ -244,6 +277,8 @@ const ModifyServices: React.FC = () => {
             setEditingService(null);
           }}
           isEdit={!!editingService}
+          mainCategories={mainCategories}
+          gstCategories={gstCategories}
         />
       )}
 

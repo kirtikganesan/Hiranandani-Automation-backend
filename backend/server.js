@@ -1314,7 +1314,7 @@ app.get('/api/invoices', (req, res) => {
     }
   }
   if (billingFirm) {
-    sql += ` AND Billing_Firm = '${billingFirm}'`;
+    sql += ` AND Billing_Firm = '${billingFirm}' ORDER BY Invoice_No DESC`;
   }
 
   db.query(sql, (err, results) => {
@@ -1994,15 +1994,14 @@ app.delete('/api/billing-profiles/:id', (req, res) => {
 
 app.get('/api/services', (req, res) => {
   // Extract query parameters
-  const { 
-    financialYear = '2025-2026', 
-    serviceMainCategory = '', 
-    searchTerm = '' 
+  const {
+    serviceMainCategory = '',
+    searchTerm = ''
   } = req.query;
 
   // Construct the base query
   let query = `
-    SELECT * FROM services 
+    SELECT * FROM services
     WHERE 1=1
   `;
   const queryParams = [];
@@ -2011,13 +2010,13 @@ app.get('/api/services', (req, res) => {
 
   // Add service main category filter
   if (serviceMainCategory) {
-    query += ' AND service_main_category = ?';
+    query += ' AND ServiceMainCategory = ?';
     queryParams.push(serviceMainCategory);
   }
 
   // Add search term filter
   if (searchTerm) {
-    query += ' AND service_name LIKE ?';
+    query += ' AND ServiceName LIKE ?';
     queryParams.push(`%${searchTerm}%`);
   }
 
@@ -2032,35 +2031,32 @@ app.get('/api/services', (req, res) => {
   });
 });
 
+
 // Endpoint to add a new service
 app.post('/api/services', (req, res) => {
-  const { 
-    serviceMainCategory, 
-    serviceName, 
-    financialYear, 
-    gstBillingCategory, 
-    dueDate, 
-    udin, 
-    noOfClients = 0, 
-    noOfTasks 
+  const {
+    serviceMainCategory,
+    serviceName,
+    gstBillingCategory,
+    dueDate,
+    udin,
+    noOfClients = 0,
   } = req.body;
 
   const query = `
-    INSERT INTO services 
-    (service_main_category, service_name, financial_year, gst_billing_category, 
-     due_date, udin, no_of_clients, no_of_tasks) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO services
+    (ServiceMainCategory, ServiceName, GSTBillingCategory,
+     DueDate, UDIN, NoOfClients)
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
 
   const values = [
-    serviceMainCategory, 
-    serviceName, 
-    financialYear, 
-    gstBillingCategory, 
-    dueDate ? 'YES' : 'NO', 
-    udin ? 'YES' : 'NO', 
-    noOfClients, 
-    noOfTasks
+    serviceMainCategory,
+    serviceName,
+    gstBillingCategory,
+    dueDate ? 'YES' : 'NO',
+    udin ? 'YES' : 'NO',
+    noOfClients,
   ];
 
   db.query(query, values, (err, result) => {
@@ -2070,9 +2066,9 @@ app.post('/api/services', (req, res) => {
       return;
     }
 
-    res.status(201).json({ 
-      id: result.insertId, 
-      ...req.body 
+    res.status(201).json({
+      id: result.insertId,
+      ...req.body
     });
   });
 });
@@ -2080,34 +2076,31 @@ app.post('/api/services', (req, res) => {
 // Endpoint to update a service
 app.put('/api/services/:id', (req, res) => {
   const { id } = req.params;
-  const { 
-    serviceMainCategory, 
-    serviceName, 
-    gstBillingCategory, 
-    dueDate, 
-    udin, 
-    noOfTasks 
+  const {
+    serviceMainCategory,
+    serviceName,
+    gstBillingCategory,
+    dueDate,
+    udin,
   } = req.body;
 
   const query = `
-    UPDATE services 
-    SET 
-      service_main_category = ?, 
-      service_name = ?, 
-      gst_billing_category = ?, 
-      due_date = ?, 
-      udin = ?, 
-      no_of_tasks = ? 
+    UPDATE services
+    SET
+      ServiceMainCategory = ?,
+      ServiceName = ?,
+      GSTBillingCategory = ?,
+      DueDate = ?,
+      UDIN = ?
     WHERE id = ?
   `;
 
   const values = [
-    serviceMainCategory, 
-    serviceName, 
-    gstBillingCategory, 
-    dueDate ? 'YES' : 'NO', 
-    udin ? 'YES' : 'NO', 
-    noOfTasks, 
+    serviceMainCategory,
+    serviceName,
+    gstBillingCategory,
+    dueDate ? 'YES' : 'NO',
+    udin ? 'YES' : 'NO',
     id
   ];
 
@@ -2121,6 +2114,7 @@ app.put('/api/services/:id', (req, res) => {
     res.json({ message: 'Service updated successfully' });
   });
 });
+
 
 // Endpoint to delete a service
 app.delete('/api/services/:id', (req, res) => {
@@ -2140,7 +2134,197 @@ app.delete('/api/services/:id', (req, res) => {
 });
 
 
+app.get('/api/services/main-categories', (req, res) => {
+  const query = `
+    SELECT DISTINCT ServiceMainCategory FROM services
+  `;
 
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching service main categories:', err);
+      res.status(500).json({ error: 'Failed to fetch service main categories' });
+      return;
+    }
+    res.json(results.map(result => result.ServiceMainCategory));
+  });
+});
+
+app.get('/api/services/gst-categories', (req, res) => {
+  const query = `
+    SELECT DISTINCT GSTBillingCategory FROM services
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching GST billing categories:', err);
+      res.status(500).json({ error: 'Failed to fetch GST billing categories' });
+      return;
+    }
+    res.json(results.map(result => result.GSTBillingCategory));
+  });
+});
+
+// In your backend routes/controllers
+app.get('/api/generate-invoice-number', (req, res) => {
+  const { billingFirm } = req.query;
+
+  // Map of billing firms to their invoice number prefixes
+  const firmPrefixes = {
+    'HIRANANDANI AND ASSOCIATES': 'A/24-25/',
+    'Hiranandani And Co': 'A/24-25/',
+    'Oyster Management Consultants Private Limited': 'OYS/24-25/',
+    'RIA ENTERPRISES': 'R/24-25/'
+  };
+
+  // If billing firm is not in the predefined list, return manual entry flag
+  if (!firmPrefixes[billingFirm]) {
+    return res.json({ manualEntry: true });
+  }
+
+  // Construct the prefix
+  const prefix = firmPrefixes[billingFirm];
+
+  // Query to find the maximum invoice number for the specific billing firm
+  const query = `
+    SELECT MAX(CAST(SUBSTRING_INDEX(Invoice_No, '/', -1) AS UNSIGNED)) as maxNumber
+    FROM invoices_or_outstanding 
+    WHERE Invoice_No LIKE ? AND Billing_Firm = ?
+  `;
+
+  db.query(query, [`${prefix}%`, billingFirm], (err, results) => {
+    if (err) {
+      console.error('Error generating invoice number:', err);
+      return res.status(500).json({ error: 'Could not generate invoice number' });
+    }
+
+    // Calculate the next invoice number
+    const maxNumber = results[0] ? results[0].maxNumber || 0 : 0;
+    const nextNumber = maxNumber + 1;
+    const invoiceNumber = `${prefix}${nextNumber}`;
+
+    res.json({ 
+      invoiceNumber, 
+      manualEntry: false 
+    });
+  });
+});
+
+app.post('/api/save-invoice', (req, res) => {
+  const {
+    Date,
+    Invoice_No,
+    Client,
+    PAN_No,
+    Gross_Amount,
+    Discount_Amount,
+    Service_Amount,
+    Taxable_Claim_Amount,
+    Total_Taxable_Amount,
+    CGST,
+    SGST,
+    IGST,
+    Non_Taxable_Amount,
+    Total_Bill_Amount,
+    Outstanding_Amount,
+    Settled_Amount,
+    Billing_Firm
+  } = req.body;
+
+  // SQL query to insert invoice
+  const query = `
+    INSERT INTO invoices_or_outstanding (
+      date,
+      Invoice_No,
+      Client,
+      PAN_No,
+      Gross_Amount,
+      Discount_Amount,
+      Service_Amount,
+      Taxable_Claim_Amount,
+      Total_Taxable_Amount,
+      CGST,
+      SGST,
+      IGST,
+      Non_Taxable_Amount,
+      Total_Bill_Amount,
+      Outstanding_Amount,
+      Settled_Amount,
+      Billing_Firm
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  // Values array for parameterized query
+  const values = [
+    Date,
+    Invoice_No,
+    Client,
+    PAN_No,
+    Gross_Amount,
+    Discount_Amount,
+    Service_Amount,
+    Taxable_Claim_Amount,
+    Total_Taxable_Amount,
+    CGST,
+    SGST,
+    IGST,
+    Non_Taxable_Amount,
+    Total_Bill_Amount,
+    Outstanding_Amount,
+    Settled_Amount,
+    Billing_Firm
+  ];
+
+  // Execute the query
+  db.query(query, values, (error, results) => {
+    if (error) {
+      console.error('Error saving invoice:', error);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Failed to save invoice',
+        error: error.message 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      message: 'Invoice saved successfully', 
+      invoiceId: results.insertId 
+    });
+  });
+});
+
+
+app.put('/api/invoices/:id', (req, res) => {
+  const invoiceId = req.params.id;
+  const { Date, Invoice_No, Client, Gross_Amount, Discount_Amount, Service_Amount, Taxable_Claim_Amount, Total_Taxable_Amount, CGST, SGST, IGST, Non_Taxable_Amount, Total_Bill_Amount, Outstanding_Amount, Settled_Amount } = req.body;
+  const query = `
+    UPDATE invoices_or_outstanding
+    SET Date = ?, Invoice_No = ?, Client = ?, Gross_Amount = ?, Discount_Amount = ?, Service_Amount = ?, Taxable_Claim_Amount = ?, Total_Taxable_Amount = ?, CGST = ?, SGST = ?, IGST = ?, Non_Taxable_Amount = ?, Total_Bill_Amount = ?, Outstanding_Amount = ?, Settled_Amount = ?
+    WHERE id = ?
+  `;
+
+  db.query(query, [Date, Invoice_No, Client, Gross_Amount, Discount_Amount, Service_Amount, Taxable_Claim_Amount, Total_Taxable_Amount, CGST, SGST, IGST, Non_Taxable_Amount, Total_Bill_Amount, Outstanding_Amount, Settled_Amount, invoiceId], (err, result) => {
+    if (err) {
+      res.status(500).send('Error updating invoice');
+      return;
+    }
+    res.json({ id: invoiceId, ...req.body });
+  });
+});
+
+// Delete an invoice by ID
+app.delete('/api/invoices/:id', (req, res) => {
+  const invoiceId = req.params.id;
+  const query = 'DELETE FROM invoices_or_outstanding WHERE id = ?';
+
+  db.query(query, [invoiceId], (err, result) => {
+    if (err) {
+      res.status(500).send('Error deleting invoice');
+      return;
+    }
+    res.status(204).send();
+  });
+});
 // ✅ Start Server
 app.listen(port, () => {
   console.log(`🚀 Server is running on https://hiranandani-automation.onrender.com:${port}`);
