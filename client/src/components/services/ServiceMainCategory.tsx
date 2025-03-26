@@ -15,7 +15,7 @@ const ServiceMainCategory = () => {
   const [editValue, setEditValue] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<number | null>(null);
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
   useEffect(() => {
     fetchServices();
   }, []);
@@ -26,7 +26,7 @@ const ServiceMainCategory = () => {
 
   const fetchServices = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/service-main');
+      const response = await axios.get(`${backendUrl}/api/service-main`);
       if (Array.isArray(response.data)) {
         setServices(response.data);
       } else {
@@ -42,7 +42,7 @@ const ServiceMainCategory = () => {
   const addService = async () => {
     if (!newService.trim()) return;
     try {
-      await axios.post('http://localhost:5000/api/service-main', {
+      await axios.post(`${backendUrl}/api/service-main`, {
         service_name: newService,
         dependent_services: 0,
         gst_billing_categories: 0,
@@ -58,7 +58,7 @@ const ServiceMainCategory = () => {
   const updateService = async () => {
     if (!editValue.trim() || !editingService) return;
     try {
-      await axios.put(`http://localhost:5000/api/service-main/${editingService.id}`, {
+      await axios.put(`${backendUrl}/api/service-main/${editingService.id}`, {
         service_name: editValue,
       });
       setEditingService(null);
@@ -76,7 +76,7 @@ const ServiceMainCategory = () => {
   const deleteService = async () => {
     if (showDeleteConfirm === null) return;
     try {
-      await axios.delete(`http://localhost:5000/api/service-main/${showDeleteConfirm}`);
+      await axios.delete(`${backendUrl}/api/service-main/${showDeleteConfirm}`);
       fetchServices();
       showMessage('Deleted successfully');
     } catch (error) {

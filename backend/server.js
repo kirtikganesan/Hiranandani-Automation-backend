@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({ 
-  origin: 'https://hiranandani-automation.vercel.app',
+  origin: 'http://localhost:5173',
 }));
 app.use(express.json());
 
@@ -2327,5 +2327,5 @@ app.delete('/api/invoices/:id', (req, res) => {
 });
 // ✅ Start Server
 app.listen(port, () => {
-  console.log(`🚀 Server is running on https://hiranandani-automation.onrender.com:${port}`);
+  console.log(`🚀 Server is running on port ${port}`);
 });
