@@ -30,10 +30,12 @@ const List = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get('http://localhost:5000/api/unique-receipt-clients')
+    axios.get(`${backendUrl}/api/unique-receipt-clients`)
       .then(response => {
         if (Array.isArray(response.data)) {
           setClients(response.data.map((client: { client_name: string }) => client.client_name));
@@ -46,7 +48,7 @@ const List = () => {
       });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms')
+    axios.get(`${backendUrl}/api/financial-billing-firms`)
       .then(response => {
         if (Array.isArray(response.data)) {
           setBillingFirms(response.data.map((firm: { billing_firm: string }) => firm.billing_firm));
@@ -61,7 +63,7 @@ const List = () => {
 
   const fetchReceiptList = () => {
     const { startDate, endDate, clients, billingFirm } = filters;
-    let query = 'http://localhost:5000/api/receipt-list?';
+    let query = `${backendUrl}/api/receipt-list?`;
   
     const params = new URLSearchParams();
     if (startDate) params.append('startDate', startDate);

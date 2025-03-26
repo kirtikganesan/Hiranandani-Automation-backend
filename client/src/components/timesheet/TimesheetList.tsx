@@ -22,9 +22,11 @@ const TimesheetList: React.FC = () => {
   };
     const [timesheetData, setTimesheetData] = useState<TimesheetEntry[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
     useEffect(() => {
-        axios.get('http://localhost:5000/api/timesheet')
+        axios.get(`${backendUrl}/api/timesheet`)
             .then(response => {
                 setTimesheetData(response.data);
                 setLoading(false);

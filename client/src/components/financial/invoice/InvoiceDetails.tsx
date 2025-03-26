@@ -53,6 +53,8 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [isManualEntry, setIsManualEntry] = useState(false);
   const [panNumber, setPanNumber] = useState('');
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
   const [invoiceData, setInvoiceData] = useState<InvoiceData[]>(
     data.map(item => ({
       ...item,
@@ -69,7 +71,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
   useEffect(() => {
     const fetchBillingFirms = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/financial-billing-firms');
+        const response = await axios.get(`${backendUrl}/api/financial-billing-firms`);
         
         const firms = Array.isArray(response.data) 
           ? response.data.map(firm => 
@@ -98,7 +100,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
     if (billingFirm) {
       const generateInvoiceNumber = async () => {
         try {
-          const response = await axios.get('http://localhost:5000/api/generate-invoice-number', {
+          const response = await axios.get(`${backendUrl}/api/generate-invoice-number`, {
             params: { billingFirm }
           });
 
@@ -184,7 +186,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
     };
 
     try {
-      const response = await axios.post('http://localhost:5000/api/save-invoice', invoiceSubmissionData);
+      const response = await axios.post(`${backendUrl}/api/save-invoice`, invoiceSubmissionData);
       
       if (response.data.success) {
         alert('Invoice saved successfully!');

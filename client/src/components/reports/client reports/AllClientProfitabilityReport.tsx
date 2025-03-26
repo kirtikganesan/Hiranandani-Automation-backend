@@ -18,6 +18,8 @@ const AllClientProfitabilityReport = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [dummyData, setDummyData] = useState<DummyData[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     const start = new Date(startDate);

@@ -8,6 +8,8 @@ const ServicewiseReportOfStaffs = () => {
   const [toPeriodicity, setToPeriodicity] = useState('Apr-2024-Sept-2024');
   const [clients, setClients] = useState('');
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const handleListClick = () => {
     setShowTable(true);

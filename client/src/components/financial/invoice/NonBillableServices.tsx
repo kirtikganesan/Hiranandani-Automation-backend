@@ -38,14 +38,16 @@ const NonBillableServices = () => {
   const [mainCategories, setMainCategories] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<NonBillableService[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     const fetchUniqueValues = async () => {
       try {
         const [clientsResponse, mainCategoriesResponse, servicesResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/unique-non-billable-clients'),
-          axios.get('http://localhost:5000/api/unique-non-billable-main-categories'),
-          axios.get('http://localhost:5000/api/unique-non-billable-services')
+          axios.get(`${backendUrl}/api/unique-non-billable-clients`),
+          axios.get(`${backendUrl}/api/unique-non-billable-main-categories`),
+          axios.get(`${backendUrl}/api/unique-non-billable-services`)
         ]);
 
         setClients(clientsResponse.data);
@@ -61,7 +63,7 @@ const NonBillableServices = () => {
 
   const handleFilter = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/non-billable-services', {
+      const response = await axios.get(`${backendUrl}/api/non-billable-services`, {
         params: filters
       });
       console.log('Fetched Data:', response.data); // Log the fetched data

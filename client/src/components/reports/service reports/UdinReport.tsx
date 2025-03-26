@@ -10,11 +10,13 @@ const UdinReport = () => {
   const [employees, setEmployees] = useState<{ id: number, employee_name: string }[]>([]);
   const [showTable, setShowTable] = useState(false);
   const [udinData, setUdinData] = useState<any[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/employees');
+        const response = await axios.get(`${backendUrl}/api/employees`);
         setEmployees([{ id: 0, employee_name: 'All' }, ...response.data]);
       } catch (error) {
         console.error('Error fetching employees:', error);
@@ -26,7 +28,7 @@ const UdinReport = () => {
 
   const handleListClick = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/udin-report', {
+      const response = await axios.get(`${backendUrl}/api/udin-report`, {
         params: { fromDate, toDate },
       });
 

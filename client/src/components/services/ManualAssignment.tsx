@@ -19,13 +19,14 @@ export default function ManualAssignment() {
 
   const [clients, setClients] = useState<{ client_id: number; client_name: string }[]>([]);
   const [employees, setEmployees] = useState<{ employee_id: number; employee_name: string }[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
 
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/client-details").then((response) => {
+    axios.get(`${backendUrl}/api/client-details`).then((response) => {
       setClients(response.data);
     });
-    axios.get("http://localhost:5000/api/employee-details").then((response) => {
+    axios.get(`${backendUrl}/api/employee-details`).then((response) => {
       setEmployees(response.data);
     });
   }, []);
@@ -36,7 +37,7 @@ export default function ManualAssignment() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/manual-assignment", {
+      const response = await fetch(`${backendUrl}/api/manual-assignment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

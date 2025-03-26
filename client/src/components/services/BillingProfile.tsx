@@ -92,6 +92,8 @@ const BillingProfile: React.FC = () => {
   const [billingData, setBillingData] = useState<BillingEntry[]>([]);
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     fetchBillingData();
@@ -99,7 +101,7 @@ const BillingProfile: React.FC = () => {
 
   const fetchBillingData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/billing-profiles');
+      const response = await axios.get(`${backendUrl}/api/billing-profiles`);
       setBillingData(response.data);
     } catch (error) {
       console.error('Error fetching billing data:', error);
@@ -116,7 +118,7 @@ const BillingProfile: React.FC = () => {
 
   const handleAdd = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/api/billing-profiles', formData);
+      const response = await axios.post(`${backendUrl}/api/billing-profiles`, formData);
       setBillingData([...billingData, response.data]);
       setShowModal(false);
       setSuccessMessage('Billing Profile added successfully');
@@ -128,7 +130,7 @@ const BillingProfile: React.FC = () => {
 
   const handleEdit = async (id: number) => {
     try {
-      await axios.put(`http://localhost:5000/api/billing-profiles/${id}`, formData);
+      await axios.put(`${backendUrl}/api/billing-profiles/${id}`, formData);
       fetchBillingData();
       setShowModal(false);
       setSuccessMessage('Billing Profile updated successfully');
@@ -140,7 +142,7 @@ const BillingProfile: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.delete(`http://localhost:5000/api/billing-profiles/${id}`);
+      await axios.delete(`${backendUrl}/api/billing-profiles/${id}`);
       fetchBillingData();
       setSuccessMessage('Billing Profile deleted successfully');
       setShowSuccessModal(true);
@@ -152,7 +154,7 @@ const BillingProfile: React.FC = () => {
   const handleEditClick = async (entry: BillingEntry) => {
     try {
       // Fetch full profile details
-      const response = await axios.get(`http://localhost:5000/api/billing-profiles/${entry.id}`);
+      const response = await axios.get(`${backendUrl}/api/billing-profiles/${entry.id}`);
       const fullProfileData = response.data;
       
       setFormData({

@@ -27,6 +27,8 @@ const DigitalSignature = () => {
   const [status, setStatus] = useState<'all' | 'live' | 'expired'>('all');
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
   const [formData, setFormData] = useState({
     client: '',
     member_name: '',
@@ -47,7 +49,7 @@ const DigitalSignature = () => {
 
   useEffect(() => {
     // Fetch data from the backend
-    axios.get('http://localhost:5000/api/digital-signatures', {
+    axios.get(`${backendUrl}/api/digital-signatures`, {
       params: { page, limit, status }
     })
       .then(response => {
@@ -58,7 +60,7 @@ const DigitalSignature = () => {
       });
 
     // Fetch client details
-    axios.get('http://localhost:5000/api/client-details')
+    axios.get(`${backendUrl}/api/client-details`)
       .then(response => {
         setClients(response.data);
       })
@@ -108,7 +110,7 @@ const DigitalSignature = () => {
     }
     setError('');
 
-    axios.post('http://localhost:5000/api/digital-signatures', formData)
+    axios.post(`${backendUrl}/api/digital-signatures`, formData)
       .then(response => {
         setSignatures([...signatures, response.data]);
         setIsFormVisible(false);
@@ -134,7 +136,7 @@ const DigitalSignature = () => {
   };
 
   const handleDelete = (id: number) => {
-    axios.delete(`http://localhost:5000/api/digital-signatures/${id}`)
+    axios.delete(`${backendUrl}/api/digital-signatures/${id}`)
       .then(() => {
         setSignatures(signatures.filter(signature => signature.id !== id));
         setDeleteId(null);

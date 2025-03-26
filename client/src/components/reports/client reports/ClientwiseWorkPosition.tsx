@@ -8,10 +8,12 @@ const ClientwiseWorkPosition = () => {
   const [clientwise, setClientwise] = useState('');
   const [clients, setClients] = useState<string[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client options from the backend
-    fetch('http://localhost:5000/api/clients')
+    fetch(`${backendUrl}/api/clients`)
       .then(response => response.json())
       .then(data => {
         setClients(data.map((item: { client_name: string }) => item.client_name));

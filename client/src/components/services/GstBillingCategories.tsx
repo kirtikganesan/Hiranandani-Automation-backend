@@ -16,13 +16,15 @@ const GstBillingCategories: React.FC = () => {
     type: '',
     id: null,
   });
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
-    const response = await axios.get('http://localhost:5000/api/categories');
+    const response = await axios.get(`${backendUrl}/api/categories`);
     setCategories(response.data);
   };
 
@@ -35,7 +37,7 @@ const GstBillingCategories: React.FC = () => {
       setError('All fields are required');
       return;
     }
-    await axios.post('http://localhost:5000/api/categories', formData);
+    await axios.post(`${backendUrl}/api/categories`, formData);
     setModal({ show: true, type: 'Added successfully', id: null });
     fetchCategories();
   };
@@ -47,7 +49,7 @@ const GstBillingCategories: React.FC = () => {
   };
 
   const handleUpdate = async () => {
-    await axios.put(`http://localhost:5000/api/categories/${modal.id}`, formData);
+    await axios.put(`${backendUrl}/api/categories/${modal.id}`, formData);
     setModal({ show: true, type: 'Updated successfully', id: null });
     fetchCategories();
   };
@@ -57,7 +59,7 @@ const GstBillingCategories: React.FC = () => {
   };
 
   const confirmDelete = async () => {
-    await axios.delete(`http://localhost:5000/api/categories/${modal.id}`);
+    await axios.delete(`${backendUrl}/api/categories/${modal.id}`);
     setModal({ show: true, type: 'Deleted successfully', id: null });
     fetchCategories();
   };

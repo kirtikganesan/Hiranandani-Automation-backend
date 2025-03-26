@@ -11,10 +11,12 @@ const AgewiseAnalysisOfOutstandingInvoices: React.FC = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch billing profiles
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch(`${backendUrl}/api/billing-firms`)
       .then(response => response.json())
       .then(data => {
         setBillingProfiles(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -33,7 +35,7 @@ const AgewiseAnalysisOfOutstandingInvoices: React.FC = () => {
       asOnDate,
     });
 
-    fetch(`http://localhost:5000/api/agewise-analysis?${queryParams}`)
+    fetch(`${backendUrl}/api/agewise-analysis?${queryParams}`)
       .then(response => response.json())
       .then(data => {
         setFilteredData(data);

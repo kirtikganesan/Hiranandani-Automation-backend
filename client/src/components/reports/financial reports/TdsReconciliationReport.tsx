@@ -22,15 +22,17 @@ const TdsReconciliationReport: React.FC = () => {
   const [billingFirms, setBillingFirms] = useState<{ Billing_Firm: string }[]>([]);
   const [financialYears, setFinancialYears] = useState<string[]>([]);
   const [data, setData] = useState<TdsReport[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch distinct Billing Firms
-    axios.get('http://localhost:5000/api/billing-firms')
+    axios.get(`${backendUrl}/api/billing-firms`)
       .then(response => setBillingFirms(response.data))
       .catch(error => console.error('Error fetching billing firms:', error));
 
     // Fetch financial year options
-    axios.get('http://localhost:5000/api/financial-years')
+    axios.get(`${backendUrl}/api/financial-years`)
       .then(response => setFinancialYears(response.data))
       .catch(error => console.error('Error fetching financial years:', error));
   }, []);
@@ -41,7 +43,7 @@ const TdsReconciliationReport: React.FC = () => {
       financialYear: financialYear || undefined,
     };
 
-    axios.get('http://localhost:5000/api/tds-report', { params })
+    axios.get(`${backendUrl}/api/tds-report`, { params })
       .then(response => setData(response.data))
       .catch(error => console.error('Error fetching data:', error));
   };

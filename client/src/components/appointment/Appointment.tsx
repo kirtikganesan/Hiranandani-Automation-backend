@@ -12,11 +12,12 @@ const Appointment = () => {
     meeting_purpose: '',
   });
 
-  const [clients, setClients] = useState<string[]>([]); // Store client names
+  const [clients, setClients] = useState<string[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
 
   // Fetch client names from the backend
   useEffect(() => {
-    fetch('http://localhost:5000/api/client-details') // Fetch client names from API
+    fetch(`${backendUrl}/api/client-details`) // Fetch client names from API
       .then((response) => response.json())
       .then((data) => {
         setClients(data.map((client: { client_name: string }) => client.client_name)); // Extract client names
@@ -41,7 +42,7 @@ const Appointment = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:5000/api/appointments', {
+      const response = await fetch(`${backendUrl}/api/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

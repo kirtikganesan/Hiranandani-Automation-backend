@@ -7,12 +7,14 @@ const DocumentMovementReport: React.FC = () => {
   const [endDate, setEndDate] = useState<string>('');
   const [clientNames, setClientNames] = useState<string[]>([]);
   const [showTable, setShowTable] = useState<boolean>(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client names when the component mounts
     const fetchClientNames = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/client-details');
+        const response = await fetch(`${backendUrl}/api/client-details`);
         const data: { client_name: string }[] = await response.json();
         setClientNames(data.map(client => client.client_name));
       } catch (error) {

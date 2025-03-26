@@ -36,6 +36,8 @@ const IcaiFormats = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const letters = [
     "Unqualified Review on Interim Financial Information consists of complete Set of General purpose FS Prepared in Accordance with a FRF as per SRE 241",
@@ -88,7 +90,7 @@ const IcaiFormats = () => {
       letterName: letters[parseInt(selectedLetter.split('-')[1])],
     };
 
-    fetch('http://localhost:5000/api/save-icai-data', {
+    fetch(`${backendUrl}/api/save-icai-data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -108,7 +110,7 @@ const IcaiFormats = () => {
   };
 
   const fetchTableData = () => {
-    fetch(`http://localhost:5000/api/icai-data?letterName=${letters[parseInt(selectedLetter.split('-')[1])]}`)
+    fetch(`${backendUrl}/api/icai-data?letterName=${letters[parseInt(selectedLetter.split('-')[1])]}`)
       .then(response => response.json())
       .then((data: IcaiData[]) => {
         setTableData(data);

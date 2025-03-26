@@ -30,12 +30,14 @@ export default function NoticeList() {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch notices from the API when the component mounts
     const fetchNotices = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/notices');
+        const response = await axios.get(`${backendUrl}/api/notices`);
         setNotices(response.data);
       } catch (error) {
         console.error('Error fetching notices:', error);

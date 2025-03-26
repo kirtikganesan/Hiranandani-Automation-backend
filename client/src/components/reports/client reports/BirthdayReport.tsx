@@ -32,10 +32,12 @@ const BirthdayReport: React.FC = () => {
   const [endDate, setEndDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredData, setFilteredData] = useState<BirthdayReportData[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const fetchFilteredData = async () => {
     try {
-      const response = await axios.post<BirthdayReportData[]>('http://localhost:5000/api/birthday-report', {
+      const response = await axios.post<BirthdayReportData[]>(`${backendUrl}/api/birthday-report`, {
         displayFor,
         branch,
         startDate,

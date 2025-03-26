@@ -23,9 +23,11 @@ const EmployeeDashboard: React.FC = () => {
   };
 
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/employees")
+    fetch(`${backendUrl}/api/employees`)
       .then(response => response.json())
       .then(data => setEmployees(data))
       .catch(error => console.error("Error fetching data:", error));

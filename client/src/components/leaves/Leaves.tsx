@@ -25,15 +25,17 @@ const Leaves = () => {
     reason: "",
     leave_duration: "full",
   });
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/employees")
+    axios.get(`${backendUrl}/api/employees`)
       .then((response) => setEmployees(response.data))
       .catch((error) => console.error("Error fetching employees:", error));
   }, []);
 
   useEffect(() => {
-    axios.get<Leave[]>("http://localhost:5000/api/leaves")
+    axios.get<Leave[]>(`${backendUrl}/api/leaves`)
       .then(response => setLeaves(response.data))
       .catch(error => console.error("Error fetching leaves:", error));
   }, []);
@@ -44,7 +46,7 @@ const Leaves = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    axios.post("http://localhost:5000/api/apply-leave", formData)
+    axios.post(`${backendUrl}/api/apply-leave`, formData)
       .then(() => alert("Leave applied successfully"))
       .catch((error) => console.error("Error submitting leave:", error));
   };

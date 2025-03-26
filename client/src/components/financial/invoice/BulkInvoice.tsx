@@ -26,6 +26,8 @@ const BulkInvoice = () => {
   const handleDateChange = (field: keyof BulkInvoiceFilters, value: string) => {
     setFilters(prev => ({...prev, [field]: value}));
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-sm">

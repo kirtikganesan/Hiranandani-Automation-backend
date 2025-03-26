@@ -16,12 +16,13 @@ const ModifyServices: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mainCategories, setMainCategories] = useState<string[]>([]);
   const [gstCategories, setGstCategories] = useState<string[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
 
   // Fetch services from backend
   const fetchServices = async () => {
     setIsLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/services', {
+      const response = await axios.get(`${backendUrl}/api/services`, {
         params: {
           financialYear: selectedYear,
           serviceMainCategory: selectedCategory,
@@ -40,7 +41,7 @@ const ModifyServices: React.FC = () => {
   // Fetch distinct service main categories
   const fetchMainCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/services/main-categories');
+      const response = await axios.get(`${backendUrl}/api/services/main-categories`);
       setMainCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch service main categories:', error);
@@ -51,7 +52,7 @@ const ModifyServices: React.FC = () => {
   // Fetch distinct GST billing categories
   const fetchGstCategories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/services/gst-categories');
+      const response = await axios.get(`${backendUrl}/api/services/gst-categories`);
       setGstCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch GST billing categories:', error);
@@ -69,7 +70,7 @@ const ModifyServices: React.FC = () => {
   // Add new service
   const handleAdd = async (data: ServiceFormData) => {
     try {
-      const response = await axios.post('http://localhost:5000/api/services', {
+      const response = await axios.post(`${backendUrl}/api/services`, {
         serviceMainCategory: data.ServiceMainCategory,
         serviceName: data.ServiceName,
         financialYear: data.financialYear,
@@ -92,7 +93,7 @@ const ModifyServices: React.FC = () => {
   const handleEdit = async (data: ServiceFormData) => {
     if (editingService) {
       try {
-        await axios.put(`http://localhost:5000/api/services/${editingService.id}`, {
+        await axios.put(`${backendUrl}/api/services/${editingService.id}`, {
           serviceMainCategory: data.ServiceMainCategory,
           serviceName: data.ServiceName,
           gstBillingCategory: data.GSTBillingCategory,
@@ -121,7 +122,7 @@ const ModifyServices: React.FC = () => {
   const confirmDelete = async () => {
     if (serviceToDelete) {
       try {
-        await axios.delete(`http://localhost:5000/api/services/${serviceToDelete}`);
+        await axios.delete(`${backendUrl}/api/services/${serviceToDelete}`);
 
         // Refetch services to ensure latest data
         fetchServices();

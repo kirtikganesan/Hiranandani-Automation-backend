@@ -56,12 +56,14 @@ export default function Notice() {
 
   const [clients, setClients] = useState<Client[]>([]);
   const [fileName, setFileName] = useState<string | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client names from the API when the component mounts
     const fetchClients = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/clients');
+        const response = await axios.get(`${backendUrl}/api/clients`);
         // Ensure the response data is an array
         if (Array.isArray(response.data)) {
           setClients(response.data);
@@ -107,7 +109,7 @@ export default function Notice() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/notices', formDataToSend, {
+      const response = await axios.post(`${backendUrl}/api/notices`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

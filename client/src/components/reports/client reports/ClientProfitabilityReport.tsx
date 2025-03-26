@@ -27,12 +27,14 @@ const ClientProfitabilityReport = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [services, setServices] = useState<Service[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client options from the endpoint
     const fetchClients = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/client-details');
+        const response = await axios.get(`${backendUrl}/api/client-details`);
         setClients(response.data);
       } catch (error) {
         console.error('Error fetching clients:', error);

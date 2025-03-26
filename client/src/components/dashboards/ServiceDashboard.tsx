@@ -25,14 +25,16 @@ const ServiceDashboard = () => {
     },
     cutout: '70%',
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch data from the backend
     const fetchData = async () => {
       try {
         const [servicesTriggeredResponse, completedServicesResponse] = await Promise.all([
-          axios.get('http://localhost:5000/api/services-triggered-but-not-allotted-count'),
-          axios.get('http://localhost:5000/api/single-invoice-count')
+          axios.get(`${backendUrl}/api/services-triggered-but-not-allotted-count`),
+          axios.get(`${backendUrl}/api/single-invoice-count`)
         ]);
 
         const servicesTriggeredCount = servicesTriggeredResponse.data.count;

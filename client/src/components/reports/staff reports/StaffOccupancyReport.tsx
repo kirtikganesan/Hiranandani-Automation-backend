@@ -29,6 +29,7 @@ const StaffOccupancyReport = () => {
   const [employees, setEmployees] = useState<string[]>([]);
   const [clients, setClients] = useState<string[]>([]);
   const [data, setData] = useState<StaffOccupancy[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -37,19 +38,19 @@ const StaffOccupancyReport = () => {
 
   useEffect(() => {
     // Fetch unique employee names from the backend
-    fetch('http://localhost:5000/api/unique-occupancy-employees')
+    fetch(`${backendUrl}/api/unique-occupancy-employees`)
       .then(response => response.json())
       .then(data => setEmployees(['All', ...data]));
 
     // Fetch unique client names from the backend
-    fetch('http://localhost:5000/api/unique-occupancy-clients')
+    fetch(`${backendUrl}/api/unique-occupancy-clients`)
       .then(response => response.json())
       .then(data => setClients(['All', ...data]));
   }, []);
 
   const handleListClick = () => {
     // Fetch filtered data from the backend based on selected filters
-    let query = 'http://localhost:5000/api/staff-occupancy?';
+    let query = `${backendUrl}/api/staff-occupancy?`;
     if (filters.employee && filters.employee !== 'All') {
       query += `employee=${filters.employee}&`;
     }

@@ -40,9 +40,11 @@ const TimesheetSummaryReport = () => {
   const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>([]);
   const [timesheetData, setTimesheetData] = useState<TimesheetSummary[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/employee-details')
+    fetch(`${backendUrl}/api/employee-details`)
       .then(response => response.json())
       .then(data => {
         setEmployees(data);

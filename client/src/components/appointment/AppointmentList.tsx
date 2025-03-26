@@ -29,11 +29,13 @@ const AppointmentList = () => {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/appointments");
+        const response = await fetch(`${backendUrl}/api/appointments`);
         const data: Appointment[] = await response.json();
         setAppointments(data);
       } catch (error) {
@@ -51,7 +53,7 @@ const AppointmentList = () => {
   const handleSave = async () => {
     if (editingAppointment) {
       try {
-        const response = await fetch(`https://hiranandani-automation.onrender.com/api/appointments/${editingAppointment.id}`, {
+        const response = await fetch(`${backendUrl}/api/appointments/${editingAppointment.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +74,7 @@ const AppointmentList = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      const response = await fetch(`https://hiranandani-automation.onrender.com/api/appointments/${id}`, {
+      const response = await fetch(`${backendUrl}/api/appointments/${id}`, {
         method: 'DELETE',
       });
       if (response.ok) {

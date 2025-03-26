@@ -29,6 +29,8 @@ const ServicesTriggeredButNotAlloted = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [taskName, setTaskName] = useState<string>("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     fetchServices();
@@ -37,7 +39,7 @@ const ServicesTriggeredButNotAlloted = () => {
 
   const fetchServices = () => {
     axios
-      .get("http://localhost:5000/api/services-triggered-but-not-alloted")
+      .get(`${backendUrl}/api/services-triggered-but-not-alloted`)
       .then((response) => {
         setServices(response.data);
         setLoading(false);
@@ -51,7 +53,7 @@ const ServicesTriggeredButNotAlloted = () => {
 
   const fetchEmployees = () => {
     axios
-      .get("http://localhost:5000/api/employees")
+      .get(`${backendUrl}/api/employees`)
       .then((response) => {
         setEmployees(response.data);
       })
@@ -73,7 +75,7 @@ const ServicesTriggeredButNotAlloted = () => {
     }
 
     axios
-      .post("http://localhost:5000/api/assign-service", {
+      .post(`${backendUrl}/api/assign-service`, {
         services: taskName,
         alloted_to: selectedEmployee,
         due_date: selectedService.statutory_due_date,

@@ -26,10 +26,12 @@ export default function InwardDocument() {
     clientName: ''
   });
   const [clients, setClients] = useState<string[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client names from the backend API
-    axios.get('http://localhost:5000/api/clients')
+    axios.get(`${backendUrl}/api/clients`)
       .then(response => {
         const clientNames = response.data.map((client: any) => client.client_name);
         setClients(clientNames);
@@ -96,7 +98,7 @@ export default function InwardDocument() {
     });
 
     try {
-      const response = await axios.post('http://localhost:5000/api/documents', formDataToSend, {
+      const response = await axios.post(`${backendUrl}/api/documents`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

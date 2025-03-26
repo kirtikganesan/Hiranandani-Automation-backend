@@ -16,9 +16,11 @@ const AddTimesheet = () => {
   });
 
   const [clients, setClients] = useState<string[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/client-details")
+    axios.get(`${backendUrl}/api/client-details`)
       .then((response) => {
         setClients(response.data.map((client: { client_name: string }) => client.client_name));
       })
@@ -61,7 +63,7 @@ const AddTimesheet = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:5000/api/timesheets", formData);
+      await axios.post(`${backendUrl}/api/timesheets`, formData);
       alert("Timesheet added successfully!");
       setFormData({
         timesheet_date: "",

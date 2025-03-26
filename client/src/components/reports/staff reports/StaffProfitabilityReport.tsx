@@ -17,12 +17,14 @@ const StaffProfitabilityReport = () => {
 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch employees from the API when the component mounts
     const fetchEmployees = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/employees');
+        const response = await axios.get(`${backendUrl}/api/employees`);
         setEmployees(response.data);
       } catch (error) {
         console.error('Error fetching employees:', error);

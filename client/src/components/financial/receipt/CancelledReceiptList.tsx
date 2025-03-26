@@ -24,6 +24,8 @@ const CancelledReceipts: React.FC = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch unique billing firms
@@ -50,7 +52,7 @@ const CancelledReceipts: React.FC = () => {
 
   const handleListClick = async () => {
     try {
-      const response = await axios.get<{ data: Receipt[] }>('http://localhost:5000/api/cancelled-receipts');
+      const response = await axios.get<{ data: Receipt[] }>(`${backendUrl}/api/cancelled-receipts`);
 
       // Log the response data to inspect its structure
       console.log('API Response Data:', response.data);

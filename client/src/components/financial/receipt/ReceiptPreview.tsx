@@ -10,6 +10,8 @@ interface ReceiptPreviewProps {
 
 const ReceiptPreview: React.FC<ReceiptPreviewProps> = ({ data, onClose }) => {
   const [receiptNo, setReceiptNo] = useState<string>(data.receiptNo);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   // useEffect(() => {
   //   // Fetch the maximum receipt number for the selected billing firm

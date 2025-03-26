@@ -18,10 +18,12 @@ const DscExpiryReport: React.FC = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const fetchDscData = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/dsc-expiry?startDate=${startDate}&endDate=${endDate}`);
+      const response = await fetch(`${backendUrl}/api/dsc-expiry?startDate=${startDate}&endDate=${endDate}`);
       const data: Dsc[] = await response.json();
       setDscData(data);
       setShowTable(true);

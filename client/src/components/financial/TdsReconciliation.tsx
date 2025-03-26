@@ -30,10 +30,12 @@ const TDSReconciliation = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch distinct client list from the backend
-    axios.get('http://localhost:5000/api/unique-clients-in-reconciliation')
+    axios.get(`${backendUrl}/api/unique-clients-in-reconciliation`)
       .then(response => {
         setClients(response.data);
       })
@@ -44,7 +46,7 @@ const TDSReconciliation = () => {
 
   const handleListClick = () => {
     // Fetch reconciliation data from the backend based on selected filters
-    axios.get('http://localhost:5000/api/tds-reconciliation', {
+    axios.get(`${backendUrl}/api/tds-reconciliation`, {
       params: {
         clientName: selectedClient,
         startDate,

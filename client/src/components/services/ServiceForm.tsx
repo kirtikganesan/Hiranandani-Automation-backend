@@ -30,6 +30,8 @@ const ServiceForm: React.FC<ServiceFormProps> = ({
     periodicity: '',
     ratePerPeriodicity: '',
   });
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const [newTask, setNewTask] = useState<Task>({
     id: '',

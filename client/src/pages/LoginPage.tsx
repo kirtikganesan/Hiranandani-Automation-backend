@@ -15,22 +15,21 @@ const LoginPage = () => {
   const [error, setError] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     try {
-      // Send the login request to the backend
-      const response = await axios.post('http://localhost:5000/login', { email, password });
+      const response = await axios.post(`${backendUrl}/login`, { email, password });
+  
       console.log(response.status);
-      
-      // Check if the response is successful (status 200)
+  
       if (response.status === 200) {
-        // If login is successful, navigate to the dashboard
         navigate('/dashboard/');
       }
     } catch (err) {
-      // Handle errors, such as invalid credentials
       setError('Invalid email or password');
     }
   };

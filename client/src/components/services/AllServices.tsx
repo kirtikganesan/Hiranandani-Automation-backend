@@ -21,16 +21,18 @@ const AllServices = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/employee-details").then((response) => {
+    axios.get(`${backendUrl}/api/employee-details`).then((response) => {
       setEmployees(response.data);
     }).catch((error) => console.error("Error fetching employees:", error));
   }, []);
 
   useEffect(() => {
     const fetchServices = () => {
-      let url = "http://localhost:5000/api/all-services";
+      let url = `${backendUrl}/api/all-services`;
       if (selectedEmployee) {
         url += `?alloted_to=${selectedEmployee}`;
       }
@@ -49,7 +51,7 @@ const AllServices = () => {
 
   const handleUpdate = () => {
     if (!selectedService) return;
-    axios.put(`http://localhost:5000/api/update-service/${selectedService.id}`, selectedService)
+    axios.put(`${backendUrl}/api/update-service/${selectedService.id}`, selectedService)
       .then(() => {
         setServices(services.map(s => s.id === selectedService.id ? selectedService : s));
         setModalOpen(false);

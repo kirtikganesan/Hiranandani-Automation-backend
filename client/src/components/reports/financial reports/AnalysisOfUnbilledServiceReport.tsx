@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 const AnalysisOfUnbilledServiceReport: React.FC = () => {
   const [branch, setBranch] = useState('Head Office');
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const handleListClick = () => {
     setShowTable(true);

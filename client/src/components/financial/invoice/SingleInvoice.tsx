@@ -27,9 +27,11 @@ const SingleInvoice = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showInvoice, setShowInvoice] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/unique-options')
+    fetch(`${backendUrl}/api/unique-options`)
       .then(response => response.json())
       .then(data => {
         setUniqueClients(data.clients);
@@ -40,7 +42,7 @@ const SingleInvoice = () => {
   }, []);
 
   const handleFilterClick = () => {
-    fetch('http://localhost:5000/api/filtered-data', {
+    fetch(`${backendUrl}/api/filtered-data`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

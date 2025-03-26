@@ -24,12 +24,14 @@ export default function ClaimList() {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch claims from the API when the component mounts
     const fetchClaims = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/claims');
+        const response = await axios.get(`${backendUrl}/api/claims`);
         setClaims(response.data);
       } catch (error) {
         console.error('Error fetching claims:', error);

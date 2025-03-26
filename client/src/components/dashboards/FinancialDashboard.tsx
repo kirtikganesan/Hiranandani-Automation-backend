@@ -32,10 +32,12 @@ const FinancialDashboard: React.FC = () => {
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [selectedFirm, setSelectedFirm] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   // Fetch billing firms
   useEffect(() => {
-    fetch("http://localhost:5000/api/financial-billing-firms")
+    fetch(`${backendUrl}/api/financial-billing-firms`)
       .then((response) => response.json())
       .then((data) => {
         const firms = data.map((item: any) => item.billing_firm);
@@ -49,7 +51,7 @@ const FinancialDashboard: React.FC = () => {
     const fetchFinancialData = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/financial-details${
+          `${backendUrl}/api/financial-details${
             selectedFirm ? `?billingFirm=${selectedFirm}` : ""
           }`
         );

@@ -7,10 +7,12 @@ const AllClientOutstandingReport: React.FC = () => {
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [showTable, setShowTable] = useState(false);
   const [data, setData] = useState<any[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch(`${backendUrl}/api/billing-firms`)
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -27,7 +29,7 @@ const AllClientOutstandingReport: React.FC = () => {
       billingFirm,
     });
 
-    fetch(`http://localhost:5000/api/all-client-outstanding?${queryParams}`)
+    fetch(`${backendUrl}/api/all-client-outstanding?${queryParams}`)
       .then(response => response.json())
       .then(data => {
         setData(data);

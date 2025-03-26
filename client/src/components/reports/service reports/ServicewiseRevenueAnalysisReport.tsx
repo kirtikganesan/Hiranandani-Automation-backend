@@ -7,12 +7,14 @@ const ServicewiseRevenueAnalysisReport = () => {
   const [financialYear, setFinancialYear] = useState('2024-2025');
   const [services, setServices] = useState<string[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch services from the API when the component mounts
     const fetchServices = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/unique-services');
+        const response = await axios.get(`${backendUrl}/api/unique-services`);
         const serviceNames = response.data.map((item: any) => item.Service_Name);
         setServices(serviceNames);
         setService(serviceNames[0] || ''); // Set the first service as default

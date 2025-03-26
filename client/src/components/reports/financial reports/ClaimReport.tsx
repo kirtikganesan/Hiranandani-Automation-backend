@@ -21,10 +21,12 @@ const ClaimReport = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch employee names
-    fetch('http://localhost:5000/api/employees')
+    fetch(`${backendUrl}/api/employees`)
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data)) {
@@ -34,7 +36,7 @@ const ClaimReport = () => {
       .catch(error => console.error('Error fetching employees:', error));
 
     // Fetch client names
-    fetch('http://localhost:5000/api/clients')
+    fetch(`${backendUrl}/api/clients`)
       .then(response => response.json())
       .then(data => {
         if (Array.isArray(data)) {

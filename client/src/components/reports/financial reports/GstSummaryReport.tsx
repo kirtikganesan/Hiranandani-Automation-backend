@@ -29,10 +29,12 @@ const GstSummaryReport = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch(`${backendUrl}/api/billing-firms`)
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -51,7 +53,7 @@ const GstSummaryReport = () => {
       endDate,
     });
 
-    fetch(`http://localhost:5000/api/gst-summary-report?${queryParams}`)
+    fetch(`${backendUrl}/api/gst-summary-report?${queryParams}`)
       .then(response => response.json())
       .then((data: GstSummaryReportData[]) => {
         setFilteredData(data);

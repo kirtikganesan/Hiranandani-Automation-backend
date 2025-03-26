@@ -38,10 +38,12 @@ export default function Claims() {
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [employees, setEmployees] = useState<string[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch employee data from the backend API
-    axios.get('http://localhost:5000/api/employees')
+    axios.get(`${backendUrl}/api/employees`)
       .then(response => {
         // Assuming the response contains an array of employee objects with an employee_name field
         const employeeNames = response.data.map((employee: any) => employee.employee_name);
@@ -83,7 +85,7 @@ export default function Claims() {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/claims', formDataToSend, {
+      const response = await axios.post(`${backendUrl}/api/claims`, formDataToSend, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

@@ -87,9 +87,11 @@ const Clients: React.FC = () => {
   });
   const [services, setServices] = useState<string[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/client-details")
+    fetch(`${backendUrl}/api/client-details`)
       .then((response) => response.json())
       .then((data) => {
         setClients(data);
@@ -97,7 +99,7 @@ const Clients: React.FC = () => {
       })
       .catch((error) => console.error("Error fetching clients:", error));
 
-    fetch("http://localhost:5000/api/unique-options")
+    fetch(`${backendUrl}/api/unique-options`)
       .then((response) => response.json())
       .then((data) => {
         setServices(data.services);
@@ -110,7 +112,7 @@ const Clients: React.FC = () => {
       if (searchTerm.trim() === "") {
         setFilteredClients(clients);
       } else {
-        fetch(`http://localhost:5000/api/client-details?search=${searchTerm}`)
+        fetch(`${backendUrl}/api/client-details?search=${searchTerm}`)
           .then((response) => response.json())
           .then((data) => setFilteredClients(data))
           .catch((error) => console.error("Error searching clients:", error));
@@ -152,7 +154,7 @@ const Clients: React.FC = () => {
       return;
     }
 
-    const endpoint = isEditMode ? `http://localhost:5000/api/client-details/${newClient.client_code}` : "http://localhost:5000/api/client-details";
+    const endpoint = isEditMode ? `${backendUrl}/api/client-details/${newClient.client_code}` : `${backendUrl}/api/client-details`;
     const method = isEditMode ? "put" : "post";
 
     axios[method](endpoint, newClient)
@@ -232,7 +234,7 @@ const Clients: React.FC = () => {
 
   const confirmDelete = () => {
     if (clientToDelete !== null) {
-      axios.delete(`http://localhost:5000/api/client-details/${clientToDelete}`)
+      axios.delete(`${backendUrl}/api/client-details/${clientToDelete}`)
         .then(() => {
           setClients((prevClients) => prevClients.filter((client) => client.id !== clientToDelete));
           setFilteredClients((prevClients) => prevClients.filter((client) => client.id !== clientToDelete));
@@ -243,7 +245,7 @@ const Clients: React.FC = () => {
   };
 
   const handleAddService = (serviceName: string) => {
-    axios.post("http://localhost:5000/api/add-service", { serviceName })
+    axios.post(`${backendUrl}/api/add-service`, { serviceName })
       .then((response) => {
         setServices((prevServices) => [...prevServices, response.data.serviceName]);
         setNewClient((prevClient) => ({ ...prevClient, services: response.data.serviceName }));

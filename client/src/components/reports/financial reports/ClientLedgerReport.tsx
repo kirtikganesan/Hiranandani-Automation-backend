@@ -9,10 +9,12 @@ const ClientLedgerReport: React.FC = () => {
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [clients, setClients] = useState<string[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch billing firms
-    fetch('http://localhost:5000/api/billing-firms')
+    fetch(`${backendUrl}/api/billing-firms`)
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((item: { Billing_Firm: string }) => item.Billing_Firm));
@@ -23,7 +25,7 @@ const ClientLedgerReport: React.FC = () => {
       .catch(error => console.error('Error fetching billing firms:', error));
 
     // Fetch clients
-    fetch('http://localhost:5000/api/clients')
+    fetch(`${backendUrl}/api/clients`)
       .then(response => response.json())
       .then(data => {
         setClients(data.map((item: { client_name: string }) => item.client_name));

@@ -24,6 +24,8 @@ const Library = () => {
   const [books, setBooks] = useState<Book[]>([]);
   const [editMode, setEditMode] = useState<boolean>(false);
   const [editId, setEditId] = useState<number | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   // Fetch books from database
   useEffect(() => {
@@ -32,7 +34,7 @@ const Library = () => {
 
   const fetchBooks = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/books');
+      const res = await axios.get(`${backendUrl}/books`);
       setBooks(res.data);
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -45,10 +47,10 @@ const Library = () => {
     try {
       if (editMode && editId !== null) {
         // Update existing book
-        await axios.put(`http://localhost:5000/updateBook/${editId}`, formData);
+        await axios.put(`${backendUrl}/updateBook/${editId}`, formData);
       } else {
         // Insert new book
-        await axios.post('http://localhost:5000/addBook', formData);
+        await axios.post(`${backendUrl}/addBook`, formData);
       }
 
       fetchBooks(); // Refresh table data
@@ -69,7 +71,7 @@ const Library = () => {
   const handleDelete = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this book?')) {
       try {
-        await axios.delete(`http://localhost:5000/deleteBook/${id}`);
+        await axios.delete(`${backendUrl}/deleteBook/${id}`);
         fetchBooks(); // Refresh table data
       } catch (error) {
         console.error('Error deleting book:', error);

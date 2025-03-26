@@ -33,10 +33,12 @@ const AdvanceList = () => {
   const [clients, setClients] = useState<Client[]>([]);
   const [billingFirms, setBillingFirms] = useState<BillingFirm[]>([]);
   const [showTable, setShowTable] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch clients
-    axios.get('http://localhost:5000/api/clients')
+    axios.get(`${backendUrl}/api/clients`)
       .then(response => {
         setClients(response.data);
       })
@@ -45,7 +47,7 @@ const AdvanceList = () => {
       });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms')
+    axios.get(`${backendUrl}/api/financial-billing-firms`)
       .then(response => {
         setBillingFirms(response.data);
       })

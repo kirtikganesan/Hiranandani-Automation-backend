@@ -60,12 +60,14 @@ const ClientListReport: React.FC = () => {
     const date = new Date(isoString);
     return date.toLocaleDateString("en-GB"); // Formats as DD/MM/YYYY
   };
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch client names when the component mounts
     const fetchClientNames = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/client-details');
+        const response = await fetch(`${backendUrl}/api/client-details`);
         const data: { client_name: string }[] = await response.json();
         setClientNames(data.map(client => client.client_name));
       } catch (error) {
@@ -78,7 +80,7 @@ const ClientListReport: React.FC = () => {
 
   const fetchClientData = async () => {
     try {
-      let url = `http://localhost:5000/api/client-report?branch=${branch}`;
+      let url = `${backendUrl}/api/client-report?branch=${branch}`;
       if (name && name !== 'All') {
         url += `&name=${name}`;
       }

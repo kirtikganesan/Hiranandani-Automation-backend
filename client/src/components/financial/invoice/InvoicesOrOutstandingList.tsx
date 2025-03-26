@@ -46,6 +46,8 @@ const InvoiceList: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -54,14 +56,14 @@ const InvoiceList: React.FC = () => {
 
   useEffect(() => {
     // Fetch unique clients
-    axios.get('http://localhost:5000/api/unique-invoice-clients').then(response => {
+    axios.get(`${backendUrl}/api/unique-invoice-clients`).then(response => {
       setClients([{ client_name: 'All' }, ...response.data]);
     }).catch(error => {
       console.error('Error fetching clients:', error);
     });
 
     // Fetch billing firms
-    axios.get('http://localhost:5000/api/financial-billing-firms').then(response => {
+    axios.get(`${backendUrl}/api/financial-billing-firms`).then(response => {
       setBillingFirms(response.data);
     }).catch(error => {
       console.error('Error fetching billing firms:', error);
@@ -69,7 +71,7 @@ const InvoiceList: React.FC = () => {
   }, []);
 
   const fetchInvoices = () => {
-    axios.get('http://localhost:5000/api/invoices', { params: filters }).then(response => {
+    axios.get(`${backendUrl}/api/invoices`, { params: filters }).then(response => {
       const updatedInvoices = response.data.map((invoice: Invoice) => {
         const today = new Date();
         const invoiceDate = new Date(invoice.Date);
@@ -122,7 +124,7 @@ const InvoiceList: React.FC = () => {
 
   const handleSave = () => {
     if (selectedInvoice) {
-      axios.put(`http://localhost:5000/api/invoices/${selectedInvoice.id}`, selectedInvoice)
+      axios.put(`${backendUrl}/api/invoices/${selectedInvoice.id}`, selectedInvoice)
         .then(response => {
           setInvoices(invoices.map(invoice =>
             invoice.id === selectedInvoice.id ? response.data : invoice
@@ -147,7 +149,7 @@ const InvoiceList: React.FC = () => {
 
   const confirmDelete = () => {
     if (selectedInvoice) {
-      axios.delete(`http://localhost:5000/api/invoices/${selectedInvoice.id}`)
+      axios.delete(`${backendUrl}/api/invoices/${selectedInvoice.id}`)
         .then(() => {
           setInvoices(invoices.filter(invoice => invoice.id !== selectedInvoice.id));
           setIsDeleteModalOpen(false);

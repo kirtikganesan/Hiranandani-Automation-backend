@@ -52,10 +52,12 @@ const ReceiptGenerator: React.FC = () => {
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+
 
   useEffect(() => {
     // Fetch clients
-    fetch('http://localhost:5000/api/clients')
+    fetch(`${backendUrl}/api/clients`)
       .then(response => response.json())
       .then(data => {
         setClients(data.map((client: { client_name: string }) => client.client_name));
@@ -63,7 +65,7 @@ const ReceiptGenerator: React.FC = () => {
       .catch(error => console.error('Error fetching clients:', error));
 
     // Fetch billing firms
-    fetch('https://hiranandani-automation.onrender.com/api/financial-billing-firms')
+    fetch(`${backendUrl}/api/financial-billing-firms`)
       .then(response => response.json())
       .then(data => {
         setBillingFirms(data.map((firm: { billing_firm: string }) => firm.billing_firm));
@@ -187,7 +189,7 @@ const ReceiptGenerator: React.FC = () => {
     setIsGenerating(true);
   
     // Fetch the new receipt number for the selected billing firm
-    fetch(`https://hiranandani-automation.onrender.com/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
+    fetch(`${backendUrl}/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
       .then(response => response.json())
       .then(result => {
         const newReceiptNo = result.maxReceiptNo; // This is already the new receipt number
