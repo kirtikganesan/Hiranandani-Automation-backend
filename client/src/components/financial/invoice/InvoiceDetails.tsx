@@ -15,6 +15,7 @@ interface CompletedService {
 interface InvoiceDetailsProps {
   data: CompletedService[];
   setShowInvoice: (show: boolean) => void;
+  isBulk?: boolean; // Add a prop to determine if it's bulk invoice
 }
 
 interface InvoiceData extends CompletedService {
@@ -31,7 +32,6 @@ interface InvoiceSubmissionData {
   Date: string;
   Invoice_No: string;
   Client: string;
-  PAN_No: string;
   Gross_Amount: number;
   Discount_Amount: number;
   Service_Amount: number;
@@ -47,13 +47,12 @@ interface InvoiceSubmissionData {
   Billing_Firm: string;
 }
 
-const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice }) => {
+const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, isBulk = false }) => {
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [billingFirm, setBillingFirm] = useState('');
-  const [invoiceNumber, setInvoiceNumber] = useState('');
+  const [invoiceNumbers, setInvoiceNumbers] = useState<string[]>([]);
   const [isManualEntry, setIsManualEntry] = useState(false);
-  const [panNumber, setPanNumber] = useState('');
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [invoiceData, setInvoiceData] = useState<InvoiceData[]>(
     data.map(item => ({
@@ -72,11 +71,10 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
     const fetchBillingFirms = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/financial-billing-firms`);
-        
-        const firms = Array.isArray(response.data) 
-          ? response.data.map(firm => 
-              typeof firm === 'object' && firm !== null 
-                ? (firm.name || firm.Billing_Firm || firm.billing_firm || String(firm)) 
+        const firms = Array.isArray(response.data)
+          ? response.data.map(firm =>
+              typeof firm === 'object' && firm !== null
+                ? (firm.name || firm.Billing_Firm || firm.billing_firm || String(firm))
                 : String(firm)
             ).filter(firm => firm && firm.trim() !== '')
           : [];
@@ -92,13 +90,11 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
   }, []);
 
   useEffect(() => {
-    // Reset invoice number when billing firm changes
-    setInvoiceNumber('');
+    setInvoiceNumbers([]);
     setIsManualEntry(false);
 
-    // If a billing firm is selected, try to generate invoice number
     if (billingFirm) {
-      const generateInvoiceNumber = async () => {
+      const generateInvoiceNumbers = async () => {
         try {
           const response = await axios.get(`${backendUrl}/api/generate-invoice-number`, {
             params: { billingFirm }
@@ -107,17 +103,21 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
           if (response.data.manualEntry) {
             setIsManualEntry(true);
           } else {
-            setInvoiceNumber(response.data.invoiceNumber);
+            const baseNumber = parseInt(response.data.invoiceNumber.split('/').pop());
+            const newInvoiceNumbers = data.map((_, index) =>
+              `${response.data.invoiceNumber.split('/').slice(0, -1).join('/')}/${baseNumber + index}`
+            );
+            setInvoiceNumbers(newInvoiceNumbers);
           }
         } catch (error) {
-          console.error('Error generating invoice number:', error);
+          console.error('Error generating invoice numbers:', error);
           setIsManualEntry(true);
         }
       };
 
-      generateInvoiceNumber();
+      generateInvoiceNumbers();
     }
-  }, [billingFirm]);
+  }, [billingFirm, data]);
 
   const handleInputChange = (index: number, field: keyof InvoiceData, value: any) => {
     const newData = [...invoiceData];
@@ -146,48 +146,59 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
   };
 
   const handlePreview = async () => {
-    // Validation checks
     if (!billingFirm) {
       alert('Please select a Billing Firm');
       return;
     }
 
-    if (!invoiceNumber) {
-      alert('Please enter an Invoice Number');
+    if (invoiceNumbers.some(num => !num)) {
+      alert('Please ensure all invoice numbers are generated');
       return;
     }
 
-    // Aggregate data for submission
-    const totalGrossAmount = invoiceData.reduce((sum, item) => sum + item.GrossAmount, 0);
-    const totalDiscountAmount = invoiceData.reduce((sum, item) => sum + item.DiscountAmount, 0);
-    const totalNetAmount = invoiceData.reduce((sum, item) => sum + item.NetAmount, 0);
-    const totalCGST = invoiceData.reduce((sum, item) => sum + item.CGST, 0);
-    const totalSGST = invoiceData.reduce((sum, item) => sum + item.SGST, 0);
-    const totalIGST = invoiceData.reduce((sum, item) => sum + item.IGST, 0);
+    const invoicesToSave = data.map((item, index) => {
+      const totalGrossAmount = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.GrossAmount, 0);
+      const totalDiscountAmount = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.DiscountAmount, 0);
+      const totalNetAmount = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.NetAmount, 0);
+      const totalCGST = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.CGST, 0);
+      const totalSGST = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.SGST, 0);
+      const totalIGST = invoiceData
+        .filter(inv => inv.Client_Name === item.Client_Name)
+        .reduce((sum, inv) => sum + inv.IGST, 0);
 
-    const invoiceSubmissionData: InvoiceSubmissionData = {
-      Date: new Date().toISOString().split('T')[0], // Current date
-      Invoice_No: invoiceNumber,
-      Client: data[0].Client_Name,
-      PAN_No: panNumber,
-      Gross_Amount: totalGrossAmount,
-      Discount_Amount: totalDiscountAmount,
-      Service_Amount: totalNetAmount,
-      Taxable_Claim_Amount: totalNetAmount,
-      Total_Taxable_Amount: totalNetAmount,
-      CGST: totalCGST,
-      SGST: totalSGST,
-      IGST: totalIGST,
-      Non_Taxable_Amount: 0,
-      Total_Bill_Amount: totalNetAmount + totalCGST + totalSGST + totalIGST,
-      Outstanding_Amount: totalNetAmount + totalCGST + totalSGST + totalIGST,
-      Settled_Amount: 0,
-      Billing_Firm: billingFirm
-    };
+      return {
+        Date: new Date().toISOString().split('T')[0],
+        Invoice_No: invoiceNumbers[index],
+        Client: item.Client_Name,
+        Gross_Amount: totalGrossAmount,
+        Discount_Amount: totalDiscountAmount,
+        Service_Amount: totalNetAmount,
+        Taxable_Claim_Amount: totalNetAmount,
+        Total_Taxable_Amount: totalNetAmount,
+        CGST: totalCGST,
+        SGST: totalSGST,
+        IGST: totalIGST,
+        Non_Taxable_Amount: 0,
+        Total_Bill_Amount: totalNetAmount + totalCGST + totalSGST + totalIGST,
+        Outstanding_Amount: totalNetAmount + totalCGST + totalSGST + totalIGST,
+        Settled_Amount: 0,
+        Billing_Firm: billingFirm
+      };
+    });
 
     try {
-      const response = await axios.post(`${backendUrl}/api/save-invoice`, invoiceSubmissionData);
-      
+      const response = await axios.post(`${backendUrl}/api/save-invoice`, invoicesToSave);
+
       if (response.data.success) {
         alert('Invoice saved successfully!');
         setShowInvoice(false);
@@ -226,33 +237,31 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
             Invoice No
           </label>
           {isManualEntry ? (
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              value={invoiceNumber}
-              onChange={(e) => setInvoiceNumber(e.target.value)}
-              placeholder="Enter Invoice Number"
-            />
+            invoiceNumbers.map((num, index) => (
+              <input
+                key={index}
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                value={num}
+                onChange={(e) => {
+                  const newNumbers = [...invoiceNumbers];
+                  newNumbers[index] = e.target.value;
+                  setInvoiceNumbers(newNumbers);
+                }}
+                placeholder="Enter Invoice Number"
+              />
+            ))
           ) : (
-            <input
-              type="text"
-              className="w-full p-2 border border-gray-300 rounded-md"
-              value={invoiceNumber}
-              readOnly
-            />
+            invoiceNumbers.map((num, index) => (
+              <input
+                key={index}
+                type="text"
+                className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                value={num}
+                readOnly
+              />
+            ))
           )}
-        </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client's PAN Number
-          </label>
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={panNumber}
-            onChange={(e) => setPanNumber(e.target.value)}
-            placeholder="Enter Client's PAN Number"
-          />
         </div>
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -265,23 +274,12 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
             readOnly
           />
         </div>
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client
-          </label>
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md"
-            value={data.length > 0 ? data[0].Client_Name : ''}
-            readOnly
-          />
-        </div>
         
         <table className="min-w-full border border-gray-300 mb-4">
           <thead className="bg-gray-800 text-white">
             <tr>
+              <th className="px-4 py-2 text-left">Client</th>
               <th className="px-4 py-2 text-left">Service</th>
-              <th className="px-4 py-2 text-left">SAC</th>
               <th className="px-4 py-2 text-left">Gross Amount</th>
               <th className="px-4 py-2 text-left">Discount Amount</th>
               <th className="px-4 py-2 text-left">Net Amount</th>
@@ -294,8 +292,8 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice })
           <tbody>
             {invoiceData.map((item, index) => (
               <tr key={index} className="border-t border-gray-300">
+                <td className="px-4 py-2">{item.Client_Name}</td>
                 <td className="px-4 py-2">{item.Service_Name}</td>
-                <td className="px-4 py-2">998222</td>
                 <td className="px-4 py-2">
                   <input
                     type="number"

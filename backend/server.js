@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 app.use(cors({ 
-  origin: 'https://hiranandani-automation.vercel.app'
+  origin: 'http://localhost:5173'
 }));
 app.use(express.json());
 
@@ -2328,27 +2328,15 @@ app.get('/api/generate-invoice-number', (req, res) => {
 });
 
 app.post('/api/save-invoice', (req, res) => {
-  const {
-    Date,
-    Invoice_No,
-    Client,
-    PAN_No,
-    Gross_Amount,
-    Discount_Amount,
-    Service_Amount,
-    Taxable_Claim_Amount,
-    Total_Taxable_Amount,
-    CGST,
-    SGST,
-    IGST,
-    Non_Taxable_Amount,
-    Total_Bill_Amount,
-    Outstanding_Amount,
-    Settled_Amount,
-    Billing_Firm
-  } = req.body;
+  const invoices = req.body;
 
-  // SQL query to insert invoice
+  if (!Array.isArray(invoices)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid data format',
+    });
+  }
+
   const query = `
     INSERT INTO invoices_or_outstanding (
       date,
@@ -2368,45 +2356,43 @@ app.post('/api/save-invoice', (req, res) => {
       Outstanding_Amount,
       Settled_Amount,
       Billing_Firm
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES ?
   `;
 
-  // Values array for parameterized query
-  const values = [
-    Date,
-    Invoice_No,
-    Client,
-    PAN_No,
-    Gross_Amount,
-    Discount_Amount,
-    Service_Amount,
-    Taxable_Claim_Amount,
-    Total_Taxable_Amount,
-    CGST,
-    SGST,
-    IGST,
-    Non_Taxable_Amount,
-    Total_Bill_Amount,
-    Outstanding_Amount,
-    Settled_Amount,
-    Billing_Firm
-  ];
+  const values = invoices.map(invoice => [
+    invoice.Date,
+    invoice.Invoice_No,
+    invoice.Client,
+    invoice.PAN_No || '', // Assuming PAN_No can be optional
+    invoice.Gross_Amount,
+    invoice.Discount_Amount,
+    invoice.Service_Amount,
+    invoice.Taxable_Claim_Amount,
+    invoice.Total_Taxable_Amount,
+    invoice.CGST,
+    invoice.SGST,
+    invoice.IGST,
+    invoice.Non_Taxable_Amount,
+    invoice.Total_Bill_Amount,
+    invoice.Outstanding_Amount,
+    invoice.Settled_Amount,
+    invoice.Billing_Firm
+  ]);
 
-  // Execute the query
-  db.query(query, values, (error, results) => {
+  db.query(query, [values], (error, results) => {
     if (error) {
-      console.error('Error saving invoice:', error);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Failed to save invoice',
-        error: error.message 
+      console.error('Error saving invoices:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to save invoices',
+        error: error.message
       });
     }
 
-    res.json({ 
-      success: true, 
-      message: 'Invoice saved successfully', 
-      invoiceId: results.insertId 
+    res.json({
+      success: true,
+      message: 'Invoices saved successfully',
+      invoiceIds: results.insertId
     });
   });
 });
