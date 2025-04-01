@@ -471,7 +471,7 @@ const Dashboard = () => {
           </Link>
 
           {/* Logout */}
-          <Link to="/login" className="flex items-center space-x-2 p-4 hover:bg-gray-800 mt-4">
+          <Link to="/" className="flex items-center space-x-2 p-4 hover:bg-gray-800 mt-4">
             <LogOut className="h-5 w-5" />
             <span>Logout</span>
           </Link>

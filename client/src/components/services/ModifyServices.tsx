@@ -16,7 +16,7 @@ const ModifyServices: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [mainCategories, setMainCategories] = useState<string[]>([]);
   const [gstCategories, setGstCategories] = useState<string[]>([]);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   // Fetch services from backend
   const fetchServices = async () => {
@@ -32,7 +32,6 @@ const ModifyServices: React.FC = () => {
       setServices(response.data);
     } catch (error) {
       console.error('Failed to fetch services:', error);
-      // Optional: Add error handling toast or notification
     } finally {
       setIsLoading(false);
     }
@@ -45,7 +44,6 @@ const ModifyServices: React.FC = () => {
       setMainCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch service main categories:', error);
-      // Optional: Add error handling toast or notification
     }
   };
 
@@ -56,7 +54,6 @@ const ModifyServices: React.FC = () => {
       setGstCategories(response.data);
     } catch (error) {
       console.error('Failed to fetch GST billing categories:', error);
-      // Optional: Add error handling toast or notification
     }
   };
 
@@ -67,17 +64,28 @@ const ModifyServices: React.FC = () => {
     fetchGstCategories();
   }, [selectedYear, selectedCategory, searchTerm]);
 
+  // Transform data before sending to backend
+  const transformData = (data: ServiceFormData) => {
+    return {
+      ...data,
+      DueDate: data.DueDate, // Directly use the value from the form
+      UDIN: data.UDIN, // Directly use the value from the form
+    };
+  };
+  
+  
+
   // Add new service
   const handleAdd = async (data: ServiceFormData) => {
+    const transformedData = transformData(data);
     try {
       const response = await axios.post(`${backendUrl}/api/services`, {
-        serviceMainCategory: data.ServiceMainCategory,
-        serviceName: data.ServiceName,
-        financialYear: data.financialYear,
-        gstBillingCategory: data.GSTBillingCategory,
-        dueDate: data.DueDate,
-        udin: data.UDIN,
-        noOfTasks: data.tasks.length,
+        serviceMainCategory: transformedData.ServiceMainCategory,
+        serviceName: transformedData.ServiceName,
+        financialYear: transformedData.financialYear,
+        gstBillingCategory: transformedData.GSTBillingCategory,
+        dueDate: transformedData.DueDate,
+        udin: transformedData.UDIN,
       });
 
       // Update local state
@@ -85,21 +93,20 @@ const ModifyServices: React.FC = () => {
       setShowAddForm(false);
     } catch (error) {
       console.error('Failed to add service:', error);
-      // Optional: Add error handling toast or notification
     }
   };
 
   // Edit existing service
   const handleEdit = async (data: ServiceFormData) => {
     if (editingService) {
+      const transformedData = transformData(data);
       try {
         await axios.put(`${backendUrl}/api/services/${editingService.id}`, {
-          serviceMainCategory: data.ServiceMainCategory,
-          serviceName: data.ServiceName,
-          gstBillingCategory: data.GSTBillingCategory,
-          dueDate: data.DueDate,
-          udin: data.UDIN,
-          noOfTasks: data.tasks.length,
+          serviceMainCategory: transformedData.ServiceMainCategory,
+          serviceName: transformedData.ServiceName,
+          gstBillingCategory: transformedData.GSTBillingCategory,
+          dueDate: transformedData.DueDate,
+          udin: transformedData.UDIN,
         });
 
         // Refetch services to ensure latest data
@@ -107,7 +114,6 @@ const ModifyServices: React.FC = () => {
         setEditingService(null);
       } catch (error) {
         console.error('Failed to edit service:', error);
-        // Optional: Add error handling toast or notification
       }
     }
   };
@@ -130,7 +136,6 @@ const ModifyServices: React.FC = () => {
         setServiceToDelete(null);
       } catch (error) {
         console.error('Failed to delete service:', error);
-        // Optional: Add error handling toast or notification
       }
     }
   };
@@ -148,9 +153,7 @@ const ModifyServices: React.FC = () => {
               >
                 Add New
               </button>
-              <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                Import Services
-              </button>
+        
             </div>
           </div>
 
@@ -211,7 +214,6 @@ const ModifyServices: React.FC = () => {
                   <tr className="bg-gray-800 text-white">
                     <th className="px-4 py-2">Service Main Category</th>
                     <th className="px-4 py-2">Service Name</th>
-                    <th className="px-4 py-2">F.Y.</th>
                     <th className="px-4 py-2">GST Billing Category</th>
                     <th className="px-4 py-2">Due Date</th>
                     <th className="px-4 py-2">UDIN</th>
@@ -225,7 +227,6 @@ const ModifyServices: React.FC = () => {
                     <tr key={service.id} className="border-b">
                       <td className="px-4 py-2">{service.ServiceMainCategory}</td>
                       <td className="px-4 py-2">{service.ServiceName}</td>
-                      <td className="px-4 py-2">{selectedYear}</td>
                       <td className="px-4 py-2">{service.GSTBillingCategory}</td>
                       <td className="px-4 py-2">{service.DueDate}</td>
                       <td className="px-4 py-2">{service.UDIN}</td>
@@ -233,28 +234,13 @@ const ModifyServices: React.FC = () => {
                       <td className="px-4 py-2">{service.NoOfTasks}</td>
                       <td className="px-4 py-2">
                         <button
-                          onClick={() => {
-                            // Convert snake_case to camelCase for frontend
-                            const editData = {
-                              id: service.id,
-                              serviceMainCategory: service.ServiceMainCategory,
-                              serviceName: service.ServiceName,
-                              financialYear: service.financialYear,
-                              gstBillingCategory: service.GSTBillingCategory,
-                              dueDate: service.DueDate,
-                              udin: service.UDIN,
-                              noOfClients: service.NoOfClients,
-                              noOfTasks: service.NoOfTasks
-                            };
-                            console.log('Editing Service:', editData); // Debugging log
-                            setEditingService(editData as unknown as Service);
-                          }}
+                          onClick={() => setEditingService(service)}
                           className="bg-blue-500 text-white px-2 py-1 rounded mr-2 hover:bg-blue-600"
                         >
                           Edit
                         </button>
                         <button
-                          onClick={() => handleDelete(service.id.toString())}
+                          onClick={() => handleDelete(service.id)}
                           className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
                         >
                           Delete

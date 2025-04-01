@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-export default function ManualAssignment() {
 
+export default function ManualAssignment() {
   const [formData, setFormData] = useState({
     financialYear: "2024-2025",
     mainCategory: "",
@@ -19,8 +19,9 @@ export default function ManualAssignment() {
 
   const [clients, setClients] = useState<{ client_id: number; client_name: string }[]>([]);
   const [employees, setEmployees] = useState<{ employee_id: number; employee_name: string }[]>([]);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
+  const [mainCategories, setMainCategories] = useState<{ ServiceMainCategory: string }[]>([]);
+  const [servicesByCategory, setServicesByCategory] = useState<{ ServiceName: string }[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     axios.get(`${backendUrl}/api/client-details`).then((response) => {
@@ -29,7 +30,20 @@ export default function ManualAssignment() {
     axios.get(`${backendUrl}/api/employee-details`).then((response) => {
       setEmployees(response.data);
     });
+    axios.get(`${backendUrl}/api/service-main-categories`).then((response) => {
+      setMainCategories(response.data);
+    });
   }, []);
+
+  useEffect(() => {
+    if (formData.mainCategory) {
+      axios.get(`${backendUrl}/api/services-by-category`, {
+        params: { category: formData.mainCategory }
+      }).then((response) => {
+        setServicesByCategory(response.data);
+      });
+    }
+  }, [formData.mainCategory]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -66,6 +80,17 @@ export default function ManualAssignment() {
     }
   };
 
+  // Generate financial years from 2022-2023 to 2015-2016
+  const generateFinancialYears = () => {
+    const years = [];
+    for (let year = 2024; year >= 2015; year--) {
+      years.push(`${year}-${year + 1}`);
+    }
+    return years;
+  };
+
+  const financialYears = generateFinancialYears();
+
   return (
     <div className="p-6 max-w-6xl mx-auto bg-white rounded-lg shadow">
       <h1 className="text-2xl font-bold mb-6">Assign Manual Services to Client</h1>
@@ -74,14 +99,24 @@ export default function ManualAssignment() {
         <div>
           <label className="block text-sm font-medium mb-1">Financial Year <span className="text-red-500">*</span></label>
           <select name="financialYear" value={formData.financialYear} onChange={handleChange} className="w-full px-3 py-2 border rounded-md">
-            <option value="2024-2025">2024-2025</option>
-            <option value="2023-2024">2023-2024</option>
+            {financialYears.map((year, index) => (
+              <option key={index} value={year}>
+                {year}
+              </option>
+            ))}
           </select>
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1">Main Category <span className="text-red-500">*</span></label>
-          <input type="text" name="mainCategory" value={formData.mainCategory} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
+          <select name="mainCategory" value={formData.mainCategory} onChange={handleChange} className="w-full px-3 py-2 border rounded-md">
+            <option value="">Select Main Category</option>
+            {mainCategories.map((category, index) => (
+              <option key={index} value={category.ServiceMainCategory}>
+                {category.ServiceMainCategory}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -108,7 +143,14 @@ export default function ManualAssignment() {
 
         <div>
           <label className="block text-sm font-medium mb-1">Services <span className="text-red-500">*</span></label>
-          <input type="text" name="services" value={formData.services} onChange={handleChange} className="w-full px-3 py-2 border rounded-md" />
+          <select name="services" value={formData.services} onChange={handleChange} className="w-full px-3 py-2 border rounded-md">
+            <option value="">Select Service</option>
+            {servicesByCategory.map((service, index) => (
+              <option key={index} value={service.ServiceName}>
+                {service.ServiceName}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -163,16 +205,13 @@ export default function ManualAssignment() {
           <label className="block text-sm font-medium mb-1">SOP / Instructions</label>
           <textarea name="sopInstructions" value={formData.sopInstructions} onChange={handleChange} className="w-full px-3 py-2 border rounded-md h-32"></textarea>
         </div>
-
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
-            Save
-          </button>
-        </div>
       </div>
-    
+
+      <div className="mt-6 flex justify-end">
+        <button onClick={handleSubmit} className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+          Save
+        </button>
+      </div>
+    </div>
   );
 }
-

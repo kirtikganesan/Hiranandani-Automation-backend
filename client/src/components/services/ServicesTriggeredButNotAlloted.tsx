@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import DeleteModal from './DeleteModal'; // Import the DeleteModal component
 
 interface Service {
   id: number;
@@ -26,11 +27,11 @@ const ServicesTriggeredButNotAlloted = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [taskName, setTaskName] = useState<string>("");
   const [selectedEmployee, setSelectedEmployee] = useState<string>("");
   const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
 
   useEffect(() => {
     fetchServices();
@@ -81,6 +82,8 @@ const ServicesTriggeredButNotAlloted = () => {
         due_date: selectedService.statutory_due_date,
         status: "Pending",
         udin: "N/A",
+        id: selectedService.id,
+        client_id: selectedService.client_name, // Include client_id
       })
       .then(() => {
         alert("Task assigned successfully!");
@@ -90,6 +93,27 @@ const ServicesTriggeredButNotAlloted = () => {
       .catch((error) => {
         console.error("Error assigning task:", error);
         alert("Failed to assign task.");
+      });
+  };
+
+  const handleDeleteClick = (service: Service) => {
+    setSelectedService(service);
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!selectedService) return;
+
+    axios
+      .delete(`${backendUrl}/api/delete-service/${selectedService.id}`)
+      .then(() => {
+        alert("Service deleted successfully!");
+        setDeleteModalOpen(false);
+        fetchServices(); // Refresh table
+      })
+      .catch((error) => {
+        console.error("Error deleting service:", error);
+        alert("Failed to delete service.");
       });
   };
 
@@ -134,7 +158,10 @@ const ServicesTriggeredButNotAlloted = () => {
                     >
                       Assign
                     </button>
-                    <button className="px-1 py-1 bg-red-500 text-white rounded">
+                    <button
+                      className="px-1 py-1 bg-red-500 text-white rounded"
+                      onClick={() => handleDeleteClick(service)}
+                    >
                       Cancel
                     </button>
                   </td>
@@ -208,6 +235,13 @@ const ServicesTriggeredButNotAlloted = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Modal */}
+      <DeleteModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        onConfirm={handleConfirmDelete}
+      />
     </div>
   );
 };

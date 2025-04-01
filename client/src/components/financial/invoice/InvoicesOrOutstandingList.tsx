@@ -45,9 +45,10 @@ const InvoiceList: React.FC = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleteReasonModalOpen, setIsDeleteReasonModalOpen] = useState(false);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('');
   const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
 
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
@@ -118,7 +119,10 @@ const InvoiceList: React.FC = () => {
   };
 
   const handleEdit = (invoice: Invoice) => {
-    setSelectedInvoice(invoice);
+    setSelectedInvoice({
+      ...invoice,
+      Date: invoice.Date.split('T')[0] // Format the date to YYYY-MM-DD
+    });
     setIsEditModalOpen(true);
   };
 
@@ -144,15 +148,27 @@ const InvoiceList: React.FC = () => {
 
   const handleDelete = (invoice: Invoice) => {
     setSelectedInvoice(invoice);
-    setIsDeleteModalOpen(true);
+    setDeleteReason(''); // Reset the reason field
+    setIsDeleteReasonModalOpen(true); // Open the reason modal first
+  };
+
+  const confirmDeleteReason = () => {
+    if (deleteReason.trim() !== '') {
+      setIsDeleteReasonModalOpen(false); // Close the reason modal
+      setIsDeleteConfirmModalOpen(true); // Open the confirmation modal
+    } else {
+      alert('Reason is required');
+    }
   };
 
   const confirmDelete = () => {
     if (selectedInvoice) {
-      axios.delete(`${backendUrl}/api/invoices/${selectedInvoice.id}`)
+      axios.delete(`${backendUrl}/api/invoices/${selectedInvoice.id}`, {
+        data: { reason: deleteReason }
+      })
         .then(() => {
           setInvoices(invoices.filter(invoice => invoice.id !== selectedInvoice.id));
-          setIsDeleteModalOpen(false);
+          setIsDeleteConfirmModalOpen(false);
         })
         .catch(error => {
           console.error('Error deleting invoice:', error);
@@ -161,7 +177,8 @@ const InvoiceList: React.FC = () => {
   };
 
   const cancelDelete = () => {
-    setIsDeleteModalOpen(false);
+    setIsDeleteReasonModalOpen(false);
+    setIsDeleteConfirmModalOpen(false);
     setSelectedInvoice(null);
   };
 
@@ -500,10 +517,35 @@ const InvoiceList: React.FC = () => {
         </div>
       )}
 
+      {/* Reason Modal */}
       <DeleteModal
-        isOpen={isDeleteModalOpen}
+        isOpen={isDeleteReasonModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDeleteReason}
+        reasonInput={
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+            <input
+              type="text"
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={deleteReason}
+              onChange={(e) => setDeleteReason(e.target.value)}
+              placeholder="Enter Reason"
+            />
+          </div>
+        }
+      />
+
+      {/* Confirmation Modal */}
+      <DeleteModal
+        isOpen={isDeleteConfirmModalOpen}
         onClose={cancelDelete}
         onConfirm={confirmDelete}
+        reasonInput={
+          <div>
+            <p className="text-sm font-medium text-gray-700 mb-1">Are you sure you want to delete this invoice?</p>
+          </div>
+        }
       />
     </div>
   );

@@ -4,16 +4,21 @@ interface DeleteModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  reasonInput?: React.ReactNode; // Optional prop to render reason input or confirmation message
 }
 
-const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onConfirm }) => {
+const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onConfirm, reasonInput }) => {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
         <h2 className="text-xl font-semibold mb-4">Confirm Delete</h2>
-        <p className="text-gray-600 mb-6">Are you sure you want to delete?</p>
+        {reasonInput ? (
+          reasonInput
+        ) : (
+          <p className="text-gray-600 mb-6">Are you sure you want to delete?</p>
+        )}
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
@@ -25,7 +30,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ isOpen, onClose, onConfirm })
             onClick={onConfirm}
             className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
           >
-            Delete
+            {reasonInput ? 'OK' : 'Delete'}
           </button>
         </div>
       </div>

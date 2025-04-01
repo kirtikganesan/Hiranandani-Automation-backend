@@ -8,6 +8,7 @@ interface Service {
   due_date: string;
   status: string;
   udin: string;
+  client_id: string; // Add client_id to the Service interface
 }
 
 interface Employee {
@@ -21,8 +22,7 @@ const AllServices = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     axios.get(`${backendUrl}/api/employee-details`).then((response) => {
@@ -81,8 +81,8 @@ const AllServices = () => {
         <table className="min-w-full bg-white border border-gray-300 shadow-lg">
           <thead>
             <tr className="bg-gray-800 text-white">
-              <th className="px-4 py-2 border">ID</th>
               <th className="px-4 py-2 border">Service</th>
+              <th className="px-4 py-2 border">Client</th> {/* Add Client column */}
               <th className="px-4 py-2 border">Alloted To</th>
               <th className="px-4 py-2 border">Due Date</th>
               <th className="px-4 py-2 border">Status</th>
@@ -93,8 +93,8 @@ const AllServices = () => {
           <tbody>
             {services.map((service) => (
               <tr key={service.id} className="text-center hover:bg-gray-100">
-                <td className="px-4 py-2 border">{service.id}</td>
                 <td className="px-4 py-2 border">{service.services}</td>
+                <td className="px-4 py-2 border">{service.client_id}</td> {/* Display client_id */}
                 <td className="px-4 py-2 border">{service.alloted_to}</td>
                 <td className="px-4 py-2 border">{new Date(service.due_date).toLocaleDateString("en-GB")}</td>
                 <td className={`px-4 py-2 border ${service.status === "Completed" ? "text-green-600" : "text-red-600"}`}>

@@ -282,18 +282,63 @@ app.get("/api/services-triggered-but-not-alloted", (req, res) => {
   });
 });
 
-app.post("/api/assign-service", (req, res) => {
-  const { services, alloted_to, due_date } = req.body;
-  const formattedDueDate = due_date.split("/").reverse().join("-");
-  try {
-     db.query(
-      "INSERT INTO all_services (services, alloted_to, due_date, status, udin) VALUES (?, ?, ?, 'Pending', 'N/A')",
-      [services, alloted_to, formattedDueDate]
-    );
-    res.json({ message: "Task assigned successfully!" });
-  } catch (error) {
-    res.status(500).json({ error: "Database error!" });
-  }
+app.post('/api/assign-service', (req, res) => {
+  const { services, alloted_to, due_date, status, udin, id, client_id } = req.body;
+  const assignQuery = 'INSERT INTO all_services (services, alloted_to, due_date, status, udin, client_id) VALUES (?, ?, ?, ?, ?, ?)';
+  const deleteQuery = 'DELETE FROM services_triggered_but_not_alloted WHERE id = ?';
+
+  db.beginTransaction((err) => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      res.status(500).json({ error: 'Failed to assign service' });
+      return;
+    }
+
+    db.query(assignQuery, [services, alloted_to, due_date, status, udin, client_id], (err, results) => {
+      if (err) {
+        db.rollback(() => {
+          console.error('Error assigning service:', err);
+          res.status(500).json({ error: 'Failed to assign service' });
+        });
+        return;
+      }
+
+      db.query(deleteQuery, [id], (err, results) => {
+        if (err) {
+          db.rollback(() => {
+            console.error('Error deleting service:', err);
+            res.status(500).json({ error: 'Failed to delete service' });
+          });
+          return;
+        }
+
+        db.commit((err) => {
+          if (err) {
+            db.rollback(() => {
+              console.error('Error committing transaction:', err);
+              res.status(500).json({ error: 'Failed to commit transaction' });
+            });
+            return;
+          }
+          res.json({ message: 'Service assigned and deleted successfully' });
+        });
+      });
+    });
+  });
+});
+
+app.delete('/api/delete-service/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM services_triggered_but_not_alloted WHERE id = ?';
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Error deleting service:', err);
+      res.status(500).json({ error: 'Failed to delete service' });
+      return;
+    }
+    res.json({ message: 'Service deleted successfully' });
+  });
 });
 
 app.get('/api/timesheet', (req, res) => {
@@ -436,17 +481,19 @@ app.post("/api/manual-assignment", (req, res) => {
     workReportingHead,
     remark,
     employee, // This will be stored in `alloted_to`
-    sop
+    sopInstructions
   } = req.body;
 
-  const query = `INSERT INTO all_services 
-    (services, alloted_to, due_date, status, udin, created_at, main_category, trigger_date, client_id, target_date, priority, fees_period, work_reporting_head, remark, sop_instructions, financial_year)
-    VALUES (?, ?, ?, ?, "N/A", NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const query = `
+    INSERT INTO all_services
+    (services, alloted_to, due_date, status, udin, created_at, financial_year, main_category, trigger_date, client_id, target_date, priority, fees_period, work_reporting_head, remark, employee_id, sop_instructions)
+    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
   db.query(query, [
-    services, employee, targetDate, "Pending", "", 
-    mainCategory, triggerDate, clientId, targetDate, priority, 
-    feesPeriod, workReportingHead, remark, sop, financialYear // Added financialYear
+    services, employee, targetDate, "Pending", "N/A",
+    financialYear, mainCategory, triggerDate, clientId, targetDate, priority,
+    feesPeriod, workReportingHead, remark, employee, sopInstructions
   ], (err, result) => {
     if (err) {
       console.error("Error inserting data:", err);
@@ -1451,6 +1498,28 @@ app.get('/api/non-billable-services', (req, res) => {
   });
 });
 
+app.post('/api/non-billable-services', (req, res) => {
+  const { clientName, completionDate, mainCategory, serviceName, nonBillableRemark } = req.body;
+
+  const query = `
+    INSERT INTO non_billable_services (client_name, completion_date, main_category, service_name, approved_claim, unapproved_claim, non_billable_remark)
+    VALUES (?, ?, ?, ?, 0.00, 0.00, ?)
+  `;
+
+  const values = [clientName, completionDate, mainCategory, serviceName, nonBillableRemark];
+
+  db.query(query, values, (err) => {
+    if (err) {
+      console.error('Error inserting non-billable service:', err);
+      res.status(500).json({ error: 'Failed to insert non-billable service' });
+      return;
+    }
+
+    res.json({ message: 'Non-billable service inserted successfully' });
+  });
+});
+
+
 app.get('/api/services-triggered-but-not-allotted-count', (req, res) => {
   const sql = 'SELECT COUNT(*) AS count FROM services_triggered_but_not_alloted';
   db.query(sql, (err, results) => {
@@ -1775,6 +1844,55 @@ app.get('/api/service-main', (req, res) => {
   });
 });
 
+app.get('/api/service-main-categories', (req, res) => {
+  const query = `
+    SELECT DISTINCT ServiceMainCategory
+    FROM services
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching service main categories:', err);
+      res.status(500).json({ error: 'Failed to fetch service main categories' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/services-by-category', (req, res) => {
+  const { category } = req.query;
+  const query = `
+    SELECT ServiceName
+    FROM services
+    WHERE ServiceMainCategory = ?
+  `;
+  db.query(query, [category], (err, results) => {
+    if (err) {
+      console.error('Error fetching services by category:', err);
+      res.status(500).json({ error: 'Failed to fetch services by category' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Endpoint to fetch count of dependent services for each main category
+app.get('/api/service-main-categories-count', (req, res) => {
+  const query = `
+    SELECT ServiceMainCategory, COUNT(*) as dependent_services
+    FROM services
+    GROUP BY ServiceMainCategory
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching dependent services count:', err);
+      res.status(500).json({ error: 'Failed to fetch dependent services count' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
 // Add a new service
 app.post('/api/service-main', (req, res) => {
   const { service_name, dependent_services, gst_billing_categories } = req.body;
@@ -2073,7 +2191,6 @@ app.post('/api/services', (req, res) => {
   });
 });
 
-// Endpoint to update a service
 app.put('/api/services/:id', (req, res) => {
   const { id } = req.params;
   const {
@@ -2099,8 +2216,8 @@ app.put('/api/services/:id', (req, res) => {
     serviceMainCategory,
     serviceName,
     gstBillingCategory,
-    dueDate ? 'YES' : 'NO',
-    udin ? 'YES' : 'NO',
+    dueDate,
+    udin,
     id
   ];
 
@@ -2114,6 +2231,7 @@ app.put('/api/services/:id', (req, res) => {
     res.json({ message: 'Service updated successfully' });
   });
 });
+
 
 
 // Endpoint to delete a service
@@ -2312,19 +2430,61 @@ app.put('/api/invoices/:id', (req, res) => {
   });
 });
 
-// Delete an invoice by ID
+// Delete an invoice by ID and insert into cancelled_invoice_list with a reason
 app.delete('/api/invoices/:id', (req, res) => {
   const invoiceId = req.params.id;
-  const query = 'DELETE FROM invoices_or_outstanding WHERE id = ?';
+  const { reason } = req.body;
 
-  db.query(query, [invoiceId], (err, result) => {
+  if (!reason) {
+    return res.status(400).send('Reason is required');
+  }
+
+  // First, retrieve the invoice data
+  const selectQuery = 'SELECT * FROM invoices_or_outstanding WHERE id = ?';
+  db.query(selectQuery, [invoiceId], (err, result) => {
     if (err) {
-      res.status(500).send('Error deleting invoice');
+      res.status(500).send('Error retrieving invoice');
       return;
     }
-    res.status(204).send();
+
+    if (result.length === 0) {
+      res.status(404).send('Invoice not found');
+      return;
+    }
+
+    const invoice = result[0];
+
+    // Insert the invoice data into cancelled_invoice_list with the reason
+    const insertQuery = `
+      INSERT INTO cancelled_invoice_list (
+        Date, Invoice_No, Client, Service_Amt, Tax_Claim, Total_Tax_Amt, CGST, SGST, IGST,
+        Non_Tax_Claim, Total_Bill_Amt, Outstanding_Amount, Discount_Amt, Reason, Billing_Firm
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    db.query(insertQuery, [
+      invoice.Date, invoice.Invoice_No, invoice.Client, invoice.Service_Amount, invoice.Taxable_Claim_Amount,
+      invoice.Total_Taxable_Amount, invoice.CGST, invoice.SGST, invoice.IGST, invoice.Non_Taxable_Amount,
+      invoice.Total_Bill_Amount, invoice.Outstanding_Amount, invoice.Discount_Amount, reason, invoice.Billing_Firm
+    ], (err, insertResult) => {
+      if (err) {
+        res.status(500).send('Error inserting into cancelled_invoice_list');
+        return;
+      }
+
+      // Delete the invoice from invoices_or_outstanding
+      const deleteQuery = 'DELETE FROM invoices_or_outstanding WHERE id = ?';
+      db.query(deleteQuery, [invoiceId], (err, deleteResult) => {
+        if (err) {
+          res.status(500).send('Error deleting invoice');
+          return;
+        }
+        res.status(204).send();
+      });
+    });
   });
 });
+
+
 // ✅ Start Server
 app.listen(port, () => {
   console.log(`🚀 Server is running on port ${port}`);

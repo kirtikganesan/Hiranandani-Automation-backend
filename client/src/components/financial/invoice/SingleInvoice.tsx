@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import InvoiceDetails from './InvoiceDetails'; // Import the new component
+import InvoiceDetails from './InvoiceDetails';
+import axios from 'axios';
 
 interface CompletedService {
   Client_Code: string;
@@ -27,8 +28,9 @@ const SingleInvoice = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [showInvoice, setShowInvoice] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
+  const [showReasonModal, setShowReasonModal] = useState(false);
+  const [nonBillableReason, setNonBillableReason] = useState('');
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     fetch(`${backendUrl}/api/unique-options`)
@@ -104,6 +106,51 @@ const SingleInvoice = () => {
       setErrorMessage('');
     }
   };
+
+  const handleNonBillableClick = () => {
+    const selectedClients = Array.from(selectedRows).map(index => filteredData[index].Client_Name);
+    const uniqueSelectedClients = [...new Set(selectedClients)];
+
+    if (uniqueSelectedClients.length === 0) {
+      setErrorMessage('Select at least 1 client.');
+    } else if (uniqueSelectedClients.length > 1) {
+      setErrorMessage('Select only one client.');
+    } else {
+      setShowReasonModal(true);
+      setErrorMessage('');
+    }
+  };
+
+  const handleSaveNonBillable = async () => {
+    if (!nonBillableReason.trim()) {
+      setErrorMessage('Reason is required.');
+      return;
+    }
+  
+    const selectedData = Array.from(selectedRows).map(index => filteredData[index]);
+  
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date().toISOString().split('T')[0];
+  
+    try {
+      await axios.post(`${backendUrl}/api/non-billable-services`, {
+        clientName: selectedData[0].Client_Name,
+        completionDate: today, // Use today's date
+        mainCategory: selectedData[0].Main_Category,
+        serviceName: selectedData[0].Service_Name,
+        nonBillableRemark: nonBillableReason,
+      });
+  
+      setShowReasonModal(false);
+      setNonBillableReason('');
+      setSelectedRows(new Set());
+      setErrorMessage('');
+    } catch (error) {
+      console.error('Error saving non-billable service:', error);
+      setErrorMessage('Failed to save non-billable service.');
+    }
+  };
+  
 
   const startIndex = (currentPage - 1) * entriesToShow;
   const endIndex = startIndex + entriesToShow;
@@ -259,7 +306,7 @@ const SingleInvoice = () => {
             </button>
             <button
               className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
-              onClick={() => alert('Non-Billable clicked')}
+              onClick={handleNonBillableClick}
             >
               Non-Billable
             </button>
@@ -271,6 +318,34 @@ const SingleInvoice = () => {
       )}
 
       {showInvoice && <InvoiceDetails data={currentData.filter((_, i) => selectedRows.has(startIndex + i))} setShowInvoice={setShowInvoice} />}
+
+      {showReasonModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-bold mb-4">Reason for Non-Billable</h2>
+            <textarea
+              className="w-full p-2 border border-gray-300 rounded-md mb-4"
+              value={nonBillableReason}
+              onChange={(e) => setNonBillableReason(e.target.value)}
+              placeholder="Enter reason..."
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600"
+                onClick={() => setShowReasonModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                onClick={handleSaveNonBillable}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

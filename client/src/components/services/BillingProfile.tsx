@@ -498,7 +498,10 @@ const BillingProfile: React.FC = () => {
             onChange={handleInputChange}
             className="mt-1 block w-full rounded-md border border-gray-300 p-2"
           >
-            <option value="">Select</option>
+            <option value="select">Select</option>
+            <option value="2024-2025">2024-2025</option>
+            <option value="2023-2024">2023-2024</option>
+            <option value="2022-2023">2022-2023</option>
           </select>
         </div>
         <div>
@@ -587,7 +590,10 @@ const BillingProfile: React.FC = () => {
             onChange={handleInputChange}
             className="mt-1 block w-full rounded-md border border-gray-300 p-2"
           >
-            <option value="">Select</option>
+            <option value="select">Select</option>
+            <option value="2024-2025">2024-2025</option>
+            <option value="2023-2024">2023-2024</option>
+            <option value="2022-2023">2022-2023</option>
           </select>
         </div>
         <div>
@@ -754,7 +760,6 @@ const BillingProfile: React.FC = () => {
                 <th className="px-4 py-3">Partner Email</th>
                 <th className="px-4 py-3">PAN</th>
                 <th className="px-4 py-3">GST</th>
-                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Action</th>
               </tr>
             </thead>
@@ -767,7 +772,6 @@ const BillingProfile: React.FC = () => {
                   <td className="px-4 py-3">{entry.partner_email_id}</td>
                   <td className="px-4 py-3">{entry.pan}</td>
                   <td className="px-4 py-3">{entry.gst}</td>
-                  <td className="px-4 py-3">{entry.status}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
                       
