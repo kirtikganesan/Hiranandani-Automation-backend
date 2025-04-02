@@ -79,20 +79,30 @@ app.get('/api/employee-names', (req, res) => {
 
 app.get('/api/financial-details', (req, res) => {
   const { billingFirm } = req.query;
-  let query = 'SELECT * FROM financial_details';
+  let query = 'SELECT * FROM invoices_or_outstanding';
+  const params = [];
 
   if (billingFirm) {
-    query += ` WHERE billing_firm = '${billingFirm}'`;
+    query += ' WHERE Billing_Firm = ?';
+    params.push(billingFirm);
   }
+  query+= ' ORDER BY Date DESC'
 
-  db.query(query, (err, results) => {
+  db.query(query, params, (err, results) => {
     if (err) {
       console.error('Error fetching financial details:', err);
       return res.status(500).json({ message: 'Database error' });
     }
+
+    if (results.length === 0) {
+      console.log('No data found for the query:', query, params);
+    }
+
     res.json(results);
   });
 });
+
+
 
 app.get("/api/client-details", (req, res) => {
   const searchQuery = req.query.search; // Get search term from query params
@@ -121,7 +131,7 @@ app.post('/api/client-details', (req, res) => {
     client_group,
     branch,
     email,
-    phone,
+    contact,
     constitution,
     client_code,
     client_pan,
@@ -139,6 +149,9 @@ app.post('/api/client-details', (req, res) => {
     services
   } = req.body;
 
+  // Serialize the services array as a JSON string
+  const servicesJson = JSON.stringify(services);
+
   const sql = `
     INSERT INTO client_details (
       client_name,
@@ -146,7 +159,7 @@ app.post('/api/client-details', (req, res) => {
       client_group,
       branch,
       email,
-      phone,
+      contact,
       constitution,
       client_code,
       client_pan,
@@ -171,7 +184,7 @@ app.post('/api/client-details', (req, res) => {
     client_group,
     branch,
     email,
-    phone,
+    contact,
     constitution,
     client_code,
     client_pan,
@@ -186,7 +199,7 @@ app.post('/api/client-details', (req, res) => {
     state,
     district,
     pincode,
-    services 
+    servicesJson
   ];
 
   db.query(sql, values, (err, result) => {
@@ -1361,8 +1374,9 @@ app.get('/api/invoices', (req, res) => {
     }
   }
   if (billingFirm) {
-    sql += ` AND Billing_Firm = '${billingFirm}' ORDER BY Invoice_No DESC`;
+    sql += ` AND Billing_Firm = '${billingFirm}'`;
   }
+  sql+= ' ORDER BY Date DESC'
 
   db.query(sql, (err, results) => {
     if (err) throw err;
@@ -1422,6 +1436,7 @@ app.get('/api/cancelled-invoices', (req, res) => {
   if (billingFirm && billingFirm !== 'All') {
     sql += ` AND Billing_Firm = '${billingFirm}'`;
   }
+  sql+=' ORDER BY Date DESC'
 
   db.query(sql, (err, results) => {
     if (err) throw err;
@@ -1721,22 +1736,88 @@ app.get('/api/icai-data', (req, res) => {
 
 app.put('/api/client-details/:clientCode', (req, res) => {
   const { clientCode } = req.params;
-  const { client_name, client_group, branch, email, phone, constitution, client_pan, client_tan, client_gstin, industry, date_of_incorporation, address_line_1, address_line_2, area, city, state, district, pincode, services } = req.body;
+  const {
+    client_name,
+    client_group,
+    branch,
+    email,
+    contact,
+    constitution,
+    client_pan,
+    client_tan,
+    client_gstin,
+    industry,
+    date_of_incorporation,
+    address_line_1,
+    address_line_2,
+    area,
+    city,
+    state,
+    district,
+    pincode,
+    services
+  } = req.body;
+
+  // Serialize the services array as a JSON string
+  const servicesJson = JSON.stringify(services);
 
   const query = `
     UPDATE client_details
-    SET client_name = ?, client_group = ?, branch = ?, email = ?, phone = ?, constitution = ?, client_pan = ?, client_tan = ?, client_gstin = ?, industry = ?, date_of_incorporation = ?, address_line_1 = ?, address_line_2 = ?, area = ?, city = ?, state = ?, district = ?, pincode = ?, services = ?
+    SET
+      client_name = ?,
+      client_group = ?,
+      branch = ?,
+      email = ?,
+      contact = ?,
+      constitution = ?,
+      client_pan = ?,
+      client_tan = ?,
+      client_gstin = ?,
+      industry = ?,
+      date_of_incorporation = ?,
+      address_line_1 = ?,
+      address_line_2 = ?,
+      area = ?,
+      city = ?,
+      state = ?,
+      district = ?,
+      pincode = ?,
+      services = ?
     WHERE client_code = ?;
   `;
 
-  db.query(query, [client_name, client_group, branch, email, phone, constitution, client_pan, client_tan, client_gstin, industry, date_of_incorporation, address_line_1, address_line_2, area, city, state, district, pincode, services, clientCode], (err, result) => {
-    if (err) {
-      console.error('Error updating client:', err);
-      return res.status(500).json({ error: 'Internal Server Error' });
+  db.query(
+    query,
+    [
+      client_name,
+      client_group,
+      branch,
+      email,
+      contact,
+      constitution,
+      client_pan,
+      client_tan,
+      client_gstin,
+      industry,
+      date_of_incorporation,
+      address_line_1,
+      address_line_2,
+      area,
+      city,
+      state,
+      district,
+      pincode,
+      servicesJson,
+      clientCode
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error updating client:', err);
+        return res.status(500).json({ error: 'Internal Server Error' });
+      }
+      res.json({ message: 'Client updated successfully' });
     }
-
-    res.json({ message: 'Client updated successfully' });
-  });
+  );
 });
 
 // Delete client
@@ -2470,6 +2551,176 @@ app.delete('/api/invoices/:id', (req, res) => {
   });
 });
 
+app.delete('/api/non-billable-services/:id', (req, res) => {
+  const { id } = req.params;
+
+  const query = 'DELETE FROM non_billable_services WHERE id = ?';
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error('Error marking service as billable:', err);
+      return res.status(500).json({ error: 'Failed to mark service as billable' });
+    }
+
+    if (!(result.affectedRows > 0)) {
+      res.status(200).json({ message: 'Service not found' });
+    } 
+  });
+});
+
+
+app.post('/api/cancel-receipt', (req, res) => {
+  const {
+    receipt_no,
+    date,
+    type,
+    client_name,
+    amount,
+    tds,
+    discount,
+    mode,
+    mode_details,
+    billing_firm,
+    reason
+  } = req.body;
+
+  // Start a transaction
+  db.beginTransaction((err) => {
+    if (err) {
+      console.error('Error starting transaction:', err);
+      return res.status(500).json({ error: 'Failed to start transaction' });
+    }
+
+    // Delete from receipt_lists
+    db.query('DELETE FROM receipt_list WHERE receipt_no = ?', [receipt_no], (err, result) => {
+      if (err) {
+        return db.rollback(() => {
+          console.error('Error deleting receipt:', err);
+          res.status(500).json({ error: 'Failed to delete receipt' });
+        });
+      }
+
+      // Insert into cancelled_receipt_lists
+      const insertQuery = `
+        INSERT INTO cancelled_receipt_list
+        (Receipt_No, Date, Type, Client_Name, Amount, TDS, Discount, Mode, Mode_Details, Billing_Firm, Reason)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const insertValues = [
+        receipt_no,
+        date,
+        type,
+        client_name,
+        amount,
+        tds,
+        discount,
+        mode,
+        mode_details,
+        billing_firm,
+        reason
+      ];
+
+      db.query(insertQuery, insertValues, (err, result) => {
+        if (err) {
+          return db.rollback(() => {
+            console.error('Error inserting cancelled receipt:', err);
+            res.status(500).json({ error: 'Failed to insert cancelled receipt' });
+          });
+        }
+
+        // Commit the transaction
+        db.commit((err) => {
+          if (err) {
+            return db.rollback(() => {
+              console.error('Error committing transaction:', err);
+              res.status(500).json({ error: 'Failed to commit transaction' });
+            });
+          }
+          res.status(200).json({ message: 'Receipt canceled successfully!' });
+        });
+      });
+    });
+  });
+});
+
+app.get('/api/client-outstanding', (req, res) => {
+  const query = `
+    SELECT Client, SUM(Outstanding_Amount) as Total_Outstanding
+    FROM invoices_or_outstanding
+    GROUP BY Client
+  `;
+
+  db.query(query, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error fetching outstanding amounts' });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/opening-invoices', (req, res) => {
+  const invoiceNoPrefix = 'OB';
+  const query = 'SELECT * FROM invoices_or_outstanding WHERE Invoice_No LIKE ?';
+
+  db.query(query, [`${invoiceNoPrefix}%`], (err, results) => {
+    if (err) {
+      console.error('Error fetching data:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// POST /api/invoices
+app.post('/api/opening-invoices', (req, res) => {
+  const {
+    billingFirm,
+    invoiceNo,
+    clientName,
+    basicAmount,
+    taxableClaim,
+    cgst,
+    sgst,
+    igst,
+    nonTaxableClaim,
+    totalAmount,
+    date
+  } = req.body;
+
+  const query = `
+    INSERT INTO invoices_or_outstanding (
+     Billing_Firm, Invoice_No, Client_Name,
+      Basic_Amount, Taxable_Claim, CGST, SGST, IGST, Non_Taxable_Claim,
+      Total_Amount, Date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(
+    query,
+    [
+      billingFirm,
+      invoiceNo,
+      clientName,
+      basicAmount,
+      taxableClaim,
+      cgst,
+      sgst,
+      igst,
+      nonTaxableClaim,
+      totalAmount,
+      date
+    ],
+    (err, result) => {
+      if (err) {
+        console.error('Error saving data:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+      res.json({ id: result.insertId, ...req.body });
+    }
+  );
+});
 
 // ✅ Start Server
 app.listen(port, () => {

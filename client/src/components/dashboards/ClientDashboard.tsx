@@ -20,6 +20,11 @@ interface Group {
   members: Client[];
 }
 
+interface Outstanding {
+  Client: string;
+  Total_Outstanding: number;
+}
+
 const ClientDashboard = () => {
   const [financialData, setFinancialData] = useState<Client[]>([]);
   const [selectedClients, setSelectedClients] = useState<Client[]>([]);
@@ -32,8 +37,8 @@ const ClientDashboard = () => {
   const [modalMessage, setModalMessage] = useState<string | null>(null);
   const [showGroupNameModal, setShowGroupNameModal] = useState(false);
   const [groupName, setGroupName] = useState("");
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
+  const [outstandingData, setOutstandingData] = useState<Outstanding[]>([]);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     // Fetch client data
@@ -41,6 +46,12 @@ const ClientDashboard = () => {
       .then((response) => response.json())
       .then((data) => setFinancialData(data))
       .catch((error) => console.error("Error fetching data:", error));
+
+    // Fetch outstanding data
+    fetch(`${backendUrl}/api/client-outstanding`)
+      .then((response) => response.json())
+      .then((data) => setOutstandingData(data))
+      .catch((error) => console.error("Error fetching outstanding data:", error));
   }, []);
 
   useEffect(() => {
@@ -155,6 +166,15 @@ const ClientDashboard = () => {
         Array.isArray(selectedGroup.members) && selectedGroup.members.some((client) => client.Client_Name === item.Client_Name)
       )
     : filteredClients;
+
+  // Update Billed_Outstanding with the total outstanding amount
+  const updatedDisplayedData = displayedData.map((client) => {
+    const outstanding = outstandingData.find((o) => o.Client.toLowerCase() === client.Client_Name.toLowerCase());
+    return {
+      ...client,
+      Billed_Outstanding: outstanding ? outstanding.Total_Outstanding : client.Billed_Outstanding,
+    };
+  });
 
   return (
     <div className="p-4">
@@ -297,7 +317,7 @@ const ClientDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {displayedData.map((item) => (
+            {updatedDisplayedData.map((item) => (
               <tr key={item.Client_Name} className="border text-sm text-center">
                 <td className="p-2">
                   <input

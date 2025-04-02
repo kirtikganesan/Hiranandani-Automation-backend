@@ -29,6 +29,7 @@ import ServiceMainCategory from '../components/services/ServiceMainCategory';
 import GstBillingCategories from '../components/services/GstBillingCategories';
 import BillingProfile from '../components/services/BillingProfile';
 import ModifyServices from '../components/services/ModifyServices';
+import OpeningOutstandingBalances from '../components/services/OpeningOutstandingBalances';
 import ServicesTriggeredButNotAlloted from '../components/services/ServicesTriggeredButNotAlloted';
 import ManualAssignment from '../components/services/ManualAssignment';
 
@@ -202,6 +203,9 @@ const Dashboard = () => {
                 </Link>
                 <Link to="/dashboard/services/modify-services" className="block py-2 px-4 hover:bg-gray-700">
                   Modify Services
+                </Link>
+                <Link to="/dashboard/services/opening-outstanding" className="block py-2 px-4 hover:bg-gray-700">
+                  Opening Outstanding Balances
                 </Link>
                 <Link to="/dashboard/services/triggered-but-not-alloted" className="block py-2 px-4 hover:bg-gray-700">
                   Triggered but Not Alloted
@@ -495,6 +499,7 @@ const Dashboard = () => {
           <Route path="services/gst-billing-categories" element={<GstBillingCategories />} />
           <Route path="services/billing-profile" element={<BillingProfile />} />
           <Route path="services/modify-services" element={<ModifyServices />} />
+          <Route path="services/opening-outstanding" element={<OpeningOutstandingBalances />} />
           <Route path="services/triggered-but-not-alloted" element={<ServicesTriggeredButNotAlloted />} />
           <Route path="services/manual-assignment" element={<ManualAssignment />} />
 

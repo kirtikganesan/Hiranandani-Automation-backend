@@ -3,16 +3,15 @@ import * as XLSX from 'xlsx';
 
 interface FinancialData {
   id: number;
-  date: string;
-  invoice_no: string;
-  client: string;
-  gross_amount: number;
-  service_amount: number;
-  total_bill_amount: number;
-  outstanding_amount: number;
-  settled_amount: number;
-  remark: string;
-  billing_firm: string;
+  Date: string;
+  Invoice_No: string;
+  Client: string;
+  Gross_Amount: number;
+  Service_Amount: number;
+  Total_Bill_Amount: number;
+  Outstanding_Amount: number;
+  Settled_Amount: number;
+  Billing_Firm: string;
 }
 
 const FinancialDashboard: React.FC = () => {
@@ -25,7 +24,7 @@ const FinancialDashboard: React.FC = () => {
     const date = new Date(dateString);
     const currentDate = new Date();
     const timeDifference = currentDate.getTime() - date.getTime();
-    return Math.ceil(timeDifference / (1000 * 3600 * 24)); // Calculate days
+    return Math.ceil(timeDifference / (1000 * 3600 * 24))-1; // Calculate days
   };
 
   const [financialData, setFinancialData] = useState<FinancialData[]>([]);
@@ -33,7 +32,6 @@ const FinancialDashboard: React.FC = () => {
   const [selectedFirm, setSelectedFirm] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
 
   // Fetch billing firms
   useEffect(() => {
@@ -56,6 +54,7 @@ const FinancialDashboard: React.FC = () => {
           }`
         );
         const data = await response.json();
+        console.log("Fetched Data:", data); // Log the fetched data
         setFinancialData(data);
       } catch (error) {
         console.error("Error fetching financial data:", error);
@@ -68,8 +67,8 @@ const FinancialDashboard: React.FC = () => {
   const exportToExcel = () => {
     const worksheet = XLSX.utils.json_to_sheet(financialData.map(item => ({
       ...item,
-      date: formatDate(item.date),
-      days_since_outstanding: calculateDaysSinceOutstanding(item.date)
+      Date: formatDate(item.Date),
+      days_since_outstanding: calculateDaysSinceOutstanding(item.Date)
     })));
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'FinancialData');
@@ -81,7 +80,7 @@ const FinancialDashboard: React.FC = () => {
   };
 
   const filteredData = financialData.filter((item) =>
-    item.client.toLowerCase().includes(searchQuery.toLowerCase())
+    item.Client?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -133,15 +132,15 @@ const FinancialDashboard: React.FC = () => {
           <tbody className="divide-y divide-gray-100">
             {filteredData.map((item) => (
               <tr key={item.id} className="text-sm text-center">
-                <td className="border px-4 py-2">{formatDate(item.date)}</td>
-                <td className="border px-4 py-2">{item.invoice_no}</td>
-                <td className="border px-4 py-2">{item.client}</td>
-                <td className="border px-4 py-2">{item.gross_amount}</td>
-                <td className="border px-4 py-2">{item.service_amount}</td>
-                <td className="border px-4 py-2">{item.total_bill_amount}</td>
-                <td className="border px-4 py-2">{item.outstanding_amount}</td>
-                <td className="border px-4 py-2">{item.settled_amount}</td>
-                <td className="border px-4 py-2">{calculateDaysSinceOutstanding(item.date)}</td>
+                <td className="border px-4 py-2">{formatDate(item.Date)}</td>
+                <td className="border px-4 py-2">{item.Invoice_No}</td>
+                <td className="border px-4 py-2">{item.Client}</td>
+                <td className="border px-4 py-2">{item.Gross_Amount}</td>
+                <td className="border px-4 py-2">{item.Service_Amount}</td>
+                <td className="border px-4 py-2">{item.Total_Bill_Amount}</td>
+                <td className="border px-4 py-2">{item.Outstanding_Amount}</td>
+                <td className="border px-4 py-2">{item.Settled_Amount}</td>
+                <td className="border px-4 py-2">{calculateDaysSinceOutstanding(item.Date)}</td>
               </tr>
             ))}
           </tbody>

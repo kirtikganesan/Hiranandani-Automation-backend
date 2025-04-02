@@ -15,6 +15,7 @@ interface CompletedService {
 interface InvoiceDetailsProps {
   data: CompletedService[];
   setShowInvoice: (show: boolean) => void;
+  onInvoiceSaved: () => void; // Callback to notify when invoice is saved
   isBulk?: boolean; // Add a prop to determine if it's bulk invoice
 }
 
@@ -47,11 +48,12 @@ interface InvoiceSubmissionData {
   Billing_Firm: string;
 }
 
-const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, isBulk = false }) => {
+const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, onInvoiceSaved, isBulk = false }) => {
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
   const [billingFirm, setBillingFirm] = useState('');
   const [invoiceNumbers, setInvoiceNumbers] = useState<string[]>([]);
   const [isManualEntry, setIsManualEntry] = useState(false);
+  const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   const [invoiceData, setInvoiceData] = useState<InvoiceData[]>(
@@ -127,12 +129,12 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
     };
 
     if (field === 'GrossAmount' || field === 'DiscountAmount') {
-      newData[index].NetAmount = newData[index].GrossAmount - newData[index].DiscountAmount;
+      newData[index].NetAmount = Math.round(newData[index].GrossAmount - newData[index].DiscountAmount);
     }
 
     if (billingFirm === 'HIRANANDANI AND ASSOCIATES' || billingFirm === 'Hiranandani And Co') {
-      newData[index].CGST = newData[index].NetAmount * 0.09;
-      newData[index].SGST = newData[index].NetAmount * 0.09;
+      newData[index].CGST = Math.round(newData[index].NetAmount * 0.09);
+      newData[index].SGST = Math.round(newData[index].NetAmount * 0.09);
       newData[index].IGST = 0;
     } else {
       newData[index].CGST = 0;
@@ -140,7 +142,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
       newData[index].IGST = 0;
     }
 
-    newData[index].GrandTotal = newData[index].NetAmount + newData[index].CGST + newData[index].SGST + newData[index].IGST;
+    newData[index].GrandTotal = Math.round(newData[index].NetAmount + newData[index].CGST + newData[index].SGST + newData[index].IGST);
 
     setInvoiceData(newData);
   };
@@ -177,7 +179,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
         .reduce((sum, inv) => sum + inv.IGST, 0);
 
       return {
-        Date: new Date().toISOString().split('T')[0],
+        Date: invoiceDate,
         Invoice_No: invoiceNumbers[index],
         Client: item.Client_Name,
         Gross_Amount: totalGrossAmount,
@@ -201,6 +203,7 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
 
       if (response.data.success) {
         alert('Invoice saved successfully!');
+        onInvoiceSaved(); // Notify the parent component
         setShowInvoice(false);
       } else {
         alert('Failed to save invoice. Please try again.');
@@ -270,11 +273,11 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
           <input
             type="date"
             className="w-full p-2 border border-gray-300 rounded-md"
-            value={new Date().toISOString().split('T')[0]}
-            readOnly
+            value={invoiceDate}
+            onChange={(e) => setInvoiceDate(e.target.value)}
           />
         </div>
-        
+
         <table className="min-w-full border border-gray-300 mb-4">
           <thead className="bg-gray-800 text-white">
             <tr>
@@ -310,11 +313,15 @@ const InvoiceDetails: React.FC<InvoiceDetailsProps> = ({ data, setShowInvoice, i
                     onChange={(e) => handleInputChange(index, 'DiscountAmount', Number(e.target.value))}
                   />
                 </td>
-                <td className="px-4 py-2">{item.NetAmount?.toFixed(2) || '0.00'}</td>
-                <td className="px-4 py-2">{item.CGST?.toFixed(2) || '0.00'}</td>
-                <td className="px-4 py-2">{item.SGST?.toFixed(2) || '0.00'}</td>
-                <td className="px-4 py-2">{item.IGST?.toFixed(2) || '0.00'}</td>
-                <td className="px-4 py-2">{item.GrandTotal?.toFixed(2) || '0.00'}</td>
+                <td className="px-4 py-2">
+                  {typeof item.NetAmount === 'number' ? Math.round(item.NetAmount) : 0}
+                </td>
+                <td className="px-4 py-2">{Math.round(item.CGST) || 0}</td>
+                <td className="px-4 py-2">{Math.round(item.SGST) || 0}</td>
+                <td className="px-4 py-2">{Math.round(item.IGST) || 0}</td>
+                <td className="px-4 py-2">
+                  {typeof item.GrandTotal === 'number' ? Math.round(item.GrandTotal) : 0}
+                </td>
               </tr>
             ))}
           </tbody>

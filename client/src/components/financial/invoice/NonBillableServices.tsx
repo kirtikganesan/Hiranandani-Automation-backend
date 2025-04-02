@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import InvoiceDetails from './InvoiceDetails'; // Import the InvoiceDetails component
 
 // Define an interface for the backend response
 interface BackendResponse {
@@ -15,6 +16,7 @@ interface BackendResponse {
 
 // Define an interface for the frontend data structure
 interface NonBillableService {
+  id: number;
   clientName: string;
   completionDate: string;
   mainCategory: string;
@@ -38,8 +40,9 @@ const NonBillableServices = () => {
   const [mainCategories, setMainCategories] = useState<string[]>([]);
   const [services, setServices] = useState<string[]>([]);
   const [filteredData, setFilteredData] = useState<NonBillableService[]>([]);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
+  const [showInvoice, setShowInvoice] = useState(false);
+  const [selectedService, setSelectedService] = useState<NonBillableService | null>(null);
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const fetchUniqueValues = async () => {
@@ -66,12 +69,12 @@ const NonBillableServices = () => {
       const response = await axios.get(`${backendUrl}/api/non-billable-services`, {
         params: filters
       });
-      console.log('Fetched Data:', response.data); // Log the fetched data
+      console.log('Fetched Data:', response.data);
 
-      // Map the backend response to the frontend structure
       const mappedData = response.data.map((item: BackendResponse) => ({
+        id: item.id, // Ensure the id is included in the mapping
         clientName: item.client_name,
-        completionDate: item.completion_date.split('T')[0], // Format the date
+        completionDate: item.completion_date.split('T')[0],
         mainCategory: item.main_category,
         serviceName: item.service_name,
         approvedClaim: item.approved_claim,
@@ -97,13 +100,33 @@ const NonBillableServices = () => {
     setFilteredData([]);
   };
 
+  const handleRaiseInvoice = (service: NonBillableService) => {
+    setSelectedService(service);
+    setShowInvoice(true);
+  };
+
+  const handleInvoiceSaved = () => {
+    if (selectedService) {
+      handleMakeBillable(selectedService.id);
+    }
+  };
+
+  const handleMakeBillable = async (id: number) => {
+    try {
+      await axios.delete(`${backendUrl}/api/non-billable-services/${id}`);
+      setFilteredData(filteredData.filter(service => service.id !== id));
+      alert('Service marked as billable successfully!');
+    } catch (error) {
+      console.error('Error marking service as billable:', error);
+      alert('Failed to mark service as billable.');
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-sm">
       <h1 className="text-2xl font-bold mb-6">Non Billable Services</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-6">
-        
-
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Client
@@ -211,12 +234,13 @@ const NonBillableServices = () => {
                 <th className="px-4 py-2 text-left">Approved Claim</th>
                 <th className="px-4 py-2 text-left">Unapproved Claim</th>
                 <th className="px-4 py-2 text-left">Non Billable Remark</th>
+                <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredData.length > 0 ? (
-                filteredData.map((service, index) => (
-                  <tr key={index}>
+                filteredData.map((service) => (
+                  <tr key={service.id}>
                     <td className="px-4 py-2">{service.clientName}</td>
                     <td className="px-4 py-2">{service.completionDate}</td>
                     <td className="px-4 py-2">{service.mainCategory}</td>
@@ -224,11 +248,25 @@ const NonBillableServices = () => {
                     <td className="px-4 py-2">{service.approvedClaim}</td>
                     <td className="px-4 py-2">{service.unapprovedClaim}</td>
                     <td className="px-4 py-2">{service.nonBillableRemark}</td>
+                    <td className="px-4 py-2">
+                      <button
+                        className="px-2 py-1 bg-green-500 text-white rounded-md mr-2"
+                        onClick={() => handleRaiseInvoice(service)}
+                      >
+                        Raise Invoice
+                      </button>
+                      <button
+                        className="px-2 py-1 bg-red-500 text-white rounded-md"
+                        onClick={() => handleMakeBillable(service.id)}
+                      >
+                        Billable
+                      </button>
+                    </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td className="px-4 py-2 text-center" colSpan={7}>
+                  <td className="px-4 py-2 text-center" colSpan={8}>
                     No data available in table
                   </td>
                 </tr>
@@ -237,6 +275,22 @@ const NonBillableServices = () => {
           </table>
         </div>
       </div>
+
+      {showInvoice && selectedService && (
+        <InvoiceDetails
+          data={[{
+            Client_Code: '',
+            Client_Name: selectedService.clientName,
+            Main_Category: selectedService.mainCategory,
+            Service_Name: selectedService.serviceName,
+            Basic_Amount: selectedService.approvedClaim,
+            Approved_Claim: selectedService.approvedClaim,
+            Unapproved_Claim: selectedService.unapprovedClaim,
+          }]}
+          setShowInvoice={setShowInvoice}
+          onInvoiceSaved={handleInvoiceSaved} // Pass the callback
+        />
+      )}
     </div>
   );
 };

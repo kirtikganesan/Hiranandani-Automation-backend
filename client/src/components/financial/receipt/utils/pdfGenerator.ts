@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf';
+import img from "../../../assets/calogo.png"
 
 export interface InvoiceDetail {
   invoiceNo: string;
@@ -18,21 +19,11 @@ export interface ReceiptData {
   paymentType: string;
   totalAmount: number;
   invoiceDetails: InvoiceDetail[];
-  billingFirm: string; // Add this line
+  billingFirm: string;
 }
 
 export const generatePDF = (data: ReceiptData) => {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  // Add logo and header
-  if (data.billingFirm === "HIRANANDANI AND ASSOCIATES") {
-    // Uncomment and update the path to the logo if needed
-    // doc.addImage('/path/to/logo.png', 'PNG', 10, 10, 20, 20);
-  }
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
@@ -47,7 +38,6 @@ export const generatePDF = (data: ReceiptData) => {
   doc.text('FURNITURE BAZAR, ULHASNAGAR, ULHASNAGAR 421003', 105, 36, { align: 'center' });
   doc.text('Contact No. 9321022496   Email: hiranandaniandassociates@gmail.com', 105, 40, { align: 'center' });
 
-  // Add receipt details
   doc.setFontSize(10);
   doc.text(`No: ${data.receiptNo}`, 15, 55);
   doc.text(`Date: ${data.receiptDate}`, 170, 55, { align: 'right' });
@@ -59,110 +49,70 @@ export const generatePDF = (data: ReceiptData) => {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
 
-  // Format the amount for display
   const formattedAmount = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 2,
   }).format(data.totalAmount).replace('₹', 'Rs. ');
 
-  // Add receipt text
   doc.text(`Received with thanks from ${data.clientName} a sum of ${formattedAmount} (Rupees Only)`, 15, 75);
   doc.text(`by ${data.paymentType} as per the details given below:`, 15, 81);
 
-  // Create table
   let y = 90;
-  const headerHeight = 8;
   const rowHeight = 7;
-  const colWidth = [20, 20, 20, 27, 20, 20, 25, 25];
-  const startX = 15;
-  let currentX = startX;
+  const colWidths = [25, 25, 25, 30, 20, 20, 25, 25];
+  const headers = [
+    'Invoice No.',
+    'Invoice Date',
+    'Invoice Amount',
+    'Pre. Received',
+    'Current TDS',
+    'Discount',
+    'Net Amount',
+    'Bal. Outstanding'
+  ];
 
-  // Draw header
-  doc.setFillColor(240, 240, 240);
-  doc.rect(startX, y, colWidth.reduce((a, b) => a + b, 0), headerHeight, 'F');
-
+  let x = 15;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
+  doc.setFillColor(230, 230, 230);
+  doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
 
-  doc.text('Invoice No.', startX + 2, y + 5);
-  currentX += colWidth[0];
-
-  doc.text('Invoice Date', currentX + 2, y + 5);
-  currentX += colWidth[1];
-
-  doc.text('Invoice Amount', currentX + 2, y + 5);
-  currentX += colWidth[2];
-
-  doc.text('Previously Received + TDS', currentX + 2, y + 5);
-  currentX += colWidth[3];
-
-  doc.text('Current TDS', currentX + 2, y + 5);
-  currentX += colWidth[4];
-
-  doc.text('Discount', currentX + 2, y + 5);
-  currentX += colWidth[5];
-
-  doc.text('Net Amount Received', currentX + 2, y + 5);
-  currentX += colWidth[6];
-
-  doc.text('Balance Outstanding', currentX + 2, y + 5);
-
-  // Add table lines
-  doc.line(startX, y, startX + colWidth.reduce((a, b) => a + b, 0), y); // Top horizontal line
-  doc.line(startX, y + headerHeight, startX + colWidth.reduce((a, b) => a + b, 0), y + headerHeight); // Bottom horizontal line
-
-  // Draw vertical lines for headers
-  currentX = startX;
-  doc.line(currentX, y, currentX, y + headerHeight); // First vertical line
-
-  data.invoiceDetails.forEach((detail, index) => {
-    y += rowHeight;
-
-    // Draw row
-    doc.setFont('helvetica', 'normal');
-    currentX = startX;
-
-    doc.text(detail.invoiceNo, currentX + 2, y + 4);
-    currentX += colWidth[0];
-
-    doc.text(detail.invoiceDate, currentX + 2, y + 4);
-    currentX += colWidth[1];
-
-    doc.text(detail.invoiceAmount.toFixed(2), currentX + 2, y + 4);
-    currentX += colWidth[2];
-
-    doc.text(detail.previouslyReceivedTDS.toFixed(2), currentX + 2, y + 4);
-    currentX += colWidth[3];
-
-    doc.text(detail.currentTDS.toFixed(2), currentX + 2, y + 4);
-    currentX += colWidth[4];
-
-    doc.text(detail.discount.toFixed(2), currentX + 2, y + 4);
-    currentX += colWidth[5];
-
-    doc.text(detail.netAmountReceived.toFixed(2), currentX + 2, y + 4);
-    currentX += colWidth[6];
-
-    doc.text(detail.balanceOutstanding.toFixed(2), currentX + 2, y + 4);
+  headers.forEach((header, i) => {
+    doc.text(header, x + colWidths[i] / 2, y + 5, { align: 'center' });
+    x += colWidths[i];
   });
 
-  // Draw bottom line for data rows
-  doc.line(startX, y, startX + colWidth.reduce((a, b) => a + b, 0), y);
+  y += rowHeight;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
 
-  // Footer
-  y += 20;
+  data.invoiceDetails.forEach(detail => {
+    let x = 15;
+    const values = [
+      detail.invoiceNo,
+      detail.invoiceDate,
+      detail.invoiceAmount.toFixed(2),
+      detail.previouslyReceivedTDS.toFixed(2),
+      detail.currentTDS.toFixed(2),
+      detail.discount.toFixed(2),
+      detail.netAmountReceived.toFixed(2),
+      detail.balanceOutstanding.toFixed(2)
+    ];
+
+    values.forEach((value, i) => {
+      doc.text(value, x + colWidths[i] / 2, y + 5, { align: 'center' });
+      x += colWidths[i];
+    });
+
+    y += rowHeight;
+  });
+
+  y += 10;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.text('*Subject to realization of funds', 15, y);
 
-  y += 20;
-  doc.setFont('helvetica', 'bold');
-  doc.text('For HIRANANDANI & ASSOCIATES', 170, y, { align: 'right' });
 
-  y += 15;
-  doc.text('Proprietor', 170, y, { align: 'right' });
-
-  // Save the PDF
   doc.save(`Receipt_${data.receiptNo}_${data.clientName.replace(/\s+/g, '_')}.pdf`);
 };
