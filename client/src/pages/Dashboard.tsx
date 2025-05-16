@@ -25,10 +25,11 @@ import FinancialDashboard from '../components/dashboards/FinancialDashboard';
 
 // Import Service Components
 import AllServices from '../components/services/AllServices';
-import ServiceMainCategory from '../components/services/ServiceMainCategory';
+import ServiceMainCategoryTest from '../components/services/ServiceMainCategoryTest';
 import GstBillingCategories from '../components/services/GstBillingCategories';
 import BillingProfile from '../components/services/BillingProfile';
 import ModifyServices from '../components/services/ModifyServices';
+import ServiceDueDate from '../components/services/ServiceDueDate';
 import OpeningOutstandingBalances from '../components/services/OpeningOutstandingBalances';
 import ServicesTriggeredButNotAlloted from '../components/services/ServicesTriggeredButNotAlloted';
 import ManualAssignment from '../components/services/ManualAssignment';
@@ -120,6 +121,9 @@ const Dashboard = () => {
     receipt: false,   // Receipt menu inside Financial
   });
 
+  const [isMenuOpen, setIsMenuOpen] = useState(true);
+
+
   const location = useLocation();
 
   const toggleMenu = (menu: string) => {
@@ -140,6 +144,7 @@ const Dashboard = () => {
         <div className="p-4 flex items-center gap-3 space-x-2">
           <img src={logo} alt="" className='h-8 w-8' />
           <span className="text-xl font-bold">Hiranandani</span>
+          
         </div>
 
         <nav className="mt-4">
@@ -203,6 +208,9 @@ const Dashboard = () => {
                 </Link>
                 <Link to="/dashboard/services/modify-services" className="block py-2 px-4 hover:bg-gray-700">
                   Modify Services
+                </Link>
+                <Link to="/dashboard/services/service-due-date" className="block py-2 px-4 hover:bg-gray-700">
+                  Service Due Date
                 </Link>
                 <Link to="/dashboard/services/opening-outstanding" className="block py-2 px-4 hover:bg-gray-700">
                   Opening Outstanding Balances
@@ -495,10 +503,11 @@ const Dashboard = () => {
 
           {/* Services Routes */}
           <Route path="services/all-services" element={<AllServices />} />
-          <Route path="services/service-main-category" element={<ServiceMainCategory />} />
+          <Route path="services/service-main-category" element={<ServiceMainCategoryTest />} />
           <Route path="services/gst-billing-categories" element={<GstBillingCategories />} />
           <Route path="services/billing-profile" element={<BillingProfile />} />
           <Route path="services/modify-services" element={<ModifyServices />} />
+          <Route path="services/service-due-date" element={<ServiceDueDate />} />
           <Route path="services/opening-outstanding" element={<OpeningOutstandingBalances />} />
           <Route path="services/triggered-but-not-alloted" element={<ServicesTriggeredButNotAlloted />} />
           <Route path="services/manual-assignment" element={<ManualAssignment />} />

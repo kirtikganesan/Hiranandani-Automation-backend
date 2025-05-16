@@ -13,15 +13,43 @@ interface ReceiptForm {
   emailSecondary: boolean;
   whatsappPrimary: boolean;
   whatsappSecondary: boolean;
-  totalAmount: number | null;
-  invoiceNo: string;
-  invoiceDate: Date | undefined;
-  invoiceAmount: number | null;
-  previouslyReceivedTDS: number | null;
-  currentTDS: number | null;
-  discount: number | null;
   transactionId?: string;
   chequeNo?: string;
+  bankName?: string;
+}
+
+interface Invoice {
+  id: number;
+  Date: string;
+  Invoice_No: string;
+  Client: string;
+  PAN_No: string;
+  Gross_Amount: number;
+  Discount_Amount: number;
+  Service_Amount: number;
+  Taxable_Claim_Amount: number;
+  Total_Taxable_Amount: number;
+  CGST: number;
+  SGST: number;
+  IGST: number;
+  Non_Taxable_Amount: number;
+  Total_Bill_Amount: number;
+  Outstanding_Amount: number;
+  Settled_Amount: number;
+  Billing_Firm: string;
+}
+
+interface EditableInvoice extends Invoice {
+  editedTDS: number;
+  editedDiscount: number;
+  selected: boolean;
+}
+
+interface AdvanceReceipt {
+  id: number;
+  particulars: string;
+  grossAdvanceAmount: number;
+  tdsOnAdvance: number;
 }
 
 const ReceiptGenerator: React.FC = () => {
@@ -29,42 +57,37 @@ const ReceiptGenerator: React.FC = () => {
     receiptType: 'invoice',
     clientName: '',
     billingFirm: '',
-    receiptDate: new Date(),
+    receiptDate: undefined,
     paymentType: '',
     emailPrimary: false,
     emailSecondary: false,
     whatsappPrimary: false,
     whatsappSecondary: false,
-    totalAmount: null,
-    invoiceNo: '',
-    invoiceDate: new Date(),
-    invoiceAmount: null,
-    previouslyReceivedTDS: null,
-    currentTDS: null,
-    discount: null,
     transactionId: '',
     chequeNo: '',
+    bankName: '',
   });
 
   const [clients, setClients] = useState<string[]>([]);
   const [billingFirms, setBillingFirms] = useState<string[]>([]);
+  const [invoices, setInvoices] = useState<EditableInvoice[]>([]);
+  const [advanceReceipts, setAdvanceReceipts] = useState<AdvanceReceipt[]>([{ id: 1, particulars: '', grossAdvanceAmount: 0, tdsOnAdvance: 0 }]);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
+  const [isReceiptGenerated, setIsReceiptGenerated] = useState(false);
 
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    // Fetch clients
-    fetch(`${backendUrl}/api/clients`)
+    fetch(`${backendUrl}/api/opening-balance-clients`)
       .then(response => response.json())
       .then(data => {
-        setClients(data.map((client: { client_name: string }) => client.client_name));
+        setClients(data);
       })
       .catch(error => console.error('Error fetching clients:', error));
 
-    // Fetch billing firms
     fetch(`${backendUrl}/api/financial-billing-firms`)
       .then(response => response.json())
       .then(data => {
@@ -74,18 +97,25 @@ const ReceiptGenerator: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Calculate total amount automatically
-    if (formData.receiptType === 'invoice') {
-      const totalAmount = (formData.invoiceAmount || 0) -
-                          (formData.previouslyReceivedTDS || 0) -
-                          (formData.currentTDS || 0) -
-                          (formData.discount || 0);
-      setFormData(prevFormData => ({
-        ...prevFormData,
-        totalAmount: totalAmount > 0 ? totalAmount : 0
-      }));
+    if (formData.clientName && formData.billingFirm) {
+      fetchInvoices();
     }
-  }, [formData.invoiceAmount, formData.previouslyReceivedTDS, formData.currentTDS, formData.discount]);
+  }, [formData.clientName, formData.billingFirm]);
+
+  const fetchInvoices = () => {
+    fetch(`${backendUrl}/api/invoices?client=${formData.clientName}&billingFirm=${formData.billingFirm}`)
+      .then(response => response.json())
+      .then(data => {
+        const editableInvoices = data.map((invoice: Invoice) => ({
+          ...invoice,
+          editedTDS: invoice.Gross_Amount * 0.1,
+          editedDiscount: invoice.Discount_Amount,
+          selected: true, // Default to selected
+        }));
+        setInvoices(editableInvoices);
+      })
+      .catch(error => console.error('Error fetching invoices:', error));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -94,20 +124,6 @@ const ReceiptGenerator: React.FC = () => {
       [name]: value,
     });
 
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: '' });
-    }
-  };
-
-  const handleNumberInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value ? parseFloat(value) : null,
-    });
-
-    // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -126,7 +142,6 @@ const ReceiptGenerator: React.FC = () => {
       [name]: value,
     });
 
-    // Clear error for this field
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' });
     }
@@ -138,10 +153,37 @@ const ReceiptGenerator: React.FC = () => {
       [fieldName]: date ? new Date(date) : undefined,
     });
 
-    // Clear error for this field
     if (errors[fieldName]) {
       setErrors({ ...errors, [fieldName]: '' });
     }
+  };
+
+  const handleTDSChange = (id: number, value: string) => {
+    const newInvoices = invoices.map(invoice =>
+      invoice.id === id ? { ...invoice, editedTDS: parseFloat(value) } : invoice
+    );
+    setInvoices(newInvoices);
+  };
+
+  const handleDiscountChange = (id: number, value: string) => {
+    const newInvoices = invoices.map(invoice =>
+      invoice.id === id ? { ...invoice, editedDiscount: parseFloat(value) } : invoice
+    );
+    setInvoices(newInvoices);
+  };
+
+  const handleSelectInvoice = (id: number, checked: boolean) => {
+    const newInvoices = invoices.map(invoice =>
+      invoice.id === id ? { ...invoice, selected: checked } : invoice
+    );
+    setInvoices(newInvoices);
+  };
+
+  const handleAdvanceReceiptChange = (id: number, field: string, value: string) => {
+    const newAdvanceReceipts = advanceReceipts.map(receipt =>
+      receipt.id === id ? { ...receipt, [field]: value } : receipt // Allow string input for 'particulars'
+    );
+    setAdvanceReceipts(newAdvanceReceipts);
   };
 
   const validate = () => {
@@ -149,6 +191,10 @@ const ReceiptGenerator: React.FC = () => {
 
     if (!formData.clientName) {
       newErrors.clientName = "Please select a client name";
+    }
+
+    if (!formData.billingFirm) {
+      newErrors.billingFirm = "Please select a billing firm";
     }
 
     if (!formData.receiptDate) {
@@ -159,22 +205,12 @@ const ReceiptGenerator: React.FC = () => {
       newErrors.paymentType = "Please select a payment type";
     }
 
-    if (!formData.totalAmount) {
-      newErrors.totalAmount = "Please enter the total amount";
+    if (formData.paymentType === 'Cheque/DD' && !formData.bankName) {
+      newErrors.bankName = "Please enter the bank name";
     }
 
-    if (formData.receiptType === 'invoice') {
-      if (!formData.invoiceNo) {
-        newErrors.invoiceNo = "Please enter the invoice number";
-      }
-
-      if (!formData.invoiceDate) {
-        newErrors.invoiceDate = "Please select an invoice date";
-      }
-
-      if (!formData.invoiceAmount) {
-        newErrors.invoiceAmount = "Please enter the invoice amount";
-      }
+    if (formData.paymentType === 'E-Payment' && !formData.transactionId) {
+      newErrors.transactionId = "Please enter the transaction ID";
     }
 
     setErrors(newErrors);
@@ -185,52 +221,58 @@ const ReceiptGenerator: React.FC = () => {
     if (!validate()) {
       return;
     }
-  
+
     setIsGenerating(true);
-  
-    // Fetch the new receipt number for the selected billing firm
+
     fetch(`${backendUrl}/api/max-receipt-no?billingFirm=${formData.billingFirm}`)
       .then(response => response.json())
       .then(result => {
-        const newReceiptNo = result.maxReceiptNo; // This is already the new receipt number
-        
-        // Continue with creating receipt data
-        const netAmountReceived = formData.totalAmount || 0;
-        const invoiceAmount = formData.invoiceAmount || 0;
-        const previouslyReceivedTDS = formData.previouslyReceivedTDS || 0;
-        const currentTDS = formData.currentTDS || 0;
-        const discount = formData.discount || 0;
-  
-        const balanceOutstanding =
-          invoiceAmount -
-          previouslyReceivedTDS -
-          currentTDS -
-          discount -
-          netAmountReceived;
-  
+        const newReceiptNo = result.maxReceiptNo;
+
         const receipt: ReceiptData = {
           receiptNo: newReceiptNo,
           receiptDate: formData.receiptDate ? format(formData.receiptDate, 'dd/MM/yyyy') : '',
           clientName: formData.clientName,
           paymentType: formData.paymentType,
-          totalAmount: formData.totalAmount || 0,
-          invoiceDetails: [
-            {
-              invoiceNo: formData.invoiceNo,
-              invoiceDate: formData.invoiceDate ? format(formData.invoiceDate, 'dd/MM/yyyy') : '',
-              invoiceAmount: invoiceAmount,
-              previouslyReceivedTDS: previouslyReceivedTDS,
-              currentTDS: currentTDS,
-              discount: discount,
-              netAmountReceived: netAmountReceived,
-              balanceOutstanding: balanceOutstanding > 0 ? balanceOutstanding : 0
-            }
-          ],
-          billingFirm: formData.billingFirm
+          totalAmount: formData.receiptType === 'invoice' ? calculateTotalAmount() : calculateTotalAdvanceAmount(),
+          invoiceDetails: formData.receiptType === 'invoice' ? invoices.filter(invoice => invoice.selected).map(invoice => {
+            const totalBillAmount = invoice.Gross_Amount - invoice.editedDiscount - invoice.editedTDS;
+            const outstandingAmount = totalBillAmount - calculateTotalAmount();
+            const gst = invoice.CGST + invoice.SGST + invoice.IGST;
+            return {
+              invoiceNo: invoice.Invoice_No,
+              invoiceDate: invoice.Date,
+              invoiceAmount: invoice.Gross_Amount,
+              previouslyReceivedTDS: 0,
+              currentTDS: invoice.editedTDS,
+              discount: invoice.editedDiscount,
+              gst: gst,
+              netAmountReceived: totalBillAmount + gst,
+              balanceOutstanding: outstandingAmount > 0 ? outstandingAmount : 0
+            };
+          }) : advanceReceipts.map(receipt => {
+            const netAmount = receipt.grossAdvanceAmount - receipt.tdsOnAdvance;
+            return {
+              invoiceNo: '',
+              invoiceDate: '',
+              invoiceAmount: receipt.grossAdvanceAmount,
+              previouslyReceivedTDS: 0,
+              currentTDS: receipt.tdsOnAdvance,
+              discount: 0,
+              gst: 0,
+              netAmountReceived: netAmount,
+              balanceOutstanding: 0
+            };
+          }),
+          billingFirm: formData.billingFirm,
+          receiptType: formData.receiptType,
+          transactionId: formData.transactionId,
+          bankName: formData.bankName,
         };
-  
+
         setReceiptData(receipt);
         setShowReceiptModal(true);
+        setIsReceiptGenerated(true);
         setIsGenerating(false);
       })
       .catch(error => {
@@ -238,6 +280,56 @@ const ReceiptGenerator: React.FC = () => {
         setIsGenerating(false);
       });
   };
+
+  const handleSaveReceipt = async (receiptData: ReceiptData) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/save-receipt`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          receipt_no: receiptData.receiptNo,
+          date: receiptData.receiptDate,
+          type: receiptData.receiptType === 'invoice' ? 'Against Invoice' : 'Advance Receipt',
+          client_name: receiptData.clientName,
+          amount: receiptData.totalAmount,
+          tds: receiptData.receiptType === 'invoice' ? receiptData.invoiceDetails.reduce((sum, item) => sum + item.currentTDS, 0) : 0,
+          discount: receiptData.receiptType === 'invoice' ? receiptData.invoiceDetails.reduce((sum, item) => sum + item.discount, 0) : 0,
+          mode: receiptData.paymentType,
+          mode_details: receiptData.paymentType === 'Cash' ? 'Cash' :
+                        receiptData.paymentType === 'E-Payment' ? `Transaction ID: ${receiptData.transactionId}` :
+                        `Bank Name: ${receiptData.bankName}`,
+          billing_firm: receiptData.billingFirm,
+        }),
+      });
+
+      if (response.ok) {
+        alert('Receipt saved successfully!');
+      } else {
+        console.error('Failed to save receipt');
+      }
+    } catch (error) {
+      console.error('Error saving receipt:', error);
+    }
+  };
+
+  const calculateTotalAmount = () => {
+    return invoices.reduce((total, invoice) => {
+      if (invoice.selected) {
+        const totalBillAmount = invoice.Gross_Amount - invoice.editedDiscount - invoice.editedTDS;
+        return total + totalBillAmount;
+      }
+      return total;
+    }, 0);
+  };
+
+  const calculateTotalAdvanceAmount = () => {
+    return advanceReceipts.reduce((total, receipt) => {
+      return total + (receipt.grossAdvanceAmount - receipt.tdsOnAdvance);
+    }, 0);
+  };
+
   return (
     <>
       <div className="w-full max-w-6xl mx-auto p-6 space-y-8">
@@ -350,129 +442,155 @@ const ReceiptGenerator: React.FC = () => {
                 </div>
 
                 {formData.paymentType === 'Cheque/DD' && (
-                  <div className="space-y-2">
-                    <label htmlFor="chequeNo" className="block text-sm font-medium">Cheque/DD No.</label>
-                    <input
-                      id="chequeNo"
-                      name="chequeNo"
-                      value={formData.chequeNo || ''}
-                      onChange={handleInputChange}
-                      className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
+                  <>
+                    <div className="space-y-2">
+                      <label htmlFor="bankName" className="block text-sm font-medium">Bank Name <span className="text-red-500">*</span></label>
+                      <input
+                        id="bankName"
+                        name="bankName"
+                        value={formData.bankName || ''}
+                        onChange={handleInputChange}
+                        className={`w-full h-10 px-3 py-2 rounded-md border ${errors.bankName ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
+                      />
+                      {errors.bankName && <p className="text-red-500 text-xs">{errors.bankName}</p>}
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="chequeNo" className="block text-sm font-medium">Cheque No.</label>
+                      <input
+                        id="chequeNo"
+                        name="chequeNo"
+                        value={formData.chequeNo || ''}
+                        onChange={handleInputChange}
+                        className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                      />
+                    </div>
+                  </>
                 )}
 
                 {formData.paymentType === 'E-Payment' && (
                   <div className="space-y-2">
-                    <label htmlFor="transactionId" className="block text-sm font-medium">Transaction ID / UTR No.</label>
+                    <label htmlFor="transactionId" className="block text-sm font-medium">Transaction ID / UTR No. <span className="text-red-500">*</span></label>
                     <input
                       id="transactionId"
                       name="transactionId"
                       value={formData.transactionId || ''}
                       onChange={handleInputChange}
-                      className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                      className={`w-full h-10 px-3 py-2 rounded-md border ${errors.transactionId ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
                     />
+                    {errors.transactionId && <p className="text-red-500 text-xs">{errors.transactionId}</p>}
                   </div>
                 )}
               </div>
 
               {formData.receiptType === 'invoice' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <div className="space-y-2">
-                    <label htmlFor="invoiceNo" className="block text-sm font-medium">
-                      Invoice No. <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="invoiceNo"
-                      name="invoiceNo"
-                      value={formData.invoiceNo}
-                      onChange={handleInputChange}
-                      className={`w-full h-10 px-3 py-2 rounded-md border ${errors.invoiceNo ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                    />
-                    {errors.invoiceNo && <p className="text-red-500 text-xs">{errors.invoiceNo}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="invoiceDate" className="block text-sm font-medium">
-                      Invoice Date <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="date"
-                      id="invoiceDate"
-                      value={formData.invoiceDate ? format(formData.invoiceDate, 'yyyy-MM-dd') : ''}
-                      onChange={(e) => handleDateChange(e.target.value, 'invoiceDate')}
-                      className={`w-full h-10 px-3 py-2 rounded-md border ${errors.invoiceDate ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                    />
-                    {errors.invoiceDate && <p className="text-red-500 text-xs">{errors.invoiceDate}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="invoiceAmount" className="block text-sm font-medium">
-                      Invoice Amount <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      id="invoiceAmount"
-                      name="invoiceAmount"
-                      type="number"
-                      value={formData.invoiceAmount === null ? '' : formData.invoiceAmount}
-                      onChange={handleNumberInputChange}
-                      className={`w-full h-10 px-3 py-2 rounded-md border ${errors.invoiceAmount ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                    />
-                    {errors.invoiceAmount && <p className="text-red-500 text-xs">{errors.invoiceAmount}</p>}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="previouslyReceivedTDS" className="block text-sm font-medium">Previously Received + TDS Amount</label>
-                    <input
-                      id="previouslyReceivedTDS"
-                      name="previouslyReceivedTDS"
-                      type="number"
-                      value={formData.previouslyReceivedTDS === null ? '' : formData.previouslyReceivedTDS}
-                      onChange={handleNumberInputChange}
-                      className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="currentTDS" className="block text-sm font-medium">Current TDS Amount</label>
-                    <input
-                      id="currentTDS"
-                      name="currentTDS"
-                      type="number"
-                      value={formData.currentTDS === null ? '' : formData.currentTDS}
-                      onChange={handleNumberInputChange}
-                      className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="discount" className="block text-sm font-medium">Discount</label>
-                    <input
-                      id="discount"
-                      name="discount"
-                      type="number"
-                      value={formData.discount === null ? '' : formData.discount}
-                      onChange={handleNumberInputChange}
-                      className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
-                    />
-                  </div>
+                <div className="overflow-x-auto">
+                  <h2 className="text-lg font-semibold mb-4">Invoice Details</h2>
+                  <table className="min-w-full border border-gray-300">
+                    <thead className='bg-gray-800 text-white'>
+                      <tr>
+                        <th className="py-2 px-4 border-b">Select</th>
+                        <th className="py-2 px-4 border-b">Invoice No.</th>
+                        <th className="py-2 px-4 border-b">Invoice Date</th>
+                        <th className="py-2 px-4 border-b">Gross Amount</th>
+                        <th className="py-2 px-4 border-b">GST</th>
+                        <th className="py-2 px-4 border-b">TDS</th>
+                        <th className="py-2 px-4 border-b">Discount Amount</th>
+                        <th className="py-2 px-4 border-b">Net Amount</th>
+                        <th className="py-2 px-4 border-b">Net Outstanding</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invoices.map(invoice => {
+                        const totalBillAmount = invoice.Gross_Amount - invoice.editedDiscount - invoice.editedTDS;
+                        const outstandingAmount = totalBillAmount - calculateTotalAmount();
+                        return (
+                          <tr key={invoice.id} className='text-center'>
+                            <td className="py-2 px-4 border-b">
+                              <input
+                                type="checkbox"
+                                checked={invoice.selected}
+                                onChange={(e) => handleSelectInvoice(invoice.id, e.target.checked)}
+                                className="h-4 w-4 text-blue-600"
+                              />
+                            </td>
+                            <td className="py-2 px-4 border-b">{invoice.Invoice_No}</td>
+                            <td className="py-2 px-4 border-b">{format(new Date(invoice.Date), 'dd/MM/yyyy')}</td>
+                            <td className="py-2 px-4 border-b">{invoice.Gross_Amount}</td>
+                            <td className="py-2 px-4 border-b">{invoice.CGST + invoice.SGST + invoice.IGST}</td>
+                            <td className="py-2 px-4 border-b">
+                              <input
+                                type="number"
+                                value={invoice.editedTDS}
+                                onChange={(e) => handleTDSChange(invoice.id, e.target.value)}
+                                className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                              />
+                            </td>
+                            <td className="py-2 px-4 border-b">
+                              <input
+                                type="number"
+                                value={invoice.editedDiscount}
+                                onChange={(e) => handleDiscountChange(invoice.id, e.target.value)}
+                                className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                              />
+                            </td>
+                            <td className="py-2 px-4 border-b">{totalBillAmount + invoice.CGST + invoice.SGST}</td>
+                            <td className="py-2 px-4 border-b">0</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
 
-              <div className="space-y-2">
-                <label htmlFor="totalAmount" className="block text-sm font-medium">
-                  Total Amount <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="totalAmount"
-                  name="totalAmount"
-                  type="number"
-                  value={formData.totalAmount === null ? '' : formData.totalAmount}
-                  onChange={handleNumberInputChange}
-                  className={`w-full h-10 px-3 py-2 rounded-md border ${errors.totalAmount ? 'border-red-500' : 'border-gray-300'} focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors`}
-                />
-                {errors.totalAmount && <p className="text-red-500 text-xs">{errors.totalAmount}</p>}
-              </div>
+              {formData.receiptType === 'advance' && (
+                <div className="overflow-x-auto">
+                  <h2 className="text-lg font-semibold mb-4">Advance Receipt Details</h2>
+                  <table className="min-w-full border border-gray-300">
+                    <thead className='bg-gray-800 text-white'>
+                      <tr>
+                        <th className="py-2 px-4 border-b">Particulars</th>
+                        <th className="py-2 px-4 border-b">Gross Advance Amount</th>
+                        <th className="py-2 px-4 border-b">TDS on Advance</th>
+                        <th className="py-2 px-4 border-b">Net Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {advanceReceipts.map(receipt => (
+                        <tr key={receipt.id} className='text-center'>
+                          <td className="py-2 px-4 border-b">
+                            <input
+                              type="text"
+                              value={receipt.particulars}
+                              onChange={(e) => handleAdvanceReceiptChange(receipt.id, 'particulars', e.target.value)}
+                              className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                            />
+                          </td>
+                          <td className="py-2 px-4 border-b">
+                            <input
+                              type="number"
+                              value={receipt.grossAdvanceAmount}
+                              onChange={(e) => handleAdvanceReceiptChange(receipt.id, 'grossAdvanceAmount', e.target.value)}
+                              className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                            />
+                          </td>
+                          <td className="py-2 px-4 border-b">
+                            <input
+                              type="number"
+                              value={receipt.tdsOnAdvance}
+                              onChange={(e) => handleAdvanceReceiptChange(receipt.id, 'tdsOnAdvance', e.target.value)}
+                              className="w-full h-10 px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-blue-500 transition-colors"
+                            />
+                          </td>
+                          <td className="py-2 px-4 border-b">
+                            {receipt.grossAdvanceAmount - receipt.tdsOnAdvance}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
               <div className="flex justify-end gap-3 pt-4">
                 <button
@@ -505,6 +623,7 @@ const ReceiptGenerator: React.FC = () => {
         <ReceiptPreview
           data={receiptData}
           onClose={() => setShowReceiptModal(false)}
+          onSave={handleSaveReceipt}
         />
       )}
     </>

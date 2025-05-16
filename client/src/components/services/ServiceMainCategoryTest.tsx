@@ -124,7 +124,6 @@ const ServiceMainCategory = () => {
           <tr className='bg-gray-800 text-white'>
             <th className="border p-2">Service Name</th>
             <th className="border p-2">Dependent Services</th>
-            <th className="border p-2">GST Billing Categories</th>
             <th className="border p-2">Action</th>
           </tr>
         </thead>
@@ -134,7 +133,6 @@ const ServiceMainCategory = () => {
               <tr key={service.ServiceMainCategory}>
                 <td className="border p-2">{service.ServiceMainCategory}</td>
                 <td className="border p-2">{service.dependent_services}</td>
-                <td className="border p-2">{service.gst_billing_categories}</td>
                 <td className="border p-2">
                   <button
                     onClick={() => { setEditingService(service); setEditValue(service.ServiceMainCategory); }}

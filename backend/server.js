@@ -2087,42 +2087,43 @@ app.get('/api/billing-profiles', (req, res) => {
 app.get('/api/billing-profiles/:id', (req, res) => {
   const { id } = req.params;
   const sql = `
-    SELECT 
+    SELECT
       id,
-      firm_type AS firmType, 
-      name, 
-      contact_number AS contactNumber, 
-      email_id AS emailId, 
-      partner_email_id AS partnerEmailId, 
-      address_line1 AS addressLine1, 
-      address_line2 AS addressLine2, 
-      city, 
-      state, 
-      district, 
-      pincode, 
-      pan, 
-      gst, 
-      cin, 
-      udyam_registration AS udyamRegistration, 
-      msme_category AS msmeCategory, 
-      reminder_days AS reminderDays, 
-      credit_period AS creditPeriod, 
-      account_no AS accountNo, 
-      ifsc_code AS ifscCode, 
-      bank_name AS bankName, 
-      branch, 
-      upi_id AS upiId, 
-      billing_series AS billingSeries, 
-      financial_year AS financialYear, 
-      receipt_no_starts_at AS receiptNoStartsAt, 
-      width_of_numerical_part AS widthOfNumericalPart, 
-      prefill_with_zero AS prefillWithZero, 
-      prefix, 
-      suffix, 
-      prefix_applicable_from AS prefixApplicableFrom, 
+      firm_type AS firmType,
+      name,
+      contact_number AS contactNumber,
+      email_id AS emailId,
+      partner_email_id AS partnerEmailId,
+      address_line1 AS addressLine1,
+      address_line2 AS addressLine2,
+      city,
+      state,
+      district,
+      pincode,
+      pan,
+      gst,
+      gst_available AS gstAvailable,
+      cin,
+      udyam_registration AS udyamRegistration,
+      msme_category AS msmeCategory,
+      reminder_days AS reminderDays,
+      credit_period AS creditPeriod,
+      account_no AS accountNo,
+      ifsc_code AS ifscCode,
+      bank_name AS bankName,
+      branch,
+      upi_id AS upiId,
+      billing_series AS billingSeries,
+      financial_year AS financialYear,
+      receipt_no_starts_at AS receiptNoStartsAt,
+      width_of_numerical_part AS widthOfNumericalPart,
+      prefill_with_zero AS prefillWithZero,
+      prefix,
+      suffix,
+      prefix_applicable_from AS prefixApplicableFrom,
       suffix_applicable_from AS suffixApplicableFrom,
       status
-    FROM billing_profile 
+    FROM billing_profile
     WHERE id = ?
   `;
 
@@ -2143,12 +2144,12 @@ app.get('/api/billing-profiles/:id', (req, res) => {
 // Create a new billing profile
 app.post('/api/billing-profiles', (req, res) => {
   const {
-    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
+    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, gstAvailable, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
   } = req.body;
 
-  const sql = `INSERT INTO billing_profile (firm_type, name, contact_number, email_id, partner_email_id, address_line1, address_line2, city, state, district, pincode, pan, gst, cin, udyam_registration, msme_category, reminder_days, credit_period, account_no, ifsc_code, bank_name, branch, upi_id, billing_series, financial_year, receipt_no_starts_at, width_of_numerical_part, prefill_with_zero, prefix, suffix, prefix_applicable_from, suffix_applicable_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const sql = `INSERT INTO billing_profile (firm_type, name, contact_number, email_id, partner_email_id, address_line1, address_line2, city, state, district, pincode, pan, gst, gst_available, cin, udyam_registration, msme_category, reminder_days, credit_period, account_no, ifsc_code, bank_name, branch, upi_id, billing_series, financial_year, receipt_no_starts_at, width_of_numerical_part, prefill_with_zero, prefix, suffix, prefix_applicable_from, suffix_applicable_from) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom], (err, result) => {
+  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, gstAvailable, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom], (err, result) => {
     if (err) {
       console.error('Error creating billing profile:', err);
       res.status(500).json({ error: 'Error creating billing profile' });
@@ -2162,12 +2163,12 @@ app.post('/api/billing-profiles', (req, res) => {
 app.put('/api/billing-profiles/:id', (req, res) => {
   const { id } = req.params;
   const {
-    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
+    firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, gstAvailable, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom
   } = req.body;
 
-  const sql = `UPDATE billing_profile SET firm_type = ?, name = ?, contact_number = ?, email_id = ?, partner_email_id = ?, address_line1 = ?, address_line2 = ?, city = ?, state = ?, district = ?, pincode = ?, pan = ?, gst = ?, cin = ?, udyam_registration = ?, msme_category = ?, reminder_days = ?, credit_period = ?, account_no = ?, ifsc_code = ?, bank_name = ?, branch = ?, upi_id = ?, billing_series = ?, financial_year = ?, receipt_no_starts_at = ?, width_of_numerical_part = ?, prefill_with_zero = ?, prefix = ?, suffix = ?, prefix_applicable_from = ?, suffix_applicable_from = ? WHERE id = ?`;
+  const sql = `UPDATE billing_profile SET firm_type = ?, name = ?, contact_number = ?, email_id = ?, partner_email_id = ?, address_line1 = ?, address_line2 = ?, city = ?, state = ?, district = ?, pincode = ?, pan = ?, gst = ?, gst_available = ?, cin = ?, udyam_registration = ?, msme_category = ?, reminder_days = ?, credit_period = ?, account_no = ?, ifsc_code = ?, bank_name = ?, branch = ?, upi_id = ?, billing_series = ?, financial_year = ?, receipt_no_starts_at = ?, width_of_numerical_part = ?, prefill_with_zero = ?, prefix = ?, suffix = ?, prefix_applicable_from = ?, suffix_applicable_from = ? WHERE id = ?`;
 
-  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom, id], (err, result) => {
+  db.query(sql, [firmType, name, contactNumber, emailId, partnerEmailId, addressLine1, addressLine2, city, state, district, pincode, pan, gst, gstAvailable, cin, udyamRegistration, msmeCategory, reminderDays, creditPeriod, accountNo, ifscCode, bankName, branch, upiId, billingSeries, financialYear, receiptNoStartsAt, widthOfNumericalPart, prefillWithZero, prefix, suffix, prefixApplicableFrom, suffixApplicableFrom, id], (err, result) => {
     if (err) {
       console.error('Error updating billing profile:', err);
       res.status(500).json({ error: 'Error updating billing profile' });
@@ -2680,6 +2681,7 @@ app.post('/api/opening-invoices', (req, res) => {
     clientName,
     basicAmount,
     taxableClaim,
+    totalTaxable,
     cgst,
     sgst,
     igst,
@@ -2690,10 +2692,10 @@ app.post('/api/opening-invoices', (req, res) => {
 
   const query = `
     INSERT INTO invoices_or_outstanding (
-     Billing_Firm, Invoice_No, Client_Name,
-      Basic_Amount, Taxable_Claim, CGST, SGST, IGST, Non_Taxable_Claim,
-      Total_Amount, Date
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      Billing_Firm, Invoice_No, Client,
+      Gross_Amount, Taxable_Claim_Amount, Total_Taxable_Amount, CGST, SGST, IGST, Non_Taxable_Amount,
+      Total_Bill_Amount, Date, Discount_Amount, Settled_Amount, Service_Amount, Outstanding_Amount
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
@@ -2704,12 +2706,17 @@ app.post('/api/opening-invoices', (req, res) => {
       clientName,
       basicAmount,
       taxableClaim,
+      basicAmount,
       cgst,
       sgst,
       igst,
       nonTaxableClaim,
       totalAmount,
-      date
+      date,
+      0, // Discount_Amount
+      0, // Settled_Amount
+      basicAmount, // Service_Amount same as Gross_Amount
+      totalAmount // Outstanding_Amount same as Total_Bill_Amount
     ],
     (err, result) => {
       if (err) {
@@ -2720,6 +2727,319 @@ app.post('/api/opening-invoices', (req, res) => {
       res.json({ id: result.insertId, ...req.body });
     }
   );
+});
+
+
+app.get('/api/opening-balance-clients', (req, res) => {
+  const query = 'SELECT DISTINCT Client FROM invoices_or_outstanding';
+  db.query(query, (err, results) => {
+    if (err) throw err;
+    res.json(results.map(row => row.Client));
+  });
+});
+
+app.get('/api/gst-available/:billingFirm', (req, res) => {
+  const { billingFirm } = req.params;
+  const query = 'SELECT gst_available FROM billing_profile WHERE name = ?';
+
+  db.query(query, [billingFirm], (err, results) => {
+    if (err) {
+      console.error('Error fetching GST availability:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    if (results.length > 0) {
+      res.json({ gst_available: results[0].gst_available });
+    } else {
+      res.status(404).json({ error: 'Billing firm not found' });
+    }
+  });
+});
+
+app.get('/api/service-due-date', (req, res) => {
+  const { dueDate } = req.query;
+
+  // SQL query to fetch services with financial details where DueDate = 'YES'
+  const query = `
+    SELECT 
+      s.id,
+      s.ServiceMainCategory,
+      s.ServiceName,
+      s.GSTBillingCategory,
+      s.DueDate,
+      s.UDIN,
+      s.NoOfClients AS ServiceNoOfClients,
+      s.NoOfTasks,
+      sfd.fy AS FinancialYear,
+      sfd.periodicity AS Periodicity,
+      sfd.Fees_Per_Period AS FeesPerPeriod,
+      sfd.NoOfClients AS FinancialNoOfClients
+    FROM services s
+    LEFT JOIN service_financial_details sfd ON s.id = sfd.service_id
+    WHERE s.DueDate = ?
+  `;
+
+  // Execute the query
+  db.query(query, [dueDate], (err, results) => {
+    if (err) {
+      console.error('Error executing the query:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+app.post('/api/save-receipt', (req, res) => {
+  const {
+    receipt_no,
+    date,
+    type,
+    client_name,
+    amount,
+    tds,
+    discount,
+    mode,
+    mode_details,
+    billing_firm
+  } = req.body;
+
+  // Parse and format the date to DD-MM-YYYY
+  const dateObj = new Date(date);
+  const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+
+  const query = `
+    INSERT INTO receipt_list (receipt_no, date, type, client_name, amount, tds, discount, mode, mode_details, billing_firm)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  db.query(query, [
+    receipt_no,
+    formattedDate,
+    type,
+    client_name,
+    amount,
+    tds,
+    discount,
+    mode,
+    mode_details,
+    billing_firm
+  ], (error, results) => {
+    if (error) {
+      console.error('Error saving receipt:', error);
+      return res.status(500).json({ message: 'Failed to save receipt', error: error.message });
+    }
+    res.status(200).json({ message: 'Receipt saved successfully', insertId: results.insertId });
+  });
+});
+
+app.get('/api/service-categories', (req, res) => {
+  const query = `
+    SELECT DISTINCT ServiceMainCategory
+    FROM services
+    WHERE DueDate = 'YES'
+    ORDER BY ServiceMainCategory
+  `;
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error('Error fetching service categories:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    const categories = results.map((row) => row.ServiceMainCategory);
+    res.json(categories);
+  });
+});
+
+// Endpoint to fetch ServiceName for a given ServiceMainCategory where DueDate = 'YES'
+app.get('/api/service-names', (req, res) => {
+  const { serviceCategory } = req.query;
+  if (!serviceCategory) {
+    return res.status(400).json({ error: 'ServiceMainCategory is required' });
+  }
+  const query = `
+    SELECT ServiceName
+    FROM services
+    WHERE ServiceMainCategory = ? AND DueDate = 'YES'
+    ORDER BY ServiceName
+  `;
+  db.query(query, [serviceCategory], (err, results) => {
+    if (err) {
+      console.error('Error fetching service names:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    const names = results.map((row) => row.ServiceName);
+    res.json(names);
+  });
+});
+
+// Endpoint to fetch service_id for a given ServiceName and ServiceMainCategory
+app.get('/api/service-id', (req, res) => {
+  const { serviceName, serviceCategory } = req.query;
+  if (!serviceName || !serviceCategory) {
+    return res.status(400).json({ error: 'ServiceName and ServiceMainCategory are required' });
+  }
+  const query = `
+    SELECT id
+    FROM services
+    WHERE ServiceName = ? AND ServiceMainCategory = ? AND DueDate = 'YES'
+  `;
+  db.query(query, [serviceName, serviceCategory], (err, results) => {
+    if (err) {
+      console.error('Error fetching service ID:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ error: 'Service not found' });
+    }
+    res.json({ serviceId: results[0].id });
+  });
+});
+
+// Updated endpoint to save service due date details
+app.post('/api/service-due-date', (req, res) => {
+  const {
+    serviceId,
+    financialYear,
+    periodicity,
+    feesPerPeriod,
+    statutoryDueDate,
+    triggerDate,
+    targetDate,
+  } = req.body;
+
+  if (!serviceId || !financialYear || !periodicity) {
+    return res.status(400).json({ error: 'serviceId, financialYear, and periodicity are required' });
+  }
+
+  // Validate date formats (optional, as MySQL will enforce DATE type)
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (statutoryDueDate && !dateRegex.test(statutoryDueDate)) {
+    return res.status(400).json({ error: 'Invalid statutory_due_date format (use YYYY-MM-DD)' });
+  }
+  if (triggerDate && !dateRegex.test(triggerDate)) {
+    return res.status(400).json({ error: 'Invalid trigger_date format (use YYYY-MM-DD)' });
+  }
+  if (targetDate && !dateRegex.test(targetDate)) {
+    return res.status(400).json({ error: 'Invalid target_date format (use YYYY-MM-DD)' });
+  }
+
+  const query = `
+    INSERT INTO service_financial_details (
+      service_id, fy, periodicity, Fees_Per_Period, statutory_due_date, trigger_date, target_date
+    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [
+    serviceId,
+    financialYear,
+    periodicity,
+    feesPerPeriod || 0,
+    statutoryDueDate || null,
+    triggerDate || null,
+    targetDate || null,
+  ];
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error('Error saving service due date:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.status(201).json({ message: 'Service due date saved successfully' });
+  });
+});
+
+app.put('/api/service-due-date/:id', (req, res) => {
+  const { id } = req.params;
+  const {
+    serviceId,
+    financialYear,
+    periodicity,
+    feesPerPeriod,
+    statutoryDueDate,
+    triggerDate,
+    targetDate,
+  } = req.body;
+
+  console.log(`[DEBUG] Updating service_financial_details with id: ${id}`);
+
+  if (!serviceId || !financialYear || !periodicity) {
+    return res.status(400).json({ error: 'serviceId, financialYear, and periodicity are required' });
+  }
+
+  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+  if (statutoryDueDate && !dateRegex.test(statutoryDueDate)) {
+    return res.status(400).json({ error: 'Invalid statutory_due_date format (use YYYY-MM-DD)' });
+  }
+  if (triggerDate && !dateRegex.test(triggerDate)) {
+    return res.status(400).json({ error: 'Invalid trigger_date format (use YYYY-MM-DD)' });
+  }
+  if (targetDate && !dateRegex.test(targetDate)) {
+    return res.status(400).json({ error: 'Invalid target_date format (use YYYY-MM-DD)' });
+  }
+
+  const query = `
+    UPDATE service_financial_details
+    SET
+      service_id = ?,
+      fy = ?,
+      periodicity = ?,
+      Fees_Per_Period = ?,
+      statutory_due_date = ?,
+      trigger_date = ?,
+      target_date = ?
+    WHERE id = ?
+  `;
+  const values = [
+    serviceId,
+    financialYear,
+    periodicity,
+    feesPerPeriod || 0,
+    statutoryDueDate || null,
+    triggerDate || null,
+    targetDate || null,
+    id,
+  ];
+
+  db.query(query, values, (err, results) => {
+    if (err) {
+      console.error('Error updating service due date:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    if (results.affectedRows === 0) {
+      console.log(`[DEBUG] No service_financial_details found with id: ${id}`);
+      return res.status(404).json({ error: 'Service not found' });
+    }
+    res.status(200).json({ message: 'Service due date updated successfully' });
+  });
+});
+
+// Updated DELETE endpoint
+app.delete('/api/service-due-date/:id', (req, res) => {
+  const { id } = req.params;
+
+  console.log(`[DEBUG] Deleting service_financial_details with id: ${id}`);
+
+  const query = `
+    DELETE FROM service_financial_details
+    WHERE id = ?
+  `;
+
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.error('Error deleting service due date:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    if (results.affectedRows === 0) {
+      console.log(`[DEBUG] No service_financial_details found with id: ${id}`);
+      return res.status(404).json({ error: 'Service not found' });
+    }
+    res.status(200).json({ message: 'Service due date deleted successfully' });
+  });
 });
 
 // ✅ Start Server

@@ -8,13 +8,18 @@ export interface InvoiceDetail {
   previouslyReceivedTDS: number;
   currentTDS: number;
   discount: number;
+  gst: number;
   netAmountReceived: number;
   balanceOutstanding: number;
+  particulars?: string; // Add this field for advance receipts
 }
 
 export interface ReceiptData {
+  transactionId: any;
+  bankName: any;
   receiptNo: string;
   receiptDate: string;
+  receiptType: 'invoice' | 'advance';
   clientName: string;
   paymentType: string;
   totalAmount: number;
@@ -44,7 +49,7 @@ export const generatePDF = (data: ReceiptData) => {
 
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text('RECEIPT', 105, 65, { align: 'center' });
+  doc.text(data.receiptType === 'invoice' ? 'RECEIPT' : 'ADVANCE RECEIPT', 105, 65, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
@@ -60,59 +65,103 @@ export const generatePDF = (data: ReceiptData) => {
 
   let y = 90;
   const rowHeight = 7;
-  const colWidths = [25, 25, 25, 30, 20, 20, 25, 25];
-  const headers = [
-    'Invoice No.',
-    'Invoice Date',
-    'Invoice Amount',
-    'Pre. Received',
-    'Current TDS',
-    'Discount',
-    'Net Amount',
-    'Bal. Outstanding'
-  ];
 
-  let x = 15;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.setFillColor(230, 230, 230);
-  doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
-
-  headers.forEach((header, i) => {
-    doc.text(header, x + colWidths[i] / 2, y + 5, { align: 'center' });
-    x += colWidths[i];
-  });
-
-  y += rowHeight;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-
-  data.invoiceDetails.forEach(detail => {
-    let x = 15;
-    const values = [
-      detail.invoiceNo,
-      detail.invoiceDate,
-      detail.invoiceAmount.toFixed(2),
-      detail.previouslyReceivedTDS.toFixed(2),
-      detail.currentTDS.toFixed(2),
-      detail.discount.toFixed(2),
-      detail.netAmountReceived.toFixed(2),
-      detail.balanceOutstanding.toFixed(2)
+  if (data.receiptType === 'invoice') {
+    // Invoice Receipt table
+    const colWidths = [25, 25, 25, 30, 20, 20, 25, 25];
+    const headers = [
+      'Invoice No.',
+      'Invoice Date',
+      'Invoice Amount',
+      'Pre. Received',
+      'Current TDS',
+      'Discount',
+      'Net Amount',
+      'Bal. Outstanding'
     ];
 
-    values.forEach((value, i) => {
-      doc.text(value, x + colWidths[i] / 2, y + 5, { align: 'center' });
+    let x = 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setFillColor(230, 230, 230);
+    doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+
+    headers.forEach((header, i) => {
+      doc.text(header, x + colWidths[i] / 2, y + 5, { align: 'center' });
       x += colWidths[i];
     });
 
     y += rowHeight;
-  });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+
+    data.invoiceDetails.forEach(detail => {
+      let x = 15;
+      const values = [
+        detail.invoiceNo,
+        detail.invoiceDate,
+        Number(detail.invoiceAmount).toFixed(2), // Ensure it's a number
+        Number(detail.previouslyReceivedTDS).toFixed(2), // Ensure it's a number
+        Number(detail.currentTDS).toFixed(2), // Ensure it's a number
+        Number(detail.discount).toFixed(2), // Ensure it's a number
+        Number(detail.netAmountReceived).toFixed(2), // Ensure it's a number
+        Number(detail.balanceOutstanding).toFixed(2) // Ensure it's a number
+      ];
+
+      values.forEach((value, i) => {
+        doc.text(value, x + colWidths[i] / 2, y + 5, { align: 'center' });
+        x += colWidths[i];
+      });
+
+      y += rowHeight;
+    });
+  } else {
+    // Advance Receipt table
+    const colWidths = [50, 50, 45, 45];
+    const headers = [
+      'Particulars',
+      'Gross Advance Amount',
+      'TDS on Advance',
+      'Net Amount'
+    ];
+
+    let x = 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setFillColor(230, 230, 230);
+    doc.rect(x, y, colWidths.reduce((a, b) => a + b, 0), rowHeight, 'F');
+
+    headers.forEach((header, i) => {
+      doc.text(header, x + colWidths[i] / 2, y + 5, { align: 'center' });
+      x += colWidths[i];
+    });
+
+    y += rowHeight;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+
+    data.invoiceDetails.forEach(detail => {
+      let x = 15;
+      const values = [
+        detail.particulars || 'Advance Payment', // Use 'particulars' field
+        Number(detail.invoiceAmount).toFixed(2), // Ensure it's a number
+        Number(detail.currentTDS).toFixed(2), // Ensure it's a number
+        Number(detail.netAmountReceived).toFixed(2) // Ensure it's a number
+      ];
+
+      values.forEach((value, i) => {
+        doc.text(value, x + colWidths[i] / 2, y + 5, { align: 'center' });
+        x += colWidths[i];
+      });
+
+      y += rowHeight;
+    });
+  }
 
   y += 10;
   doc.setFontSize(8);
   doc.setFont('helvetica', 'italic');
   doc.text('*Subject to realization of funds', 15, y);
-
 
   doc.save(`Receipt_${data.receiptNo}_${data.clientName.replace(/\s+/g, '_')}.pdf`);
 };

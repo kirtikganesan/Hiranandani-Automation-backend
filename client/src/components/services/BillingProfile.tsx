@@ -10,6 +10,7 @@ interface BillingEntry {
   partner_email_id: string;
   pan: string;
   gst: string;
+  gst_available: string;
   status: string;
 }
 
@@ -28,6 +29,7 @@ interface FormData {
   pincode: string;
   pan: string;
   gst: string;
+  gstAvailable: string;
   cin: string;
   udyamRegistration: string;
   msmeCategory: string;
@@ -68,6 +70,7 @@ const BillingProfile: React.FC = () => {
     pincode: '',
     pan: '',
     gst: '',
+    gstAvailable: 'No',
     cin: '',
     udyamRegistration: '',
     msmeCategory: 'Micro',
@@ -93,7 +96,6 @@ const BillingProfile: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const backendUrl = import.meta.env.VITE_BACKEND_URL; // Store client names
-
 
   useEffect(() => {
     fetchBillingData();
@@ -156,7 +158,7 @@ const BillingProfile: React.FC = () => {
       // Fetch full profile details
       const response = await axios.get(`${backendUrl}/api/billing-profiles/${entry.id}`);
       const fullProfileData = response.data;
-      
+
       setFormData({
         id: fullProfileData.id,
         firmType: fullProfileData.firmType,
@@ -172,6 +174,7 @@ const BillingProfile: React.FC = () => {
         pincode: fullProfileData.pincode,
         pan: fullProfileData.pan,
         gst: fullProfileData.gst,
+        gstAvailable: fullProfileData.gst_available,
         cin: fullProfileData.cin,
         udyamRegistration: fullProfileData.udyamRegistration,
         msmeCategory: fullProfileData.msmeCategory,
@@ -330,16 +333,33 @@ const BillingProfile: React.FC = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">GST Number</label>
-          <input
-            type="text"
-            name="gst"
-            value={formData.gst}
+          <label className="block text-sm font-medium text-gray-700">GST Available</label>
+          <select
+            name="gstAvailable"
+            value={formData.gstAvailable}
             onChange={handleInputChange}
             className="mt-1 block w-full rounded-md border border-gray-300 p-2"
-          />
+          >
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+          </select>
         </div>
       </div>
+
+      {formData.gstAvailable === 'Yes' && (
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700">GST Number</label>
+            <input
+              type="text"
+              name="gst"
+              value={formData.gst}
+              onChange={handleInputChange}
+              className="mt-1 block w-full rounded-md border border-gray-300 p-2"
+            />
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -692,6 +712,7 @@ const BillingProfile: React.FC = () => {
               pincode: '',
               pan: '',
               gst: '',
+              gstAvailable: 'No',
               cin: '',
               udyamRegistration: '',
               msmeCategory: 'Micro',
@@ -735,19 +756,6 @@ const BillingProfile: React.FC = () => {
             </select>
             <span>entries</span>
           </div>
-          {/* <div className="flex items-center gap-2">
-            <span>Search:</span>
-            <div className="relative">
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="border rounded px-3 py-1 pr-8"
-                placeholder="Search..."
-              />
-              <Search className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-            </div>
-          </div> */}
         </div>
 
         <div className="overflow-x-auto">
@@ -774,7 +782,6 @@ const BillingProfile: React.FC = () => {
                   <td className="px-4 py-3">{entry.gst}</td>
                   <td className="px-4 py-3">
                     <div className="flex gap-2">
-                      
                       <button
                         className="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600"
                         onClick={() => handleEditClick(entry)}
